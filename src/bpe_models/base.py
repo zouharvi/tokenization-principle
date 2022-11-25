@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 import tqdm
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
+
 class BaseBPE:
     def __init__(self, **kwargs):
         pass
@@ -42,20 +43,21 @@ class BaseBPE:
 
         return pairs, set(subword_vocab)
 
-
     def merge_vocab(self, pair: tuple, corpus_freqs: dict) -> dict:
         """Merge all occurrences of a specific pair"""
-        
+
         bigram_joined_space = re.escape(' '.join(pair))
-        bigram_joined_space_re = re.compile(r'(?<!\S)' + bigram_joined_space + r'(?!\S)')
+        bigram_joined_space_re = re.compile(
+            r'(?<!\S)' + bigram_joined_space + r'(?!\S)')
 
         # TODO: this "sanitization" will cause problems later and needs to be carefully checked
         bigram_joined = "".join(pair).replace("\\", "\\\\")
-        
+
         corpus_freqs_new = {}
         # replace a pair in all vocabulary
         for word in corpus_freqs:
-            w_out = bigram_joined_space_re.sub(bigram_joined, word).replace("\\\\", "\\")
+            w_out = bigram_joined_space_re.sub(
+                bigram_joined, word).replace("\\\\", "\\")
             corpus_freqs_new[w_out] = corpus_freqs[word]
 
         return corpus_freqs_new
@@ -73,7 +75,7 @@ class BaseBPE:
 
             if len(subword_vocab) >= vocab_size:
                 break
-            
+
             if i % 100 == 0:
                 print("Vocab size:", len(subword_vocab))
 
@@ -91,31 +93,44 @@ class BaseBPE:
         while True:
             if len(token) == 0:
                 break
-            prefix_subwords = [s for s in self.subword_vocab if token.startswith(s)]
-            prefix_subwords = sorted(prefix_subwords, key=lambda x: len(x), reverse=True)
+
+            # TODO: this is a greedy decoding approach which is not optimal
+            prefix_subwords = [
+                s for s in self.subword_vocab if token.startswith(s)
+            ]
+
+            prefix_subwords = sorted(
+                prefix_subwords, key=lambda x: len(x),
+                reverse=True
+            )
+
             # take the longest subword
             if len(prefix_subwords) == 0:
                 if "</w>" in token:
-                    token_out.append("UNK</w>")
+                    token_out.append("UNK")
                     break
                 else:
                     # this should never happen
-                    token_out.append("UNK")
+                    token_out.append("UNK@@")
                     break
 
             token_out.append(prefix_subwords[0])
             token = token[len(prefix_subwords[0]):]
 
-        return " ".join(token_out)
+        return "@@ ".join(token_out).removesuffix("</w>")
 
     def encode(self, corpus: list[str]) -> list[str]:
-        # TODO: this can surely be paralelized by lines
-        out = []
-        for line in tqdm.tqdm(corpus):
-            # add end of token token
-            line = [word + "</w>" for word in line.split()]
-            line = [self.encode_token(word) for word in line]
-            out.append(" ".join(line))
+        import multiprocess
+
+        with multiprocess.Pool() as pool:
+            out = pool.map(
+                lambda line: " ".join([
+                    self.encode_token(word + "</w>")
+                    for word in line.split()
+                ]),
+                tqdm.tqdm(corpus)
+            )
+
         return out
 
     def save(self, path):

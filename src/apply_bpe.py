@@ -4,22 +4,26 @@ import argparse
 from bpe_models.base import BaseBPE
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", default="data/CCrawl.de-en/orig.en")
-args.add_argument("-o", "--output",
-                  default="data/CCrawl.de-en/orig.standard.en")
+args.add_argument(
+    "-i", "--input", default="data/CCrawl.de-en/orig.en"
+)
+args.add_argument(
+    "-o", "--output",
+    default="data/CCrawl.de-en/orig.standard.en"
+)
 args.add_argument(
     "-vi", "--vocab-input",
     default="computed/standard.bpe_model"
 )
 args.add_argument(
-    "-n", "--number-of-lines-in-each-file",
+    "-n", "--number-of-lines",
     type=int, default=10000
 )
 args = args.parse_args()
 
 print("Loading data")
 with open(args.input, "r") as f:
-    data = list(f.readlines()[:args.number_of_lines_in_each_file])
+    data = list(f.readlines()[:args.number_of_lines])
 
 print("Applying BPE")
 model = BaseBPE()

@@ -9,7 +9,7 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
             --job-name="fit_bpe_${SIGNATURE}" \
             --wrap="python3 ./src/fit_bpe.py \
                 --model $BPE_MODEL \
-                --vocab-output computed/$BPE_MODEL.bpe_model \
+                --vocab-output computed/${BPE_MODEL}_${VOCAB_SIZE}.bpe_model \
                 --vocab-size $VOCAB_SIZE \
                 --number-of-lines 100000 \
             ";
@@ -25,7 +25,7 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
             --wrap="python3 ./src/fit_bpe.py \
                 --model $BPE_MODEL \
                 --seed $SEED \
-                --vocab-output computed/$BPE_MODEL.bpe_model \
+                --vocab-output computed/${BPE_MODEL}_${SEED}_${VOCAB_SIZE}.bpe_model \
                 --vocab-size $VOCAB_SIZE \
                 --number-of-lines 100000 \
             ";

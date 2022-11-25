@@ -1,0 +1,4 @@
+multiprocess
+tqdm
+matplotlib
+numpy
