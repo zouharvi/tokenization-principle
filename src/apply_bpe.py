@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
-from bpe_models.standard import StandardBPE
+from bpe_models.base import BaseBPE
 
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="data/CCrawl.de-en/orig.en")
-args.add_argument("-o", "--output", default="data/CCrawl.de-en/orig.standard.en")
+args.add_argument("-o", "--output",
+                  default="data/CCrawl.de-en/orig.standard.en")
 args.add_argument(
     "-vi", "--vocab-input",
     default="computed/standard.bpe_model"
@@ -21,21 +22,22 @@ with open(args.input, "r") as f:
     data = list(f.readlines()[:args.number_of_lines_in_each_file])
 
 print("Applying BPE")
-model = StandardBPE()
+model = BaseBPE()
 model.load(args.vocab_input)
 data = model.encode(data)
 
-total_subwords = sum(word.count(" ")+1 for line in data for word in line)
+total_subwords = sum(line.count(" ") + 1 for line in data)
 print("Outputting", total_subwords, "total subwords")
-total_unks = sum("UNK" in word for line in data for word in line)
-print(total_unks)
-print(f"UNKs represent {total_unks/total_subwords:.4%} total subwords")
-
+total_unks = sum((" " + line).count(" UNK") for line in data)
+print(
+    f"Total of {total_unks} UNKs outputted",
+    f"({total_unks/total_subwords:.4%} of all subwords)"
+)
 
 with open(args.output, "w") as f:
     for line in data:
         f.write(line + "\n")
 
-# standard 1061855
-# random 1303817
-# antistandard 1485704
+# greedy     161933 (746)
+# random     278583 (445)
+# antigreedy 385774 (7188)

@@ -1,6 +1,6 @@
 from .base import BaseBPE
 
-class AntiStandardBPE(BaseBPE):
+class AntiGreedyBPE(BaseBPE):
     def __init__(self):
         pass
 
