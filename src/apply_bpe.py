@@ -5,7 +5,7 @@ from bpe_models.standard import StandardBPE
 
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="data/CCrawl.de-en/orig.en")
-args.add_argument("-o", "--output", default="data/CCrawl.de-en/orig.bpe.en")
+args.add_argument("-o", "--output", default="data/CCrawl.de-en/orig.standard.en")
 args.add_argument(
     "-vi", "--vocab-input",
     default="computed/standard.bpe_model"
@@ -25,9 +25,17 @@ model = StandardBPE()
 model.load(args.vocab_input)
 data = model.encode(data)
 
-total_subwords = sum(len(word) for line in data for word in line)
+total_subwords = sum(word.count(" ")+1 for line in data for word in line)
 print("Outputting", total_subwords, "total subwords")
+total_unks = sum("UNK" in word for line in data for word in line)
+print(total_unks)
+print(f"UNKs represent {total_unks/total_subwords:.4%} total subwords")
+
 
 with open(args.output, "w") as f:
     for line in data:
         f.write(line + "\n")
+
+# standard 1061855
+# random 1303817
+# antistandard 1485704
