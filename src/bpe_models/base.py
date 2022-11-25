@@ -6,7 +6,7 @@ import tqdm
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
 class BaseBPE:
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
     def build_vocab_freq(self, corpus: list[str]):
