@@ -1,6 +1,7 @@
 import itertools
 import re
 from collections import Counter, defaultdict
+import sys
 
 import tqdm
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
@@ -78,6 +79,7 @@ class BaseBPE:
 
             if i % 100 == 0:
                 print("Vocab size:", len(subword_vocab))
+                sys.stdout.flush()
 
             # choose max pair
             best = self.choose_pair_to_merge(pairs)
