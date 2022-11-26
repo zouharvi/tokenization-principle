@@ -22,7 +22,7 @@ args.add_argument(
     "-n", "--number-of-lines",
     type=int, default=10000
 )
-args.add_argument("--logfile", default="computed/apply_bpe.jsonl")
+args.add_argument("--logfile", default=None)
 args = args.parse_args()
 
 def compute_entropy(data: list[str]):

@@ -7,7 +7,7 @@ import argparse
 import json
 
 args = argparse.ArgumentParser()
-args.add_argument("-l", "--logfile", default="computed/apply_bpe.jsonl")
+args.add_argument("-l", "--logfile", default="computed/apply_bpe_all.jsonl")
 args.add_argument("-y", "--y-axis", default="entropy_subword")
 args = args.parse_args()
 
@@ -29,14 +29,14 @@ for line_train, line_dev in data:
     data_vocabsize[vocab_size][model].append((line_train, line_dev))
 
 POINT_COLOR = {
-    "greedy": fig_utils.COLORS[0],
-    "antigreedy": fig_utils.COLORS[1],
-    "random": fig_utils.COLORS[2],
+    "4096": fig_utils.COLORS[0],
+    "8192": fig_utils.COLORS[1],
+    "16384": fig_utils.COLORS[2],
 }
 MARKER_STYLE = {
-    "4096": ".",
-    "8192": "v",
-    "16384": "*"
+    "greedy": ".",
+    "antigreedy": "v",
+    "random": "*"
 }
 
 def get_quantity(line_train, line_dev):
@@ -73,8 +73,8 @@ for vocab_size, data_vocabsize_local in data_vocabsize.items():
         plt.scatter(
             q_xaxis, q_yaxis,
             label=name,
-            color=POINT_COLOR[model_name],
-            marker=MARKER_STYLE[vocab_size]
+            color=POINT_COLOR[vocab_size],
+            marker=MARKER_STYLE[model_name]
         )
 
 plt.ylabel(r"Subword entropy $-\frac{1}{|C|}\sum_{sw.} \log_2 p(sw.)$")

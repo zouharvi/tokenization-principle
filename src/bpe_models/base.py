@@ -101,6 +101,8 @@ class BaseBPE:
                 s for s in self.subword_vocab if token.startswith(s)
             ]
 
+            # TODO: instead of doing search + sort every time, we can do sort and then break at first token.startswith(s)
+            # this will massivelly speed up the code
             prefix_subwords = sorted(
                 prefix_subwords, key=lambda x: len(x),
                 reverse=True
