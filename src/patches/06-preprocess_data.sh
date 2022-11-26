@@ -1,9 +1,8 @@
 #!/usr/bin/bash
 
-# "antigreedy"
 for VOCAB_SIZE in "4096" "8192" "16384"; do
     for BPE_MODEL in \
-        "greedy"  \
+        "greedy" "antigreedy" \
         "random_0" "random_1" "random_2" "random_3" "random_4"; \
     do
         BPE_NAME="${BPE_MODEL}_${VOCAB_SIZE}"
@@ -17,10 +16,10 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
             TEXT_DIR="data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}";
             mkdir -p ${TEXT_DIR};
         
-            cp "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG1}" "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG1}";
-            cp "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG2}" "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG2}";
-            cp "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG1}" "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG1}";
-            cp "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG2}" "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG2}";
+            head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG1}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG1}";
+            head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG2}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG2}";
+            head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG1}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG1}";
+            head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG2}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG2}";
 
             sbatch --time=0-1 --ntasks=40 --mem-per-cpu=1G \
                 --job-name="preprocess_${BPE_NAME}.${LANG1}-${LANG2}" \

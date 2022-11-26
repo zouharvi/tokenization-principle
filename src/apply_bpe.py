@@ -44,6 +44,12 @@ entropy_word = compute_entropy(data)
 print(f"Word entropy: {entropy_word:.3f}")
 data = model.encode(data)
 entropy_subword = compute_entropy(data)
+
+# save to file
+with open(args.output, "w") as f:
+    for line in data:
+        f.write(line + "\n")
+
 print(f"Subword entropy: {entropy_subword:.3f}")
 
 total_subwords = sum(line.count(" ") + 1 for line in data)
@@ -53,10 +59,6 @@ print(
     f"Total of {total_unks} UNKs outputted",
     f"({total_unks/total_subwords:.4%} of all subwords)"
 )
-
-with open(args.output, "w") as f:
-    for line in data:
-        f.write(line + "\n")
 
 if args.logfile is not None:
     with open(args.logfile, "a") as f:

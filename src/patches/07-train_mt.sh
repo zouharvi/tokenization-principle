@@ -1,9 +1,8 @@
 #!/usr/bin/bash
 
-# "antigreedy"
-for VOCAB_SIZE in "4096" "8192" "16384"; do
+for VOCAB_SIZE in "16384" "8192" "4096"; do
 for BPE_MODEL in \
-    "greedy" \
+    "greedy" "antigreedy" \
     "random_0" "random_1" "random_2" "random_3" "random_4"; \
 do
     BPE_NAME="${BPE_MODEL}_${VOCAB_SIZE}"
@@ -33,7 +32,7 @@ do
                 --criterion label_smoothed_cross_entropy --label-smoothing 0.1 \
                 --max-tokens 4096 \
                 --eval-bleu \
-                --patience 15 \
+                --patience 10 \
                 --save-dir \"$TEXT_DIR/checkpoints\" \
                 --eval-bleu-args '{\"beam\": 5, \"max_len_a\": 1.2, \"max_len_b\": 10}' \
                 --eval-bleu-detok moses \
