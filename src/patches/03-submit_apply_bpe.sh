@@ -39,13 +39,13 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
 done;
 
 # VOCAB_SIZE="4096"
-# BPE_MODEL="greedy"
+# BPE_MODEL="random_0"
 # SPLIT="train"
 # LANG="en"
 # SIGNATURE="${SPLIT}_${LANG}_${BPE_MODEL}_${VOCAB_SIZE}"
 # BPE_PATH="computed/${BPE_MODEL}_${VOCAB_SIZE}.bpe_model"
 # SRC_DATA_PATH="data/CCrawl.de-en/${SPLIT}.tok.${LANG}"
-# TGT_DATA_PATH="data/CCrawl.de-en/${SPLIT}.tok.${SIGNATURE}.${LANG}"
+# TGT_DATA_PATH="data_bpe/CCrawl.de-en/${SPLIT}.tok.${SIGNATURE}.${LANG}"
 
 # python3 ./src/apply_bpe.py \
 #     --input ${SRC_DATA_PATH} \

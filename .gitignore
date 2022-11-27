@@ -1,6 +1,8 @@
 # added by zouharvi
 computed
 data
+data_bpe
+data_bin
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -91,46 +91,43 @@ class BaseBPE:
         self.subword_vocab = sorted(subword_vocab, key=lambda x: len(x))
 
     def encode_token(self, token):
+        # ASSERT: subword_vocab is sorted from longest to shortest
+
         token_out = []
         while True:
             if len(token) == 0:
                 break
-
+            
             # TODO: this is a greedy decoding approach which is not optimal
-            prefix_subwords = [
-                s for s in self.subword_vocab if token.startswith(s)
-            ]
-
-            # TODO: instead of doing search + sort every time, we can do sort and then break at first token.startswith(s)
-            # this will massivelly speed up the code
-            prefix_subwords = sorted(
-                prefix_subwords, key=lambda x: len(x),
-                reverse=True
-            )
-
-            # take the longest subword
-            if len(prefix_subwords) == 0:
-                if "</w>" in token:
-                    token_out.append("UNK")
+            # The "greediness" in here is different from the BPE building
+            found = False
+            for subword in self.subword_vocab:
+                if token.startswith(subword):
+                    found = True
                     break
-                else:
-                    # this should never happen
-                    token_out.append("UNK@@")
-                    break
+            
+            if not found:
+                subword = "UNK"
 
-            token_out.append(prefix_subwords[0])
-            token = token[len(prefix_subwords[0]):]
+            token_out.append(subword)
+            token = token[len(subword):]
 
-        return "@@ ".join(token_out).removesuffix("</w>")
+        # no word ends with @@
+        return "@@ ".join(token_out).removesuffix("</w>").strip().removesuffix("@@")
 
     def encode(self, corpus: list[str]) -> list[str]:
+        # make sure it's sorted from longest to shortest
+        self.subword_vocab = sorted(
+            self.subword_vocab, key=lambda x: len(x),
+            reverse=True
+        )
         import multiprocess
 
         with multiprocess.Pool() as pool:
             out = pool.map(
                 lambda line: " ".join([
                     self.encode_token(word + "</w>")
-                    for word in line.split()
+                    for word in line.split(" ")
                 ]),
                 tqdm.tqdm(corpus)
             )
