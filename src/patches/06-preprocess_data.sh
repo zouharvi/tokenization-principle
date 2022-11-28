@@ -16,6 +16,7 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
             TEXT_DIR="data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}";
             mkdir -p ${TEXT_DIR};
         
+            # take only 1M for train and 50k for eval
             head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG1}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG1}";
             head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG2}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG2}";
             head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG1}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG1}";
