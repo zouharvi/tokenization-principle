@@ -22,6 +22,9 @@ args.add_argument(
     "-n", "--number-of-lines",
     type=int, default=10000
 )
+args.add_argument(
+    "--method", default="greedy_naive"
+)
 args.add_argument("--logfile", default=None)
 args = args.parse_args()
 
@@ -42,7 +45,7 @@ model = BaseBPE()
 model.load(args.vocab_input)
 entropy_word = compute_entropy(data)
 print(f"Word entropy: {entropy_word:.3f}")
-data = model.encode(data)
+data = model.encode(data, method=args.method)
 entropy_subword = compute_entropy(data)
 
 # save to file
