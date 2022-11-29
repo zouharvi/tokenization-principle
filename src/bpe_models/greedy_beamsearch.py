@@ -25,9 +25,9 @@ class Beam():
         )
 
     def score(self):
-        return -self.corpus.count(" ")
-        # use log to not be dominated by zipf
-        # return -math.log2(self.corpus.count(" "))
+        # use log to not be dominated by zipf but may not be important
+        return -math.log2(self.corpus.count(" "))
+        # return -self.corpus.count(" ")
 
 class GreedyBeamSearchBPE(BaseBPE):
     def __init__(self, beam_n: int, beam_n_expand: int, **kwargs):
