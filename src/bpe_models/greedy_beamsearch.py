@@ -47,6 +47,7 @@ class GreedyBeamSearchBPE(BaseBPE):
     def choose_pair_to_merge(self, pairs):
         pairs = list(pairs.items())
         pairs.sort(key=lambda x: x[1], reverse=True)
+        # TODO: there is no point in self.beam_n_expand > self.beam_n
         return pairs[:self.beam_n_expand]
 
     def fit(self, corpus: str, vocab_size: int):
