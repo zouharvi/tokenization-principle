@@ -27,7 +27,8 @@ class BaseBPE:
 
         return vocab_freq
 
-    def get_pairs(self, corpus_freqs: dict[str, int]) -> dict:
+    @staticmethod
+    def get_pairs(corpus_freqs: dict[str, int]) -> dict:
         """Get counts of pairs of consecutive symbols"""
 
         pairs = defaultdict(int)
@@ -42,7 +43,8 @@ class BaseBPE:
 
         return pairs
 
-    def merge_vocab(self, pair: tuple, corpus_freqs: dict) -> dict:
+    @staticmethod
+    def merge_vocab(pair: tuple, corpus_freqs: dict) -> dict:
         """Merge all occurrences of a specific pair"""
 
         bigram_joined_space = re.escape(' '.join(pair))
@@ -57,7 +59,8 @@ class BaseBPE:
         # replace a pair in all vocabulary
         for word in corpus_freqs:
             w_out = bigram_joined_space_re.sub(
-                bigram_joined, word).replace("\\\\", "\\")
+                bigram_joined, word
+            ).replace("\\\\", "\\")
             corpus_freqs_new[w_out] = corpus_freqs[word]
 
         return corpus_freqs_new
@@ -68,12 +71,16 @@ class BaseBPE:
         # get initial characters
         pairs = self.get_pairs(corpus_freqs)
         # add all characters to subword vocab even if they are not merge operations
-        self.merge_operations = list({s for pair in pairs.keys() for s in pair})
+        self.merge_operations = list(
+            {s for pair in pairs.keys() for s in pair})
         # add end characters
-        self.merge_operations += list({pair[0]+pair[1] for pair in pairs.keys() if pair[1] == "</w>"})
+        self.merge_operations += list({
+            pair[0] + pair[1]
+            for pair in pairs.keys() if pair[1] == "</w>"
+        })
 
         # infinite iterator
-        for i in tqdm.tqdm(itertools.count(), total=vocab_size-len(self.merge_operations)):
+        for i in tqdm.tqdm(itertools.count(), total=vocab_size - len(self.merge_operations)):
             # TODO: this is potentially heavy
             pairs = self.get_pairs(corpus_freqs)
 
@@ -112,7 +119,8 @@ class BaseBPE:
                 if merge_operation in token:
                     # apply operation but make sure that it's still surrounded by spaces
                     token = token.replace(
-                        merge_operation, " " + merge_operation.replace(" ", "") + " "
+                        merge_operation, " " +
+                        merge_operation.replace(" ", "") + " "
                     )
                     token = " " + token.strip() + " "
                     updated = True
@@ -156,7 +164,8 @@ class BaseBPE:
             self.merge_operations_to_subword_vocab(self.merge_operations)
         )
         # take only proper merge operations
-        merge_operations = [" " + x + " " for x in self.merge_operations if " " in x]
+        merge_operations = [
+            " " + x + " " for x in self.merge_operations if " " in x]
 
         import multiprocess
 
