@@ -12,3 +12,9 @@ for SPLIT in "train" "dev" "test"; do
                 ";
     done;
 done;
+
+
+
+# cat "data/CCrawl.de-en/${SPLIT}.${LANG}" \
+#     | sacremoses -j 22 -l ${LANG} tokenize \
+#     > "data/CCrawl.de-en/${SPLIT}.tok.${LANG}"

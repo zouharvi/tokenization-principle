@@ -73,7 +73,7 @@ class BaseBPE:
         self.merge_operations += list({pair[0]+pair[1] for pair in pairs.keys() if pair[1] == "</w>"})
 
         # infinite iterator
-        for i in tqdm.tqdm(itertools.count(), total=vocab_size):
+        for i in tqdm.tqdm(itertools.count(), total=vocab_size-len(self.merge_operations)):
             # TODO: this is potentially heavy
             pairs = self.get_pairs(corpus_freqs)
 
@@ -123,8 +123,6 @@ class BaseBPE:
             x if x in subword_vocab else "UNK"
             for x in token.strip(" ").split(" ")
         ]).removesuffix("</w>").removesuffix("@@")
-        if "UNK" in token_new:
-            print(token, token_new)
         return token_new
 
     def encode_token_greedy_naive(self, token, subword_vocab: list[str]):

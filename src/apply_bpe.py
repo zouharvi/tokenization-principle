@@ -8,7 +8,7 @@ from bpe_models.base import BaseBPE
 
 args = argparse.ArgumentParser()
 args.add_argument(
-    "-i", "--input", default="data/CCrawl.de-en/orig.en"
+    "-i", "--input", default="data/CCrawl.de-en/dev.tok.en",
 )
 args.add_argument(
     "-o", "--output",
@@ -27,6 +27,7 @@ args.add_argument(
 )
 args.add_argument("--logfile", default=None)
 args = args.parse_args()
+print(args.logfile)
 
 def compute_entropy(data: list[str]):
     data = [word for line in data for word in line.split()]
@@ -67,6 +68,7 @@ if args.logfile is not None:
     with open(args.logfile, "a") as f:
         f.write(json.dumps({
             "model": args.vocab_input.split("/")[-1],
+            "method": args.method,
             "total_subwords": total_subwords,
             "total_unks": total_unks,
             "number_of_lines": args.number_of_lines,
