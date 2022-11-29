@@ -3,6 +3,8 @@
 GLOBAL_PARAMS="--number-of-lines 1000 -vs 512 -i data/demo.txt"
 
 time ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy_beamsearch.bpe_merges -m greedy_beamsearch
+time ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy_beamsearch_e1.bpe_merges -m greedy_beamsearch --beam-n-expand 1
+
 # real    2m19.900s
 # user    2m19.845s
 # sys     0m0.785s
@@ -21,3 +23,10 @@ for BPECODES in computed/small/*.bpe_merges; do
         --input "data/demo.txt" \
         --output "/dev/null" &
 done;
+
+BPECODES="computed/small/greedy_beamsearch.bpe_merges"
+    ./src/apply_bpe.py $GLOBAL_PARAMS_APPLY \
+        --method ${METHOD} \
+        --vocab-input ${BPECODES} \
+        --input "data/demo.txt" \
+        --output "/dev/null" &

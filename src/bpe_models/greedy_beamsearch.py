@@ -9,24 +9,32 @@ import math
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
 class Beam():
-    def __init__(self, merge_operations, corpus, corpus_freqs):
+    def __init__(self, merge_operations, corpus_freqs):
         self.merge_operations = copy.deepcopy(merge_operations)
-        self.corpus = copy.deepcopy(corpus)
+        # self.corpus = copy.deepcopy(corpus)
         self.corpus_freqs = copy.deepcopy(corpus_freqs)
+        self.score = 0
 
     def add_pair(self, pair: tuple):
-        self.merge_operations.append(pair[0] + " " + pair[1])
+        pair_txt = pair[0]
+        self.merge_operations.append(pair_txt[0] + " " + pair_txt[1])
+        self.score += pair[1]
 
         # TODO: this could potentially work also with corpus_freqs so we may use that to speed it up
         # However we need it for the hash
-        self.corpus = self.corpus.replace(
-            " " + pair[0] + " " + pair[1] + " ",
-            " " + pair[0] + pair[1] + " ",
-        )
+        # self.corpus = self.corpus.replace(
+        #     " " + pair[0] + " " + pair[1] + " ",
+        #     " " + pair[0] + pair[1] + " ",
+        # )
 
-    def score(self):
+    def get_hash(self):
+        return "".join(sorted(self.merge_operations))
+
+    def get_score(self):
+        # use accumulated pair scores but could also directly use corpus size
+        return self.score
         # use log to not be dominated by zipf but may not be important
-        return -math.log2(self.corpus.count(" "))
+        # return -math.log2(self.corpus.count(" "))
         # return -self.corpus.count(" ")
 
 class GreedyBeamSearchBPE(BaseBPE):
@@ -37,18 +45,7 @@ class GreedyBeamSearchBPE(BaseBPE):
     def choose_pair_to_merge(self, pairs):
         pairs = list(pairs.items())
         pairs.sort(key=lambda x: x[1], reverse=True)
-        return [x[0] for x in pairs[:self.beam_n_expand]]
-
-    @staticmethod
-    def preprocess_beam_corpus(corpus):
-        # join lines together
-        corpus = " ".join(corpus)
-        # collapse whitespace and newlines
-        corpus = COLLAPSE_WHITESPACE.sub(" ", corpus)
-
-        corpus = [" ".join(word) + " </w>" for word in corpus.split()]
-        corpus = " " + " ".join(corpus) + " "
-        return corpus
+        return pairs[:self.beam_n_expand]
 
     def fit(self, corpus: str, vocab_size: int):
         corpus_freqs = self.build_vocab_freq(corpus)
@@ -65,14 +62,14 @@ class GreedyBeamSearchBPE(BaseBPE):
             for pair in pairs.keys() if pair[1] == "</w>"
         })
 
-        corpus_preprocessed = self.preprocess_beam_corpus(corpus)
-
-        beams = [Beam(merge_operations, corpus_preprocessed, corpus_freqs)]
+        beams = [Beam(merge_operations, corpus_freqs)]
 
         # infinite iterator
         for i in tqdm.tqdm(itertools.count(), total=vocab_size - len(merge_operations)):
             # advance each beam
             beams_new = []
+            beams_hash_duplicate = set()
+
             for beam in beams:
                 pairs = self.get_pairs(beam.corpus_freqs)
 
@@ -91,25 +88,26 @@ class GreedyBeamSearchBPE(BaseBPE):
                     beam_clone = copy.deepcopy(beam)
                     beam_clone.add_pair(pair)
                     # we can use beam.corpus_freq because we're not borrowing it mutably
-                    beam_clone.corpus_freqs = self.merge_vocab(pair, beam.corpus_freqs)
-                    beams_new.append(beam_clone)
 
-            # remove duplicates (very important because of order invariance)
-            beams_hash_duplicate = set()
-            beams_new_original = []
-            for beam in beams_new:
-                # use processed corpora as a signature
-                beam_hash = beam.corpus
-                if beam_hash in beams_hash_duplicate:
-                    continue
-                else:
-                    beams_hash_duplicate.add(beam_hash)
-                    beams_new_original.append(beam)
-            beams_new = beams_new_original
+                    # remove duplicates (very important because of order invariance)
+                    beam_hash = beam_clone.get_hash()
+                    if beam_hash in beams_hash_duplicate:
+                        continue
+                    else:
+                        beams_hash_duplicate.add(beam_hash)
+                        beam_clone.corpus_freqs = self.merge_vocab(pair[0], beam.corpus_freqs)
+                        beams_new.append(beam_clone)
+                        beams_new.append(beam_clone)
+
+
+            # beams_new_original = []
+            # for beam in beams_new:
+            #     # use processed corpora as a signature
+            # beams_new = beams_new_original
 
             # Rerank and cut off beams
-            beams_new.sort(key=lambda beam: beam.score(), reverse=True)
-            # print(f"Iteration {i} beam scores: ", ", ".join([f"{beam.score():.0f}" for beam in beams]))
+            beams_new.sort(key=lambda beam: beam.get_score(), reverse=True)
+            print(f"Iteration {i} beam scores: ", ", ".join([f"{beam.get_score():.0f}" for beam in beams]))
             beams = beams_new[:self.beam_n]
 
             if len(beams[0].merge_operations) >= vocab_size:
