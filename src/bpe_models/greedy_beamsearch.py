@@ -11,7 +11,6 @@ COLLAPSE_WHITESPACE = re.compile(r"\s+")
 class Beam():
     def __init__(self, merge_operations, corpus_freqs):
         self.merge_operations = copy.deepcopy(merge_operations)
-        # self.corpus = copy.deepcopy(corpus)
         self.corpus_freqs = copy.deepcopy(corpus_freqs)
         self.score = 0
 
@@ -38,6 +37,9 @@ class Beam():
         # return -self.corpus.count(" ")
 
 class GreedyBeamSearchBPE(BaseBPE):
+    # TODO: the beam_n_expand is nonsense and should technically be 1
+    # It should work out with that if we do initialization properly
+    
     def __init__(self, beam_n: int, beam_n_expand: int, **kwargs):
         self.beam_n = beam_n
         self.beam_n_expand = beam_n_expand
@@ -97,22 +99,18 @@ class GreedyBeamSearchBPE(BaseBPE):
                         beams_hash_duplicate.add(beam_hash)
                         beam_clone.corpus_freqs = self.merge_vocab(pair[0], beam.corpus_freqs)
                         beams_new.append(beam_clone)
-                        beams_new.append(beam_clone)
 
-
-            # beams_new_original = []
-            # for beam in beams_new:
-            #     # use processed corpora as a signature
-            # beams_new = beams_new_original
 
             # Rerank and cut off beams
             beams_new.sort(key=lambda beam: beam.get_score(), reverse=True)
-            print(f"Iteration {i} beam scores: ", ", ".join([f"{beam.get_score():.0f}" for beam in beams]))
+            # print(f"Iteration {i} beam scores: ", ", ".join([f"{beam.get_score():.0f}" for beam in beams]))
             beams = beams_new[:self.beam_n]
 
             if len(beams[0].merge_operations) >= vocab_size:
                 break
 
+        beams_best = max(beams, key=lambda beam: beam.get_score())
+
         # choose the top
-        self.merge_operations = beams[0].merge_operations
-        self.corpus_freqs = beams[0].corpus_freqs
+        self.merge_operations = beams_best.merge_operations
+        self.corpus_freqs = beams_best.corpus_freqs

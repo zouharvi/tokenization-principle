@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
-GLOBAL_PARAMS_APPLY="--number-of-lines 10000 --logfile computed/applybpe_small_beam.jsonl"
+# TODO: test also only 10k which is the data on which it was optimized
+GLOBAL_PARAMS_APPLY="--number-of-lines 1000000 --logfile computed/apply_bpe_small_beam.jsonl"
 METHOD="greedy_naive"
 SPLIT="train"
 for BPECODES in computed/small/*.bpe_merges; do
