@@ -2,8 +2,6 @@ from .base import BaseBPE
 import copy
 import re
 import tqdm
-import itertools
-import sys
 import operator
 from .base import BaseBPE
 
@@ -39,8 +37,11 @@ class Hypothesis():
     def get_corpus_freqs(self):
         if self.corpus_freqs == None:
             if self.pair_to_add == None:
+                # we don't need to clone corpus_freqs
+                self.corpus_freqs = self.corpus_freqs_parent
+                pass
                 # this should occur only once
-                self.corpus_freqs = copy.deepcopy(self.corpus_freqs_parent)
+                # self.corpus_freqs = copy.deepcopy(self.corpus_freqs_parent)
             else:
                 # this creates a new object so we're only borrowing parent's data
                 self.corpus_freqs = BaseBPE.merge_vocab(self.pair_to_add, self.corpus_freqs_parent)
@@ -49,7 +50,8 @@ class Hypothesis():
 
     def get_merge_operations(self):
         if self.merge_operations == None:
-            self.merge_operations = copy.deepcopy(self.merge_operations_parent)
+            # hopefully this is enough for clone
+            self.merge_operations = list(self.merge_operations_parent)
             if self.pair_to_add != None:
                 self.merge_operations.append(self.pair_to_add[0] + " " + self.pair_to_add[1])
 
@@ -89,8 +91,8 @@ class GreedyBeamSearchNewBPE(BaseBPE):
             for score, hyp in beam_t[t-1]:
                 possible_pairs = hyp.get_possible_extensions()
                 # TODO: to speed things up add only top-x
-                # Should not matter much that there is lots of children because they are a light object with
-                # lazy copying of their parents' data
+                # Should not matter much that there is lots of children because they are
+                # a light object with lazy copying of their parents' data
                 for pair in possible_pairs:
                     new_hyp = hyp.spawn_child(pair)
                     new_score = score + pair[1]
