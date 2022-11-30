@@ -3,8 +3,6 @@
 VOCAB_SIZE="1024"
 LINE_COUNT="2000"
 GLOBAL_PARAMS="--number-of-lines ${LINE_COUNT} -vs ${VOCAB_SIZE} -i data/CCrawl.de-en/train.tok.en"
-time ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy_beamsearch_v${VOCAB_SIZE}_l2k_new.bpe_merges -m greedy_beamsearch_new --beam-n 10
-time ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy_beamsearch_v${VOCAB_SIZE}_l2k_new_n5.bpe_merges -m greedy_beamsearch_new --beam-n 5
 time ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy_v${VOCAB_SIZE}_l2k.bpe_merges -m greedy
 
 time ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy_beamsearch_${VOCAB_SIZE}_old.bpe_merges -m greedy_beamsearch_old --beam-n 3
@@ -36,3 +34,19 @@ for LANG in "en" "de"; do
         --input "data/CCrawl.de-en/train.tok.${LANG}" \
         --output "/dev/null";
 done;
+
+# speed
+VOCAB_SIZE="1024"
+LINE_COUNT="2000"
+GLOBAL_PARAMS="--number-of-lines ${LINE_COUNT} -vs ${VOCAB_SIZE} -i data/CCrawl.de-en/train.tok.en"
+N="50"
+    time_start=`date +%s`
+    ./src/fit_bpe.py $GLOBAL_PARAMS \
+        -vo /dev/null \
+        -m greedy_beamsearch_new \
+        -vo computed/small/greedy_beamsearch_v${VOCAB_SIZE}_l2k_n${N}.bpe_merges \
+        --beam-n ${N}
+    time_end=`date +%s`
+    echo "n${N}" `expr $time_end - $time_start` "s"
+for N in "1" "2" "3" "4" "5" "6" "7" "8" "9" "10"; do
+done

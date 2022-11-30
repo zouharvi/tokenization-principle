@@ -1,13 +1,19 @@
 from .base import BaseBPE
 import copy
+from queue import PriorityQueue
 import re
 import tqdm
 import operator
 from .base import BaseBPE
+from dataclasses import dataclass, field
+from typing import Any
 
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
+@dataclass(order=True)
 class Hypothesis():
+    score: Any=field(compare=True)
+
     def __init__(self, merge_operations_parent, corpus_freqs_parent):
         self.merge_operations_parent = merge_operations_parent
         self.corpus_freqs_parent = corpus_freqs_parent
@@ -15,6 +21,7 @@ class Hypothesis():
         self.corpus_freqs = None
         self.pair_to_add = None
         self.possible_extensions = None
+        self.score = 0
 
     def __len__(self):
         self.get_merge_operations()
@@ -38,6 +45,7 @@ class Hypothesis():
         if self.corpus_freqs == None:
             if self.pair_to_add == None:
                 # we don't need to clone corpus_freqs
+                # TODO: ??
                 self.corpus_freqs = self.corpus_freqs_parent
                 pass
                 # this should occur only once
@@ -51,13 +59,13 @@ class Hypothesis():
     def get_merge_operations(self):
         if self.merge_operations == None:
             # hopefully this is enough for clone
+            # TODO: ???
             self.merge_operations = list(self.merge_operations_parent)
             if self.pair_to_add != None:
                 self.merge_operations.append(self.pair_to_add[0] + " " + self.pair_to_add[1])
 
 
         return self.merge_operations
-
 
 class GreedyBeamSearchNewBPE(BaseBPE):    
     def __init__(self, beam_n: int, beam_n_expand: int, **kwargs):
@@ -83,25 +91,29 @@ class GreedyBeamSearchNewBPE(BaseBPE):
         })
         # ====================================================
 
-        # TODO: we don't need to store the history up until (exclusive) t-1
-        beam_t = {0: [(0, Hypothesis(merge_operations, corpus_freqs))]}
+        beam_t = {0: [Hypothesis(merge_operations, corpus_freqs)]}
 
         for t in tqdm.tqdm(range(1, vocab_size-len(merge_operations)+1)):
-            beam = []
-            for score, hyp in beam_t[t-1]:
-                possible_pairs = hyp.get_possible_extensions()
-                # TODO: to speed things up add only top-x
-                # Should not matter much that there is lots of children because they are
-                # a light object with lazy copying of their parents' data
-                for pair in possible_pairs:
+            beam = PriorityQueue(maxsize=0)
+            for hyp in beam_t[t-1]:
+                # optimization to become linear (not sure why)
+                possible_pairs = list(hyp.get_possible_extensions())
+                possible_pairs.sort(key=operator.itemgetter(1), reverse=True)
+                
+                for pair in possible_pairs[:self.beam_n]:
                     new_hyp = hyp.spawn_child(pair)
-                    new_score = score + pair[1]
-                    beam.append((new_score, new_hyp))
+                    new_score = hyp.score - pair[1]
+                    new_hyp.score = new_score
+                    beam.put(new_hyp)
 
-            beam.sort(key=operator.itemgetter(0), reverse=True)
-            beam_t[t] = beam[:self.beam_n]
+            beam_t[t] = []
+            for _ in range(self.beam_n):
+                beam_t[t].append(beam.get())
+            # we don't need to store the history up until (exclusive) t-1
+            del beam_t[t-1]
+
         
-        beam_best = max(beam_t[t], key=operator.itemgetter(0))[1]
+        beam_best = min(beam_t[t])
         
         self.merge_operations = beam_best.get_merge_operations()
         self.corpus_freqs = beam_best.get_corpus_freqs()
