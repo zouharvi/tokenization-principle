@@ -60,6 +60,9 @@ for vocab_size, data_vocabsize_local in data_vocabsize.items():
 
 plt.ylabel(r"BLEU (avg EN$\leftrightarrow$DE)")
 plt.xlabel("Subword count of 200k train lines (millions)")
-plt.legend()
+plt.legend(
+    ncol=3,
+    bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand"
+)
 plt.tight_layout()
 plt.show()
