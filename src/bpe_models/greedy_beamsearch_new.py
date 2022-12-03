@@ -1,10 +1,9 @@
 from .base import BaseBPE
-import copy
+from .base import BaseBPE
 from queue import PriorityQueue
 import re
 import tqdm
 import operator
-from .base import BaseBPE
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -99,7 +98,7 @@ class GreedyBeamSearchNewBPE(BaseBPE):
                 # optimization to become linear (not sure why)
                 possible_pairs = list(hyp.get_possible_extensions())
                 possible_pairs.sort(key=operator.itemgetter(1), reverse=True)
-                
+
                 for pair in possible_pairs[:self.beam_n]:
                     new_hyp = hyp.spawn_child(pair)
                     new_score = hyp.score - pair[1]

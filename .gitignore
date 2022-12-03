@@ -3,6 +3,8 @@ computed
 data
 data_bpe
 data_bin
+t1
+t2
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
