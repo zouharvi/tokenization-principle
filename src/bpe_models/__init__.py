@@ -5,6 +5,7 @@ from .greedy_beamsearch_new import GreedyBeamSearchNewBPE
 from .antigreedy import AntiGreedyBPE
 from .antigreedyalmost import AntiGreedyAlmostBPE
 from .greedyalmost import GreedyAlmostBPE
+from .greedy_capitalzation_flag import GreedyCapitalizationFlagBPE
 from .random import RandomBPE
 
 def get_bpe_model(name):
@@ -16,6 +17,8 @@ def get_bpe_model(name):
         return GreedyBeamSearchNewBPE
     elif name == "greedy":
         return GreedyBPE
+    elif name == "greedycapitalizationflag":
+        return GreedyCapitalizationFlagBPE
     elif name == "greedyalmost":
         return GreedyAlmostBPE
     elif name == "antigreedy":

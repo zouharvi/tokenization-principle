@@ -84,6 +84,14 @@ class BaseBPE:
             # TODO: this is potentially heavy
             pairs = self.get_pairs(corpus_freqs)
 
+            # pairs_x = sorted(pairs.items(), key=lambda x: x[1], reverse=True)
+            # if pairs_x[0][1] == pairs_x[1][1]:
+            #     print()
+            #     print("Indecision")
+            #     print(pairs_x[0], pairs_x[1])
+            #     print()
+
+
             if not pairs:
                 break
 
@@ -158,6 +166,9 @@ class BaseBPE:
         # no word ends with @@
         return "@@ ".join(token_out).removesuffix("</w>").strip().removesuffix("@@")
 
+    def preprocess_word(self, word):
+        return word
+
     def encode_merge_operations(self, corpus: list[str]) -> list[str]:
         # make sure it's sorted from longest to shortest
         subword_vocab = set(
@@ -173,7 +184,7 @@ class BaseBPE:
             out = pool.map(
                 lambda line: " ".join([
                     self.encode_token_merge_operations(
-                        word, merge_operations, subword_vocab
+                        self.preprocess_word(word), merge_operations, subword_vocab
                     )
                     for word in line.split(" ")
                 ]),

@@ -5,6 +5,7 @@ import numpy as np
 import collections
 import json
 from bpe_models.base import BaseBPE
+from bpe_models.greedy_capitalzation_flag import GreedyCapitalizationFlagBPE
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -25,6 +26,9 @@ args.add_argument(
 args.add_argument(
     "--method", default="greedy_naive"
 )
+args.add_argument(
+    "--capitalizationflag", action="store_true"
+)
 args.add_argument("--logfile", default=None)
 args = args.parse_args()
 
@@ -41,7 +45,11 @@ with open(args.input, "r") as f:
     data = [x.rstrip("\n") for x in f.readlines()[:args.number_of_lines]]
 
 print("Applying BPE")
-model = BaseBPE()
+if args.capitalizationflag:
+    model = GreedyCapitalizationFlagBPE()
+else:
+    model = BaseBPE()
+
 model.load(args.vocab_input)
 entropy_word = compute_entropy(data)
 print(f"Word entropy: {entropy_word:.3f}")
