@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import numpy as np
-import collections
 import json
-from bpe_models.base import BaseBPE
-from bpe_models.greedy_capitalzation_flag import GreedyCapitalizationFlagBPE
+from fit_lzw import BaseLZW
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -13,21 +10,15 @@ args.add_argument(
 )
 args.add_argument(
     "-o", "--output",
-    default="data/model_bpe_greedy/train.en"
+    default="data/model_lzw/train.en"
 )
 args.add_argument(
     "-vi", "--vocab-input",
-    default="data/model_bpe_greedy/model.bpe_merges"
+    default="data/model_lzw/base.vocab"
 )
 args.add_argument(
     "-n", "--number-of-lines",
     type=int, default=1000000
-)
-args.add_argument(
-    "--method", default="greedy_naive"
-)
-args.add_argument(
-    "--capitalizationflag", action="store_true"
 )
 args.add_argument("--logfile", default=None)
 args = args.parse_args()
@@ -37,13 +28,10 @@ with open(args.input, "r") as f:
     data = [x.rstrip("\n") for x in f.readlines()[:args.number_of_lines]]
 
 print("Applying BPE")
-if args.capitalizationflag:
-    model = GreedyCapitalizationFlagBPE()
-else:
-    model = BaseBPE()
+model = BaseLZW()
 
 model.load(args.vocab_input)
-data = model.encode(data, method=args.method)
+data = model.encode(data)
 
 # save to file
 with open(args.output, "w") as f:
@@ -60,8 +48,8 @@ print(
 
 if args.logfile is not None:
     with open(args.logfile, "a") as f:
-        f.write(json.dumps({
-            "model": args.vocab_input.split("/")[-1],
+        logline = {
+            "model": args.vocab_input,
             "method": args.method,
             "vocab_size": len(model.merge_operations),
             "total_subwords": total_subwords,
@@ -69,4 +57,6 @@ if args.logfile is not None:
             "number_of_lines": args.number_of_lines,
             "output": args.output,
             "input": args.input,
-        })+"\n")
+        }
+        print(logline)
+        f.write(json.dumps(logline)+"\n")
