@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
-for TRAIN_SIZE_NAME in "5k" "25k" "100k" "400k"; do
+for TRAIN_SIZE_NAME in "5k" "25k" "100k"; do
+# for TRAIN_SIZE_NAME in "5k" "25k" "100k" "400k"; do
     for MODEL in \
         "bpe_greedy" "bpe_antigreedy" "bpe_captrick" \
         "morfessor" "lzw"\
@@ -17,7 +18,7 @@ for TRAIN_SIZE_NAME in "5k" "25k" "100k" "400k"; do
             TEXT_DIR="data_bin/${LANG1}-${LANG2}/model_${MODEL}/${TRAIN_SIZE_NAME}";
             mkdir -p ${TEXT_DIR};
 
-            sbatch --time=0-1 --ntasks=40 --mem-per-cpu=1G \
+            sbatch --time=0-1 --ntasks=10 --mem-per-cpu=2G \
                 --job-name="preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \
                 --output="logs/preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \
                 --wrap="fairseq-preprocess --source-lang $LANG1 --target-lang $LANG2 \
@@ -26,7 +27,7 @@ for TRAIN_SIZE_NAME in "5k" "25k" "100k" "400k"; do
                     --bpe fastbpe \
                     --joined-dictionary \
                     --tokenizer moses \
-                    --workers 40 \
+                    --workers 10 \
                 ";
         done;
 

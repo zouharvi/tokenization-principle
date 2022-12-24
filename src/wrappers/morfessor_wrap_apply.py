@@ -63,7 +63,7 @@ with tempfile.NamedTemporaryFile() as fname1, tempfile.NamedTemporaryFile() as f
             subwords = word.split()
             total_subwords += len(subwords)
             observed_vocabulary |= set(subwords)
-            new_word = " @@".join(subwords)
+            new_word = "@@ ".join(subwords)
             orig_word = "".join(subwords)
             assert cur_line.pop(0) == orig_word
             total_words += 1

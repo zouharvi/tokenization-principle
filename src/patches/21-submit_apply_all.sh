@@ -14,7 +14,7 @@ split_to_nol() {
     esac
 }
 
-for TRAIN_LINES in "100000"; do
+for TRAIN_LINES in "400000"; do
 # for TRAIN_LINES in "5000" "25000" "100000" "400000"; do
     TRAIN_LINES_NAME=$(train_lines_name $TRAIN_LINES)
     for SPLIT in "train" "dev" "test"; do

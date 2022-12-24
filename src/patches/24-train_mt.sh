@@ -1,7 +1,8 @@
 #!/usr/bin/bash
 
 
-for TRAIN_SIZE_NAME in "5k" "25k" "100k" "400k"; do
+# for TRAIN_SIZE_NAME in "5k" "25k" "100k" "400k"; do
+for TRAIN_SIZE_NAME in "5k" "25k" "100k"; do
 for MODEL in \
     "bpe_greedy" "bpe_antigreedy" "bpe_captrick" \
     "morfessor" "lzw"\
@@ -14,9 +15,9 @@ do
             LANG2="${LANGS[1]}"
 
         # TODO
-        SIGNATURE="${BPE_NAME}.${LANG1}-${LANG2}";
+        SIGNATURE="${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}";
         echo "Submitting ${SIGNATURE}";
-        TEXT_DIR="data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}";
+        TEXT_DIR="data_bin/${LANG1}-${LANG2}/model_${MODEL}/${TRAIN_SIZE_NAME}";
 
         sbatch --time=07-00 --ntasks=8 --mem-per-cpu=4G --gpus=1 \
             --job-name="train_mt_${SIGNATURE}" \

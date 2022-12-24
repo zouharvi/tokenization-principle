@@ -127,7 +127,8 @@ for fname_out, fname_in, process_number_of_lines in zip(
                 else:
                     tokens.append("@@"+token)
                 last_right = offset[1]
-            line = " ".join(tokens)
+            # replace direction of unks
+            line = " ".join(tokens).replace("@@ ", " @@")
             total_unks += line.count("[UNK]")
             f.write(line + "\n")
         print(data[-1].tokens)
