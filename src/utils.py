@@ -12,9 +12,9 @@ def get_model(name):
     elif name == "greedy":
         from bpe_models.greedy import GreedyBPE
         return GreedyBPE
-    elif name == "greedycapitalizationflag":
-        from bpe_models.greedy_capitalzation_flag import GreedyCapitalizationFlagBPE
-        return GreedyCapitalizationFlagBPE
+    elif name == "greedycaptrick":
+        from bpe_models.greedy_capitalzation_flag import GreedyCaptrickBPE
+        return GreedyCaptrickBPE
     elif name == "greedyalmost":
         from bpe_models.greedyalmost import GreedyAlmostBPE
         return GreedyAlmostBPE

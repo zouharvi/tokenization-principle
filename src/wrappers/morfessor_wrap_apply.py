@@ -22,16 +22,18 @@ args.add_argument(
     ]
 )
 args.add_argument("-n", "--number-of-lines", type=int, default=100000)
-# recursive, viterbi
 args.add_argument("-m", "--model", default="data/model_morfessor/model.pkl")
 # morfessor, flatcat    
 args.add_argument("--morfessor", default="morfessor")
+args.add_argument("--logfile", default=None)
 args = args.parse_args()
 
-observed_vocabulary = set()
-total_subwords = 0
 
 for input_fname, output_fname in zip(args.input, args.output):
+    total_subwords = 0
+    total_words = 0
+    observed_vocabulary = set()
+
     with tempfile.NamedTemporaryFile() as fname1, tempfile.NamedTemporaryFile() as fname2:
         fname1 = fname1.name
         fname2 = fname2.name
@@ -68,8 +70,23 @@ for input_fname, output_fname in zip(args.input, args.output):
                 new_word = " @@".join(subwords)
                 orig_word = "".join(subwords)
                 assert cur_line.pop(0) == orig_word
+                total_words += 1
                 new_line.append(new_word)
 
         print("So far observed", len(observed_vocabulary), "subwords")
 
-print("Emitted", total_subwords, "subwords")
+    logline = {
+        "model": args.model,
+        "method": args.morfessor,
+        "vocab_size": len(observed_vocabulary),
+        "total_subwords": total_subwords,
+        "total_words": total_words,
+        "total_unks": None,
+        "number_of_lines": args.number_of_lines,
+        "output": output_fname,
+        "input": input_fname,
+    }
+    print(logline)
+    if args.logfile is not None:
+        with open(args.logfile, "a") as f:
+            f.write(json.dumps(logline)+"\n")

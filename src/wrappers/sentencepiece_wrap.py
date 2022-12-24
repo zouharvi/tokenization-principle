@@ -8,28 +8,31 @@ args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", nargs="+", default=["data/CCrawl.de-en/train.tok.en", "data/CCrawl.de-en/train.tok.de"])
 args.add_argument("-pi", "--process-input", nargs="+",
     default=[
-        # "data/CCrawl.de-en/dev.tok.en",
-        # "data/CCrawl.de-en/dev.tok.de",
-        # "data/CCrawl.de-en/test.tok.en",
-        # "data/CCrawl.de-en/test.tok.de",
+        "data/CCrawl.de-en/dev.tok.en",
+        "data/CCrawl.de-en/dev.tok.de",
+        "data/CCrawl.de-en/test.tok.en",
+        "data/CCrawl.de-en/test.tok.de",
         "data/CCrawl.de-en/train.tok.en",
         "data/CCrawl.de-en/train.tok.de",
     ])
 args.add_argument("-po", "--process-output", nargs="+",
     default=[
-        # "data/model_spm/dev.tok.en",
-        # "data/model_spm/dev.tok.de",
-        # "data/model_spm/test.tok.en",
-        # "data/model_spm/test.tok.de",
+        "data/model_spm/dev.tok.en",
+        "data/model_spm/dev.tok.de",
+        "data/model_spm/test.tok.en",
+        "data/model_spm/test.tok.de",
         "data/model_spm/train.en",
         "data/model_spm/train.de",
     ])
 args.add_argument("-vo", "--vocab-output", default="data/model_spm/")
-args.add_argument("-vs", "--vocab-size", type=int, default=16392)
+args.add_argument("-vs", "--vocab-size", type=int, default=8192)
 args.add_argument("-n", "--number-of-lines", type=int, default=100000)
-args.add_argument("-pn", "--process-number-of-lines", type=int, default=1000000)
+args.add_argument(
+    "-pn", "--process-number-of-lines", type=int, nargs="+",
+    default=[50000, 50000, 50000, 50000, 1000000, 1000000]
+)
 # unigram, bpe
-args.add_argument("-m", "--model", default="bpe")
+args.add_argument("-m", "--model", default="unigram")
 args.add_argument("--logfile", default=None)
 
 args = args.parse_args()

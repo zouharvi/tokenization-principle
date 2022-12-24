@@ -46,17 +46,17 @@ print(
     f"({total_unks/total_subwords:.4%} of all subwords)"
 )
 
+logline = {
+    "model": args.vocab_input,
+    "method": args.method,
+    "vocab_size": len(model.merge_operations),
+    "total_subwords": total_subwords,
+    "total_unks": total_unks,
+    "number_of_lines": args.number_of_lines,
+    "output": args.output,
+    "input": args.input,
+}
+print(logline)
 if args.logfile is not None:
     with open(args.logfile, "a") as f:
-        logline = {
-            "model": args.vocab_input,
-            "method": args.method,
-            "vocab_size": len(model.merge_operations),
-            "total_subwords": total_subwords,
-            "total_unks": total_unks,
-            "number_of_lines": args.number_of_lines,
-            "output": args.output,
-            "input": args.input,
-        }
-        print(logline)
         f.write(json.dumps(logline)+"\n")

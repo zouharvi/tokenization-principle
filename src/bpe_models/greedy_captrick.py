@@ -1,6 +1,6 @@
 from .base import BaseBPE, COLLAPSE_WHITESPACE, Counter
 
-class GreedyCapitalizationFlagBPE(BaseBPE):
+class GreedyCaptrickBPE(BaseBPE):
     def choose_pair_to_merge(self, pairs):
         return max(pairs, key=pairs.get)
 

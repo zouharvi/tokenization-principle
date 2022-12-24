@@ -4,9 +4,14 @@ import argparse
 from utils import get_model
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", nargs="+", default=["data/CCrawl.de-en/train.tok.en", "data/CCrawl.de-en/train.tok.de"])
-args.add_argument("-vo", "--vocab-output", default="data/model_bpe/model.bpe_merges")
-args.add_argument("-vs", "--vocab-size", type=int, default=16392)
+args.add_argument("-i", "--input", nargs="+", default=[
+    "data/CCrawl.de-en/train.tok.en", "data/CCrawl.de-en/train.tok.de"
+])
+args.add_argument(
+    "-vo", "--vocab-output",
+    default="data/model_bpe/model.bpe_merges"
+)
+args.add_argument("-vs", "--vocab-size", type=int, default=8192)
 args.add_argument("-n", "--number-of-lines", type=int, default=100000)
 args.add_argument("-m", "--model", default="greedy")
 # arguments specific to models

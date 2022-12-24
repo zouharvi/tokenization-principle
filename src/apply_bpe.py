@@ -5,7 +5,7 @@ import numpy as np
 import collections
 import json
 from bpe_models.base import BaseBPE
-from bpe_models.greedy_capitalzation_flag import GreedyCapitalizationFlagBPE
+from bpe_models.greedy_capitalzation_flag import GreedyCaptrickBPE
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -38,7 +38,7 @@ with open(args.input, "r") as f:
 
 print("Applying BPE")
 if args.capitalizationflag:
-    model = GreedyCapitalizationFlagBPE()
+    model = GreedyCaptrickBPE()
 else:
     model = BaseBPE()
 
@@ -58,15 +58,17 @@ print(
     f"({total_unks/total_subwords:.4%} of all subwords)"
 )
 
+logline = {
+    "model": args.vocab_input.split("/")[-1],
+    "method": args.method,
+    "vocab_size": len(model.merge_operations),
+    "total_subwords": total_subwords,
+    "total_unks": total_unks,
+    "number_of_lines": args.number_of_lines,
+    "output": args.output,
+    "input": args.input,
+}
+print(logline)
 if args.logfile is not None:
     with open(args.logfile, "a") as f:
-        f.write(json.dumps({
-            "model": args.vocab_input.split("/")[-1],
-            "method": args.method,
-            "vocab_size": len(model.merge_operations),
-            "total_subwords": total_subwords,
-            "total_unks": total_unks,
-            "number_of_lines": args.number_of_lines,
-            "output": args.output,
-            "input": args.input,
-        })+"\n")
+        f.write(json.dumps(logline)+"\n")
