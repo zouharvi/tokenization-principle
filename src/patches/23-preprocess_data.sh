@@ -14,9 +14,15 @@ for TRAIN_SIZE_NAME in "5k" "25k" "100k"; do
             LANG1="${LANGS[0]}"
             LANG2="${LANGS[1]}"
 
+
             ORIG_DIR="data/model_${MODEL}/${TRAIN_SIZE_NAME}";
             TEXT_DIR="data_bin/${LANG1}-${LANG2}/model_${MODEL}/${TRAIN_SIZE_NAME}";
             mkdir -p ${TEXT_DIR};
+
+            for SPLIT in "train" "dev" "test"; do
+            for LANG in "en" "de"; do
+                sed -i "s/ @@/@@ /g" ${ORIG_DIR}/${SPLIT}.${LANG}
+            done; done;
 
             sbatch --time=0-1 --ntasks=10 --mem-per-cpu=2G \
                 --job-name="preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \

@@ -38,6 +38,7 @@ with open(args.input, "r") as f:
 
 print("Applying BPE")
 if args.captrickflag:
+    print("Choosing captrick model")
     model = GreedyCaptrickBPE()
 else:
     model = BaseBPE()
