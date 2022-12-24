@@ -4,7 +4,7 @@ GLOBAL_PARAMS="--number-of-lines 10000 -vs 2048"
 
 ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/antigreedy.bpe_merges -m antigreedy &
 ./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedy.bpe_merges -m greedy &
-./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedycapitalizationflag.bpe_merges -m greedycapitalizationflag
+./src/fit_bpe.py $GLOBAL_PARAMS -vo computed/small/greedycaptrick.bpe_merges -m greedycaptrick
 
 # 2nd, 4th, 8th, ...
 for N in 1 3 7 15 31 63; do
@@ -45,7 +45,7 @@ BPECODES="computed/small/greedy.bpe_merges"
     --output "/dev/null"
 
 GLOBAL_PARAMS_APPLY="--number-of-lines 10000 --logfile computed/applybpe_small.jsonl"
-BPECODES="computed/small/greedycapitalizationflag.bpe_merges"
+BPECODES="computed/small/greedycaptrick.bpe_merges"
 ./src/apply_bpe.py $GLOBAL_PARAMS_APPLY \
     --method "merge_operations" \
     --vocab-input ${BPECODES} \

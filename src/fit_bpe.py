@@ -20,6 +20,7 @@ args.add_argument("--randomness-temp", type=float, default=1)
 args.add_argument("--greedy-n", type=int, default=4)
 args.add_argument("--beam-n", type=int, default=5)
 args.add_argument("--beam-n-expand", type=int, default=5)
+args.add_argument("--threshold", type=int, default=2)
 args.add_argument("--seed", default=0)
 
 args = args.parse_args()
@@ -36,6 +37,7 @@ model = get_model(args.model)(
     randomness_dist=args.randomness_dist,
     randomness_temp=args.randomness_temp,
     beam_n=args.beam_n,
+    threshold=args.threshold,
     beam_n_expand=args.beam_n_expand,
     greedy_n=args.greedy_n,
 )

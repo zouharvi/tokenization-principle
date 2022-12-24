@@ -24,13 +24,13 @@ args.add_argument("-po", "--process-output", nargs="+",
         "data/model_spm/train.en",
         "data/model_spm/train.de",
     ])
-args.add_argument("-vo", "--vocab-output", default="data/model_spm/")
-args.add_argument("-vs", "--vocab-size", type=int, default=8192)
-args.add_argument("-n", "--number-of-lines", type=int, default=100000)
 args.add_argument(
     "-pn", "--process-number-of-lines", type=int, nargs="+",
     default=[50000, 50000, 50000, 50000, 1000000, 1000000]
 )
+args.add_argument("-vo", "--vocab-output", default="data/model_spm/")
+args.add_argument("-vs", "--vocab-size", type=int, default=8192)
+args.add_argument("-n", "--number-of-lines", type=int, default=100000)
 # unigram, bpe
 args.add_argument("-m", "--model", default="unigram")
 args.add_argument("--logfile", default=None)
@@ -52,9 +52,13 @@ sp = spm.SentencePieceProcessor(model_file=args.vocab_output+args.model + ".mode
 total_subwords = 0
 total_unks = 0
 
-for fname_out, fname_in in zip(args.process_output, args.process_input):
+for fname_out, fname_in, process_number_of_lines in zip(
+    args.process_output,
+    args.process_input,
+    args.process_number_of_lines
+):
     with open(fname_in, "r") as f:
-        data = [x.rstrip("\n") for x in f.readlines()[:args.process_number_of_lines]]
+        data = [x.rstrip("\n") for x in f.readlines()[:process_number_of_lines]]
     
     total_words = sum(line.count(" ") + 1 for line in data)
     data = [" ".join(line) for line in sp.encode(data, out_type="str")]

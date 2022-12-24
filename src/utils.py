@@ -13,7 +13,7 @@ def get_model(name):
         from bpe_models.greedy import GreedyBPE
         return GreedyBPE
     elif name == "greedycaptrick":
-        from bpe_models.greedy_capitalzation_flag import GreedyCaptrickBPE
+        from bpe_models.greedy_captrick import GreedyCaptrickBPE
         return GreedyCaptrickBPE
     elif name == "greedyalmost":
         from bpe_models.greedyalmost import GreedyAlmostBPE

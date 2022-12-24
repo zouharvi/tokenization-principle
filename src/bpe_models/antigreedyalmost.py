@@ -5,4 +5,4 @@ class AntiGreedyAlmostBPE(BaseBPE):
         self.threshold = threshold
 
     def choose_pair_to_merge(self, pairs):
-        return max({p: v for p, v in pairs.items() if v > self.threshold}, key=pairs.get)
+        return min({p: v for p, v in pairs.items() if v >= self.threshold}, key=pairs.get)

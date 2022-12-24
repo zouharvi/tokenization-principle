@@ -2,7 +2,7 @@
 
 import argparse
 import json
-from fit_lzw import BaseLZW
+from lzw import BaseLZW
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -14,7 +14,7 @@ args.add_argument(
 )
 args.add_argument(
     "-vi", "--vocab-input",
-    default="data/model_lzw/base.vocab"
+    default="data/model_lzw/model.vocab"
 )
 args.add_argument(
     "-n", "--number-of-lines",
@@ -48,8 +48,8 @@ print(
 
 logline = {
     "model": args.vocab_input,
-    "method": args.method,
-    "vocab_size": len(model.merge_operations),
+    "method": "lzw",
+    # "vocab_size": len(model.merge_operations),
     "total_subwords": total_subwords,
     "total_unks": total_unks,
     "number_of_lines": args.number_of_lines,

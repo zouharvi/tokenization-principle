@@ -5,7 +5,7 @@ import numpy as np
 import collections
 import json
 from bpe_models.base import BaseBPE
-from bpe_models.greedy_capitalzation_flag import GreedyCaptrickBPE
+from bpe_models.greedy_captrick import GreedyCaptrickBPE
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -27,7 +27,7 @@ args.add_argument(
     "--method", default="greedy_naive"
 )
 args.add_argument(
-    "--capitalizationflag", action="store_true"
+    "--captrickflag", action="store_true"
 )
 args.add_argument("--logfile", default=None)
 args = args.parse_args()
@@ -37,7 +37,7 @@ with open(args.input, "r") as f:
     data = [x.rstrip("\n") for x in f.readlines()[:args.number_of_lines]]
 
 print("Applying BPE")
-if args.capitalizationflag:
+if args.captrickflag:
     model = GreedyCaptrickBPE()
 else:
     model = BaseBPE()
