@@ -10,11 +10,14 @@ train_lines_name() {
         "100000")
             echo "100k"
         ;;
-        "25000")
-            echo "25k"
+        "10000")
+            echo "10k"
         ;;
         "5000")
             echo "5k"
+        ;;
+        "1000")
+            echo "1k"
         ;;
     esac
 }
@@ -111,3 +114,22 @@ done
 #         --vocab-size ${VOCAB_SIZE} \
 #         --number-of-lines ${TRAIN_LINES} \
 #     ";
+
+python3 ./src/lempel_ziv_welsch/fit_lzw.py \
+    --vocab-output data/model_lzw/model.vocab \
+    --vocab-size 8192 \
+    --number-of-lines 1000
+
+python3 ./src/lempel_ziv_welsch/apply_lzw.py \
+    --input data/CCrawl.de-en/dev.tok.en \
+    --output data/model_lzw/tmp.dev.en \
+    --vocab-input data/model_lzw/model.vocab \
+    --number-of-lines 100
+# TODO: test that applying resolves UNK well
+
+python3 ./src/apply_bpe.py \
+    --vocab-input data/model_bpe_captrick/model.bpe_merges \
+    --input data/CCrawl.de-en/dev.tok.en \
+    --output data/model_bpe_captrick/dev.en \
+    --number-of-lines 100 \
+    --captrickflag

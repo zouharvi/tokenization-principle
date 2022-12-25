@@ -10,6 +10,8 @@ import sys
 sys.path.append("src")
 import figures.fig_utils
 
+# rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
+
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="computed/azaroth.jsonl")
 args = args.parse_args()

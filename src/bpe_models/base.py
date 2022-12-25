@@ -158,11 +158,15 @@ class BaseBPE:
                     break
 
             if not found:
-                subword = "UNK"
+                # subword = "UNK"
+                # fall back to characters
+                subword = list(token)
+                token_out += subword
+                break
 
             token_out.append(subword)
             token = token[len(subword):]
-
+        
         # no word ends with @@
         return "@@ ".join(token_out).removesuffix("</w>").strip().removesuffix("@@")
 
@@ -206,7 +210,7 @@ class BaseBPE:
             out = pool.map(
                 lambda line: " ".join([
                     self.encode_token_greedy_naive(
-                        word + "</w>", subword_vocab)
+                        self.preprocess_word(word + "</w>"), subword_vocab)
                     for word in line.split(" ")
                 ]),
                 tqdm.tqdm(corpus)

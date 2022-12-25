@@ -40,6 +40,8 @@ with open(args.output, "w") as f:
 
 total_subwords = sum(line.count(" ") + 1 for line in data)
 print("Outputting", total_subwords, "total subwords")
+observed_subwords = set(w for line in data for w in line.split())
+print("Observing", len(observed_subwords), "subwords")
 total_unks = sum((" " + line).count(" UNK") for line in data)
 print(
     f"Total of {total_unks} UNKs outputted",

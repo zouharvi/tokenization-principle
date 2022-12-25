@@ -47,4 +47,5 @@ class GreedyCaptrickBPE(BaseBPE):
             elif all_capital:
                 word = "$2" + word.lower()
 
+        # print("preprocessing and returning", word)
         return word

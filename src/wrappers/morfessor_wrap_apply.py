@@ -79,7 +79,7 @@ logline = {
     "total_subwords": total_subwords,
     "total_words": total_words,
     "total_chars": total_chars,
-    "total_unks": None,
+    "total_unks": 0,
     "number_of_lines": args.number_of_lines,
     "output": output_fname,
     "input": input_fname,

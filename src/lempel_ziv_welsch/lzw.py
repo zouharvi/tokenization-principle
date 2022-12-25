@@ -2,7 +2,6 @@
 
 import tqdm
 
-
 class BaseLZW():
     def __init__(self, **kwargs):
         pass
@@ -14,9 +13,9 @@ class BaseLZW():
         # observed_dictionary = set("".join(corpus))
 
         break_loop = False
+        observed_dictionary = set()
         while True:
-            observed_dictionary = set()
-            for line_i, line in enumerate(corpus):
+            for line_i, line in enumerate(tqdm.tqdm(corpus)):
                 if line == ["\n"]:
                     continue
                 line_new = []
@@ -29,6 +28,7 @@ class BaseLZW():
                     new_word = "".join(line[j:j + k])
                     observed_dictionary.add(new_word)
                     line_new.append(new_word)
+                    # add continuation to the dictionary
                     dictionary.add("".join(line[j:j + k + 1]))
                     j += k
 
@@ -37,11 +37,12 @@ class BaseLZW():
                 if len(observed_dictionary) >= V:
                     break_loop = True
                     break
+
+                # TODO: maybe should be in the inner-most loop
+                max_stored_length = max([len(x) for x in dictionary])
             if break_loop:
                 break
 
-            # TODO: maybe should be in the inner-most loop
-            max_stored_length = max([len(x) for x in dictionary])
             print("Observing", len(observed_dictionary))
 
         print("Observing", len(observed_dictionary))
@@ -67,7 +68,10 @@ class BaseLZW():
                     break
 
             if not found:
-                subword = "UNK"
+                # subword = "UNK"
+                subword = list(token)
+                token_out += subword
+                break
 
             token_out.append(subword)
             token = token[len(subword):]
@@ -98,6 +102,7 @@ class BaseLZW():
     def load(self, path):
         with open(path, "r") as f:
             self.vocab = [x.rstrip("\n") for x in f.readlines()]
+            self.vocab = [x for x in self.vocab if len(x) != 0]
 
     def save(self, path):
         with open(path, "w") as f:
