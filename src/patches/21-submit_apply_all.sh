@@ -14,13 +14,13 @@ split_to_nol() {
     esac
 }
 
-for TRAIN_LINES in "400000"; do
-# for TRAIN_LINES in "5000" "25000" "100000" "400000"; do
-    TRAIN_LINES_NAME=$(train_lines_name $TRAIN_LINES)
-    for SPLIT in "train" "dev" "test"; do
-    for LANG in "en" "de"; do
-        NOL=$(split_to_nol $SPLIT)
-        SIGNATURE="azaroth_${SPLIT}_${LANG}_${TRAIN_LINES_NAME}"
+for SPLIT in "train" "dev" "test"; do
+NOL=$(split_to_nol $SPLIT)
+for LANG in "en" "de"; do
+    for TRAIN_LINES in "100000"; do
+    # for TRAIN_LINES in "2000" "5000" "100000"; do
+        TRAIN_LINES_NAME=$(train_lines_name $TRAIN_LINES)
+        SIGNATURE="bouree_${SPLIT}_${LANG}_${TRAIN_LINES_NAME}"
 
         echo "Submitting LZW";
         sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
@@ -31,7 +31,7 @@ for TRAIN_LINES in "400000"; do
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
                 --output data/model_lzw/${TRAIN_LINES_NAME}/${SPLIT}.${LANG} \
                 --number-of-lines ${NOL} \
-                --logfile computed/azaroth.jsonl \
+                --logfile computed/bouree.jsonl \
             ";
 
         echo "Submitting BPE greedy";
@@ -43,7 +43,7 @@ for TRAIN_LINES in "400000"; do
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
                 --output data/model_bpe_greedy/${TRAIN_LINES_NAME}/${SPLIT}.${LANG} \
                 --number-of-lines ${NOL} \
-                --logfile computed/azaroth.jsonl \
+                --logfile computed/bouree.jsonl \
             ";
 
         echo "Submitting BPE Captrick";
@@ -55,7 +55,7 @@ for TRAIN_LINES in "400000"; do
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
                 --output data/model_bpe_captrick/${TRAIN_LINES_NAME}/${SPLIT}.${LANG} \
                 --number-of-lines ${NOL} \
-                --logfile computed/azaroth.jsonl \
+                --logfile computed/bouree.jsonl \
                 --captrickflag \
             ";
 
@@ -68,7 +68,7 @@ for TRAIN_LINES in "400000"; do
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
                 --output data/model_bpe_antigreedy/${TRAIN_LINES_NAME}/${SPLIT}.${LANG} \
                 --number-of-lines ${NOL} \
-                --logfile computed/azaroth.jsonl \
+                --logfile computed/bouree.jsonl \
             ";
 
         echo "Submitting Morfessor";
@@ -80,8 +80,23 @@ for TRAIN_LINES in "400000"; do
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
                 --output data/model_morfessor/${TRAIN_LINES_NAME}/${SPLIT}.${LANG} \
                 --number-of-lines ${NOL} \
-                --logfile computed/azaroth.jsonl \
+                --logfile computed/bouree.jsonl \
             ";
     done;
+
+    for TEMPERATURE in "0.4" "1000"; do
+        echo "Submitting BPE Random";
+        sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
+            --output="logs/apply_bpe_random_${SIGNATURE}.log" \
+            --job-name="apply_bpe_random_${SIGNATURE}" \
+            --wrap="python3 ./src/apply_bpe.py \
+                --vocab-input data/model_bpe_random/${TEMPERATURE}/model.bpe_merges \
+                --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
+                --output data/model_bpe_random/${TEMPERATURE}/${SPLIT}.${LANG} \
+                --number-of-lines ${NOL} \
+                --logfile computed/bouree.jsonl \
+            ";
     done;
+
+done;
 done;

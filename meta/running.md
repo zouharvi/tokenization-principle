@@ -1,7 +1,8 @@
 |start date|status|nickname|comment|command|
 |-|-|-|-|-|
-|24-12-2022|running|ascryo|train tokenizers|`./src/patches/21-submit_apply_all.sh`|
-|24-12-2022|running|obturate|train tokenizers|`./src/patches/20-submit_train_all.sh`|
+|24-12-2022|running|bouree|train tokenizers|`./src/patches/20-submit_train_all.sh`|
+|24-12-2022|ok|azaroth|train tokenizers|`./src/patches/21-submit_apply_all.sh`|
+|24-12-2022|ok|obturate|train tokenizers|`./src/patches/20-submit_train_all.sh`|
 |29-11-2022|ok||beam training|`./src/patches/13-submit_train_bpe_beam.sh`|
 |29-11-2022|ok||beam training|`./src/patches/12-submit_bpe_beam.sh`|
 |29-11-2022|ok||BPE train & apply small|`./src/patches/09-train_small_bpe.sh`|

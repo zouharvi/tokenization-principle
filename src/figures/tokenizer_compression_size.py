@@ -10,7 +10,7 @@ sys.path.append("src")
 import figures.fig_utils
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", default="computed/azaroth.jsonl")
+args.add_argument("-i", "--input", default="computed/bouree.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
@@ -23,10 +23,14 @@ total_words = {}
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 for line in data_logfile:
     signature = "/".join(line["output"].split("/")[1:-1]).removeprefix("model_").split("/")
-    if "antigreedy" in line["output"]:
-        continue
+    # if "antigreedy" in line["output"]:
+    #     continue
+
     model = signature[0]
     size = signature[1]
+    if size in {"20", "10", "1", "1000"}:
+        print(size)
+        continue
     SIZES.add(size)
     data[model][size][line["input"]] = line
     if "total_chars" in line:
@@ -37,6 +41,8 @@ data_plotting = collections.defaultdict(list)
 
 for signature, data_local in data.items():
     for size in SIZES:
+        if size not in data_local:
+            continue
         data_size = list(data_local[size].values())
         total_subwords = sum(
             x["total_subwords"] + (x["total_unks"] if x["total_unks"] is not None else 0)
@@ -62,7 +68,7 @@ for signature_i, (signature, values) in enumerate(data_plotting.items()):
 #     x=sum(total_words.values()),
 #     ymin=0, ymax=len(data_plotting),
 # )
-
+print(SIZES)
 plt.yticks(
     range(len(data_plotting)),
     data_plotting.keys(),

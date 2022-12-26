@@ -16,13 +16,13 @@ train_lines_name() {
         "5000")
             echo "5k"
         ;;
-        "1000")
-            echo "1k"
+        "2000")
+            echo "2k"
         ;;
     esac
 }
 
-for TRAIN_LINES in "400000" "100000" "25000" "5000"; do
+for TRAIN_LINES in "100000" "5000" "2000"; do
     TRAIN_LINES_NAME=$(train_lines_name $TRAIN_LINES)
     SIGNATURE="obturate_${VOCAB_SIZE}_${TRAIN_LINES_NAME}"
     mkdir -p data/{model_bpe_greedy,model_bpe_antigreedy,model_bpe_captrick,model_lzw,model_morfessor}/${TRAIN_LINES_NAME}
@@ -93,7 +93,7 @@ for TRAIN_LINES in "400000" "100000" "25000" "5000"; do
                 --model ${TOKENIZER_METHOD} \
                 --vocab-size ${VOCAB_SIZE} \
                 --number-of-lines ${TRAIN_LINES} \
-                --logfile computed/azaroth.jsonl \
+                --logfile computed/bouree.jsonl \
                 --process-output \
                         data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/dev.en \
                         data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/dev.de \
@@ -105,6 +105,23 @@ for TRAIN_LINES in "400000" "100000" "25000" "5000"; do
         done
 done
 
+for TEMPERATURE in "0.4" "1000"; do
+    echo "Submitting BPE (random)";
+    mkdir -p "data/model_bpe_random/${TEMPERATURE}"
+    sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
+        --output="logs/fit_bpe_random_${TEMPERATURE}.log" \
+        --job-name="fit_bpe_random_${TEMPERATURE}" \
+        --wrap="python3 ./src/fit_bpe.py \
+            --model random \
+            --randomness-dist softmax \
+            --randomness-temp ${TEMPERATURE} \
+            --vocab-output data/model_bpe_random/${TEMPERATURE}/model.bpe_merges \
+            --vocab-size ${VOCAB_SIZE} \
+            --number-of-lines 5000 \
+        ";
+done;
+
+
 # echo "Submitting SentencePiece (also for applying)";
 # sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
 #     --output="logs/fit_spm_${SIGNATURE}.log" \
@@ -114,22 +131,3 @@ done
 #         --vocab-size ${VOCAB_SIZE} \
 #         --number-of-lines ${TRAIN_LINES} \
 #     ";
-
-python3 ./src/lempel_ziv_welsch/fit_lzw.py \
-    --vocab-output data/model_lzw/model.vocab \
-    --vocab-size 8192 \
-    --number-of-lines 1000
-
-python3 ./src/lempel_ziv_welsch/apply_lzw.py \
-    --input data/CCrawl.de-en/dev.tok.en \
-    --output data/model_lzw/tmp.dev.en \
-    --vocab-input data/model_lzw/model.vocab \
-    --number-of-lines 100
-# TODO: test that applying resolves UNK well
-
-python3 ./src/apply_bpe.py \
-    --vocab-input data/model_bpe_captrick/model.bpe_merges \
-    --input data/CCrawl.de-en/dev.tok.en \
-    --output data/model_bpe_captrick/dev.en \
-    --number-of-lines 100 \
-    --captrickflag

@@ -13,7 +13,8 @@ import figures.fig_utils
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", default="computed/azaroth.jsonl")
+args.add_argument("-i", "--input", default="computed/bouree.jsonl")
+args.add_argument("--antigreedy", action="store_true")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
@@ -26,7 +27,7 @@ total_words = {}
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 for line in data_logfile:
     signature = "/".join(line["output"].split("/")[1:-1]).removeprefix("model_").split("/")
-    if "antigreedy" in line["output"]:
+    if not args.antigreedy and "antigreedy" in line["output"]:
         continue
     model = signature[0]
     size = signature[1]
@@ -45,7 +46,8 @@ def load_mt_bleu(model, size):
         return None
     with open(filename, "r") as f:
         data = [line.split("best_bleu ")[1] for line in f.readlines() if "best_bleu" in line]
-    return float(data[-1])
+    bleu = float(data[-1])
+    return bleu
 
 for signature, data_local in data.items():
     for size in SIZES:
@@ -77,19 +79,16 @@ for signature_i, (signature, values) in enumerate(data_plotting.items()):
         # [signature_i]*len(values),
     )
 
-# plt.vlines(
-#     x=sum(total_chars.values()),
-#     ymin=34, ymax=41,
-# )
-# plt.vlines(
-#     x=sum(total_words.values()),
-#     ymin=34, ymax=41,
-# )
+if args.antigreedy:
+    plt.vlines(
+        x=sum(total_chars.values()),
+        ymin=36, ymax=41,
+    )
+    plt.vlines(
+        x=sum(total_words.values()),
+        ymin=36, ymax=41,
+    )
 
-# plt.yticks(
-#     range(len(data_plotting)),
-#     data_plotting.keys(),
-# )
 plt.legend()
 plt.ylabel("Dev BLEU")
 plt.xlabel("Compressed data size (lower is better)")
