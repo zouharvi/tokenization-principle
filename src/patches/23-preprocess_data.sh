@@ -26,7 +26,7 @@ for TRAIN_SIZE_NAME in "2k" "5k" "100k"; do
 
             sbatch --time=0-1 --ntasks=10 --mem-per-cpu=2G \
                 --job-name="preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \
-                --output="logs/preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \
+                --output="logs/preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}.log" \
                 --wrap="fairseq-preprocess --source-lang $LANG1 --target-lang $LANG2 \
                     --trainpref $ORIG_DIR/train --validpref $ORIG_DIR/dev --testpref $ORIG_DIR/test  \
                     --destdir $TEXT_DIR \
@@ -61,7 +61,7 @@ for TRAIN_SIZE_NAME in "0.1" "0.2" "0.4" "0.9" "100"; do
 
         sbatch --time=0-1 --ntasks=10 --mem-per-cpu=2G \
             --job-name="preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \
-            --output="logs/preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}" \
+            --output="logs/preprocess_${MODEL}_${TRAIN_SIZE_NAME}.${LANG1}-${LANG2}.log" \
             --wrap="fairseq-preprocess --source-lang $LANG1 --target-lang $LANG2 \
                 --trainpref $ORIG_DIR/train --validpref $ORIG_DIR/dev --testpref $ORIG_DIR/test  \
                 --destdir $TEXT_DIR \
