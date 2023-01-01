@@ -1,5 +1,6 @@
 |start date|status|nickname|comment|command|
 |-|-|-|-|-|
+|31-12-2022|running|glabrus|train MT, seed 2, amp|`./src/patches/28-train_mt_random_only.sh`|
 |29-12-2022|running|glabrus|train MT|`./src/patches/28-train_mt_random_only.sh`|
 |29-12-2022|ok|glabrus|apply tokenizers|`./src/patches/26-submit_apply_random_only.sh`|
 |29-12-2022|ok|glabrus|train tokenizers|`./src/patches/25-submit_train_random_only.sh`|
