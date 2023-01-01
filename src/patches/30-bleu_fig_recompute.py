@@ -22,23 +22,35 @@ args = args.parse_args()
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
-
-def load_mt_bleu(temperature, vocab_size_name):
-    filename = f"logs/train_mt_{temperature}_{vocab_size_name}.log"
+def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
+    filename = f"logs/train_mt{suffix}_{temperature}_{vocab_size_name}.log"
     if not os.path.isfile(filename):
         print("skipping", filename)
         return None
     with open(filename, "r") as f:
-        data = [line.split("best_bleu ")[1]
-                for line in f.readlines() if "best_bleu" in line]
-
+        data = [
+            line.split("best_bleu ")[1]
+            for line in f.readlines()
+            if "best_bleu" in line
+        ]
     if data and len(data) >= 1:
         bleu = float(data[-1])
         return bleu
     else:
-        print("skipping", filename)
         return None
 
+
+def load_mt_bleu(temperature, vocab_size_name):
+    bleus = [
+        load_mt_bleu_single(temperature, vocab_size_name, suffix)
+        for suffix in [""]
+    ]
+    bleus = [x for x in bleus if x]
+    if len(bleus) < 1:
+        return None
+    else:
+        return np.max(bleus)
+        return None
 
 for fname in glob.glob(args.data):
     data_en = open(fname, "r").read()
