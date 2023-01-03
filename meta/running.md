@@ -1,6 +1,6 @@
 |start date|status|nickname|comment|command|
 |-|-|-|-|-|
-|01-01-2023|running|kinetics (glabrus)|train MT, seeds 1, 2, amp|`./src/patches/28-train_mt_random_only.sh`|
+|01-01-2023|running|kinetics (glabrus)|train MT, seeds 1, 2, 3, amp|`./src/patches/28-train_mt_random_only.sh`|
 |31-12-2022|ok|glabrus|train MT, seed 2, amp|`./src/patches/28-train_mt_random_only.sh`|
 |29-12-2022|ok|glabrus|train MT|`./src/patches/28-train_mt_random_only.sh`|
 |29-12-2022|ok|glabrus|apply tokenizers|`./src/patches/26-submit_apply_random_only.sh`|

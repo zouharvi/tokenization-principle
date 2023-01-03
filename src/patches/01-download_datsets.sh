@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+mkdir -p data
 cd data
 
 wget https://object.pouta.csc.fi/OPUS-CCAligned/v1/moses/de-en.txt.zip

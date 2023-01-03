@@ -12,7 +12,7 @@ vocab_size_name() {
     echo $T
 }
 
-SEED="2"
+SEED="4"
 for VOCAB_SIZE in "2000" "4000" "8000" "16000" "32000"; do
 for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-0.00001"; do
     MODEL="bpe_random"
