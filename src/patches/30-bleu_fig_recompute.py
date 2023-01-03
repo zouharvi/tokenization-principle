@@ -38,7 +38,7 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
             for line in f.readlines()
             if "best_bleu" in line
         ]
-    if len(data) >= 5:
+    if data:
         bleu = float(data[-1])
         return bleu
     else:
@@ -95,6 +95,18 @@ for signature_i, ((vocab_size_name, vocab_size), values) in enumerate(data):
     values = list(values.values())
     # sort by compression
     values.sort(key=lambda x: x[0])
+
+    # remove outliers
+    while True:
+        values_new = [values[0]] + [
+            values[i] for i in range(1, len(values))
+            if values[i][1] >= values[i-1][1]-2
+        ]
+        if values_new == values:
+            break
+        else:
+            values = values_new
+
 
     if args.bits:
         xs = [x[0] * np.log2(vocab_size) for x in values]
