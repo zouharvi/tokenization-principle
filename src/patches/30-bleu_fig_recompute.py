@@ -38,7 +38,7 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
             for line in f.readlines()
             if "best_bleu" in line
         ]
-    if len(data) >= 2:
+    if len(data) >= 5:
         bleu = float(data[-1])
         return bleu
     else:

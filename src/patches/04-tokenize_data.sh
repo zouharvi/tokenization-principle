@@ -14,6 +14,14 @@ for SPLIT in "train" "dev" "test"; do
 done;
 
 
+for SPLIT in "dev" "test"; do
+    for LANG in "en" "de"; do
+            cat "data/CCrawl.de-en/${SPLIT}.${LANG}" \
+                | sacremoses -j 10 -l ${LANG} tokenize \
+                > "data/CCrawl.de-en/${SPLIT}.tok.${LANG}"
+    done;
+done;
+
 # SPLIT="train"
 # LANG="de"
 # cat "data/CCrawl.de-en/${SPLIT}.${LANG}" \

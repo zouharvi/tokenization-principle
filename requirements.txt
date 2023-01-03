@@ -2,3 +2,5 @@ multiprocess
 tqdm
 matplotlib
 numpy
+sacremoses
+tokenizers
