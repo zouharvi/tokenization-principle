@@ -14,17 +14,50 @@ import scipy
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # find -path "./logs/train_mt_*.log" -exec sh -c "grep best_bleu {} | tail -n 1" \; | wc -l
-# ./src/patches/30-bleu_fig_recompute.py; ./src/patches/30-bleu_fig_recompute.py --bits
+# ./src/patches/30-bleu_fig_recompute.py --predictor seq_len
+# ./src/patches/30-bleu_fig_recompute.py --predictor subwords
+# ./src/patches/30-bleu_fig_recompute.py --predictor bits
+# ./src/patches/30-bleu_fig_recompute.py --predictor freq_95;
 
 args = argparse.ArgumentParser()
 args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
-args.add_argument("-b", "--bits", action="store_true")
+args.add_argument("-p", "--predictor", default="mu")
 args.add_argument("--ci", type=float, default=0.95)
 args = args.parse_args()
 
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
+def get_prediction(data, vocab_size):
+    if args.predictor in {"subwords", "mu"}:
+        return data.count(" ") + data.count("\n")
+    elif args.predictor in {"seq_len"}:
+        return np.average([line.count(" ") + 1 for line in data.split("\n")])
+    elif args.predictor in {"mu log v", "bits"}:
+        return (data.count(" ") + data.count("\n")) * np.log2(vocab_size)
+    elif args.predictor in {"freq_95"}:
+        words_freqs = list(collections.Counter(data.split()).most_common())
+        percentiles = [0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+        freqs = np.average([
+            words_freqs[int(len(words_freqs)*percentile)][1]
+            for percentile in percentiles
+        ])
+        # freq_95 = words_freqs[index_85][1]+words_freqs[index_80][1]
+        # print(words_freqs[index_95], words_freqs[:10])
+        return freqs
+    else:
+        raise Exception("Unknown predictor " + args.predictor)
+    
+def get_predictor_title():
+    if args.predictor in {"subwords", "mu"}:
+        return "Compressed data size"
+    elif args.predictor in {"seq_len"}:
+        return "Average sequence length"
+    elif args.predictor in {"mu log v", "bits"}:
+        return "Bits needed for encoding"
+    else:
+        return "Predictor doesn't have axis label assigned yet"
+    
 
 def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
     global skipped_count
@@ -71,36 +104,38 @@ def process_logfile(fname):
     temperature = float(temperature)
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    subword_count = (
-        data_en.count(" ") + data_en.count("\n") +
-        data_de.count(" ") + data_de.count("\n")
-    )
+    predictor_variable = get_prediction(data_en + data_de, vocab_size)
     bleu = load_mt_bleu(temperature_name, vocab_size_name)
-    return (vocab_size_name, vocab_size, temperature), (subword_count, bleu)
+    return (vocab_size_name, temperature), (predictor_variable, bleu)
 
 
 with multiprocess.Pool() as pool:
     data_flat = pool.map(process_logfile, glob.glob(args.data))
 
-for (vocab_size_name, vocab_size, temperature), val in data_flat:
+for (vocab_size_name, temperature), val in data_flat:
     if any([x is None for x in val]):
         continue
-    data[(vocab_size_name, vocab_size)][temperature] = val
+    data[vocab_size_name][temperature] = val
 
 data_all = []
 min_xs = np.inf
 max_xs = -np.inf
-data = sorted(data.items(), key=lambda x: x[0][1])
-for signature_i, ((vocab_size_name, vocab_size), values) in enumerate(data):
+
+plt.figure(figsize=(4.3, 3.5))
+
+data = sorted(data.items(), key=lambda x: int(x[0].replace("k", "000")))
+
+for signature_i, (vocab_size_name, values) in enumerate(data):
     values = list(values.values())
     # sort by compression
     values.sort(key=lambda x: x[0])
 
     # remove outliers
+    values = [x for x in values if x[1] >= 32]
     while True:
         values_new = [values[0]] + [
             values[i] for i in range(1, len(values))
-            if values[i][1] >= values[i-1][1]-2
+            if values[i][1] >= values[i-1][1]-1.8
         ]
         if values_new == values:
             break
@@ -108,12 +143,9 @@ for signature_i, ((vocab_size_name, vocab_size), values) in enumerate(data):
             values = values_new
 
 
-    if args.bits:
-        xs = [x[0] * np.log2(vocab_size) for x in values]
-    else:
-        xs = [x[0] for x in values]
-
+    xs = [x[0] for x in values]
     ys = [x[1] for x in values]
+
     plt.plot(
         xs, ys,
         label=vocab_size_name,
@@ -186,12 +218,13 @@ plt.fill_between(
 )
 
 plt.title(
-    f"Pearson correlation {corr_rho:.1%} (p={corr_pval:.6f}) | {args.ci:.0%} CI band")
+    f"Pearson correlation {corr_rho:.1%} (p={corr_pval:.5f})"
+)
+    # \n{args.ci:.0%} CI band"
 plt.legend(ncol=2)
 plt.ylabel("Dev BLEU")
-if args.bits:
-    plt.xlabel("Bits needed for encoding (lower is better)")
-else:
-    plt.xlabel("Compressed data size (lower is better)")
+plt.xlabel(get_predictor_title())
 plt.tight_layout()
+
+plt.savefig("computed/figures/bleu_corr_" + args.predictor.replace(" ", "_") + ".pdf")
 plt.show()
