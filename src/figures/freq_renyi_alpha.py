@@ -20,13 +20,49 @@ with open(args.input, "r") as f:
 plt.plot(
     [line["renyi_alpha"] for line in data],
     [line["pearson"] for line in data],
-    label="Pearson",
+    label="Renyi Pearson",
+    color=figures.fig_utils.COLORS[0],
 )
 
 plt.plot(
     [line["renyi_alpha"] for line in data],
     [line["spearman"] for line in data],
-    label="Spearman",
+    label="Renyi Spearman",
+    color=figures.fig_utils.COLORS[0],
+    linestyle="-.",
+)
+plt.hlines(
+    xmin=0, xmax=1,
+    y=0.539, label="Encoded bits Pearson",
+    color=figures.fig_utils.COLORS[2],
+)
+plt.hlines(
+    xmin=0, xmax=1,
+    y=0.43, label="Encoded bits Spearman",
+    color=figures.fig_utils.COLORS[2],
+    linestyle="-."
+)
+plt.hlines(
+    xmin=1, xmax=2,
+    y=0.53, label="Gowda (counts) Pearson",
+    color=figures.fig_utils.COLORS[4],
+)
+plt.hlines(
+    xmin=1, xmax=2,
+    y=0.74, label="Gowda (counts) Spearman",
+    color=figures.fig_utils.COLORS[4],
+    linestyle="-."
+)
+plt.hlines(
+    xmin=2, xmax=3,
+    y=0.36, label="Sequence length Pearson",
+    color=figures.fig_utils.COLORS[5],
+)
+plt.hlines(
+    xmin=2, xmax=3,
+    y=0.25, label="Sequence length Spearman",
+    color=figures.fig_utils.COLORS[5],
+    linestyle="-."
 )
 
 plt.legend()
