@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import json
 import os
+import pickle
 import sys
 import multiprocess
 sys.path.append("src")
@@ -17,16 +19,20 @@ import scipy
 # ./src/patches/30-bleu_fig_recompute.py --predictor seq_len
 # ./src/patches/30-bleu_fig_recompute.py --predictor subwords
 # ./src/patches/30-bleu_fig_recompute.py --predictor bits
-# ./src/patches/30-bleu_fig_recompute.py --predictor freq_95;
+# ./src/patches/30-bleu_fig_recompute.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --use-cache;
 
 args = argparse.ArgumentParser()
 args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
 args.add_argument("-p", "--predictor", default="mu")
 args.add_argument("--ci", type=float, default=0.95)
+args.add_argument("--freq-alpha-start", type=float, default=0.65)
+args.add_argument("--freq-alpha-end", type=float, default=1.00)
+args.add_argument("--use-cache", action="store_true")
 args = args.parse_args()
 
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
+
 
 def get_prediction(data, vocab_size):
     if args.predictor in {"subwords", "mu"}:
@@ -35,19 +41,41 @@ def get_prediction(data, vocab_size):
         return np.average([line.count(" ") + 1 for line in data.split("\n")])
     elif args.predictor in {"mu log v", "bits"}:
         return (data.count(" ") + data.count("\n")) * np.log2(vocab_size)
-    elif args.predictor in {"freq_95"}:
+    elif args.predictor in {"freq"}:
         words_freqs = list(collections.Counter(data.split()).most_common())
-        percentiles = [0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+        percentiles = np.arange(
+            args.freq_alpha_start,
+            # add epsilon to be included
+            args.freq_alpha_end + 0.001, step=0.05
+        )
         freqs = np.average([
-            words_freqs[int(len(words_freqs)*percentile)][1]
+            words_freqs[
+                min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
+            ][1]
             for percentile in percentiles
         ])
         # freq_95 = words_freqs[index_85][1]+words_freqs[index_80][1]
         # print(words_freqs[index_95], words_freqs[:10])
         return freqs
+    elif args.predictor in {"freq_prob"}:
+        words_freqs = list(collections.Counter(data.split()).most_common())
+        total_subwords = sum([x[1] for x in words_freqs])
+        percentiles = np.arange(
+            args.freq_alpha_start,
+            # add epsilon to be included
+            args.freq_alpha_end + 0.001, step=0.05
+        )
+        freqs = np.sum([
+            words_freqs[
+                min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
+            ][1]
+            for percentile in percentiles
+        ]) / total_subwords
+        return freqs / np.log2(vocab_size)
     else:
         raise Exception("Unknown predictor " + args.predictor)
-    
+
+
 def get_predictor_title():
     if args.predictor in {"subwords", "mu"}:
         return "Compressed data size"
@@ -57,7 +85,7 @@ def get_predictor_title():
         return "Bits needed for encoding"
     else:
         return "Predictor doesn't have axis label assigned yet"
-    
+
 
 def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
     global skipped_count
@@ -104,13 +132,23 @@ def process_logfile(fname):
     temperature = float(temperature)
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    predictor_variable = get_prediction(data_en + data_de, vocab_size)
     bleu = load_mt_bleu(temperature_name, vocab_size_name)
-    return (vocab_size_name, temperature), (predictor_variable, bleu)
+    return (vocab_size_name, temperature), ((data_en + data_de, vocab_size), bleu)
 
+
+if args.use_cache:
+    data_flat = pickle.load(open("computed/bleu_corr_cache.pkl", "rb"))
+else:
+    with multiprocess.Pool() as pool:
+        data_flat = pool.map(process_logfile, glob.glob(args.data))
+    pickle.dump(data_flat, open("computed/bleu_corr_cache.pkl", "wb"))
 
 with multiprocess.Pool() as pool:
-    data_flat = pool.map(process_logfile, glob.glob(args.data))
+    data_flat = pool.map(
+        lambda x: (x[0], (get_prediction(x[1][0][0], x[1][0][1]), x[1][1])),
+        data_flat
+    )
+
 
 for (vocab_size_name, temperature), val in data_flat:
     if any([x is None for x in val]):
@@ -121,7 +159,7 @@ data_all = []
 min_xs = np.inf
 max_xs = -np.inf
 
-plt.figure(figsize=(4.3, 3.5))
+plt.figure(figsize=(4, 3.5))
 
 data = sorted(data.items(), key=lambda x: int(x[0].replace("k", "000")))
 
@@ -131,24 +169,23 @@ for signature_i, (vocab_size_name, values) in enumerate(data):
     values.sort(key=lambda x: x[0])
 
     # remove outliers
-    values = [x for x in values if x[1] >= 32]
+    values = [x for x in values if x[1] >= 33]
     while True:
         values_new = [values[0]] + [
             values[i] for i in range(1, len(values))
-            if values[i][1] >= values[i-1][1]-1.8
+            if values[i][1] >= values[i - 1][1] - 1.8
         ]
         if values_new == values:
             break
         else:
             values = values_new
 
-
     xs = [x[0] for x in values]
     ys = [x[1] for x in values]
 
     plt.plot(
         xs, ys,
-        label=vocab_size_name,
+        label=r"V=" + vocab_size_name,
         marker=".",
     )
     data_all += list(zip(xs, ys))
@@ -158,7 +195,10 @@ for signature_i, (vocab_size_name, values) in enumerate(data):
 
 data_all_y = [x[1] for x in data_all]
 data_all_x = [x[0] for x in data_all]
-corr_rho, corr_pval = scipy.stats.pearsonr(data_all_x, data_all_y)
+corr_pearson_rho, corr_pearson_pval = scipy.stats.pearsonr(
+    data_all_x, data_all_y)
+corr_spearman_rho, corr_spearman_pval = scipy.stats.spearmanr(
+    data_all_x, data_all_y)
 
 
 def linear_regression_ci(x, y, ci=0.95):
@@ -193,11 +233,6 @@ def linear_regression_ci(x, y, ci=0.95):
 coefs, coefs_low, coefs_high = linear_regression_ci(
     data_all_x, data_all_y, ci=args.ci)
 
-# linear_model = np.polyfit(
-#     data_all_x, data_all_y, 1
-# )
-# linear_model_fn = np.poly1d(linear_model)
-# linear_model_fn(lin_model_xs),
 lin_model_xs = np.linspace(min_xs, max_xs, 10)
 plt.plot(
     lin_model_xs,
@@ -217,14 +252,40 @@ plt.fill_between(
     zorder=-10,
 )
 
-plt.title(
-    f"Pearson correlation {corr_rho:.1%} (p={corr_pval:.5f})"
+if args.predictor == "freq":
+    ADDITIONAL_SIGNATURE = {
+        "start_a": args.freq_alpha_start, "end_a": args.freq_alpha_end}
+else:
+    ADDITIONAL_SIGNATURE = {}
+
+print(
+    "JSON!",
+    json.dumps({
+        "pearson": corr_pearson_rho, "spearman": corr_spearman_rho,
+        "pearson_p": corr_pearson_pval, "spearman_p": corr_spearman_pval,
+    } | ADDITIONAL_SIGNATURE),
+    sep="",
 )
-    # \n{args.ci:.0%} CI band"
-plt.legend(ncol=2)
+plt.title(
+    f"Pearson correlation {corr_pearson_rho:.1%} (p={corr_pearson_pval:.4f})\n" +
+    f"Spearman correlation {corr_spearman_rho:.1%} (p={corr_spearman_pval:.4f})"
+)
+plt.legend(
+    ncol=5,
+    loc="upper center",
+    labelspacing=0.0,
+    handlelength=0.9,
+    handletextpad=0.25,
+    columnspacing=0.6,
+)
+# add space for legend
+plt.ylim(min(data_all_y) - 0.2, max(data_all_y) + 0.85)
 plt.ylabel("Dev BLEU")
 plt.xlabel(get_predictor_title())
 plt.tight_layout()
 
-plt.savefig("computed/figures/bleu_corr_" + args.predictor.replace(" ", "_") + ".pdf")
+plt.savefig(
+    "computed/figures/bleu_corr_" +
+    args.predictor.replace(" ", "_") + ".pdf"
+)
 plt.show()
