@@ -12,8 +12,9 @@ vocab_size_name() {
     echo $T
 }
 
-SEED="4"
-for VOCAB_SIZE in "2000" "4000" "8000" "16000" "32000"; do
+SEED="5"
+# "8000" "16000" "2000"
+for VOCAB_SIZE in "4000" "32000" ; do
 for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-0.00001"; do
     MODEL="bpe_random"
     TEMPERATURE_NAME=$(temperature_name $TEMPERATURE)
@@ -55,6 +56,7 @@ for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-
                 --bpe fastbpe \
                 --best-checkpoint-metric bleu --maximize-best-checkpoint-metric \
                 --seed ${SEED} \
+                --keep-last-epochs 0 \
                 --amp \
             "
                 # --eval-bleu-print-samples \

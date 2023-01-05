@@ -19,7 +19,10 @@ import scipy
 # ./src/patches/30-bleu_fig_recompute.py --predictor seq_len
 # ./src/patches/30-bleu_fig_recompute.py --predictor subwords
 # ./src/patches/30-bleu_fig_recompute.py --predictor bits
-# ./src/patches/30-bleu_fig_recompute.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --use-cache;
+# ./src/patches/30-bleu_fig_recompute.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --use-cache
+# ./src/patches/30-bleu_fig_recompute.py --predictor freq_prob --freq-alpha-start 0.25 --freq-alpha-end 0.75 --use-cache
+# ./src/patches/30-bleu_fig_recompute.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --use-cache
+
 
 args = argparse.ArgumentParser()
 args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
@@ -27,7 +30,9 @@ args.add_argument("-p", "--predictor", default="mu")
 args.add_argument("--ci", type=float, default=0.95)
 args.add_argument("--freq-alpha-start", type=float, default=0.65)
 args.add_argument("--freq-alpha-end", type=float, default=1.00)
+args.add_argument("--renyi-alpha", type=float, default=1)
 args.add_argument("--use-cache", action="store_true")
+args.add_argument("--write-cache", action="store_true")
 args = args.parse_args()
 
 TEMPERATURES = set()
@@ -63,12 +68,27 @@ def get_prediction(data, vocab_size):
         percentiles = np.arange(
             args.freq_alpha_start,
             # add epsilon to be included
-            args.freq_alpha_end + 0.001, step=0.05
+            args.freq_alpha_end + 0.001, step=0.001
         )
         freqs = np.sum([
             words_freqs[
                 min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
             ][1]
+            for percentile in percentiles
+        ]) / total_subwords
+        return freqs / np.log2(vocab_size)
+    elif args.predictor in {"freq_prob_renyi"}:
+        words_freqs = list(collections.Counter(data.split()).most_common())
+        total_subwords = sum([x[1] for x in words_freqs])
+        percentiles = np.arange(
+            args.freq_alpha_start,
+            # add epsilon to be included
+            args.freq_alpha_end + 0.001, step=0.001
+        )
+        freqs = np.sum([
+            words_freqs[
+                min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
+            ][1]**args.renyi_alpha
             for percentile in percentiles
         ]) / total_subwords
         return freqs / np.log2(vocab_size)
@@ -110,7 +130,7 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
 def load_mt_bleu(temperature, vocab_size_name):
     bleus = [
         load_mt_bleu_single(temperature, vocab_size_name, suffix)
-        for suffix in ["_s1", "_s2"]
+        for suffix in ["_s1", "_s2", "_s3", "_s4"]
     ]
     bleus = [x for x in bleus if x]
     print(bleus)
@@ -141,7 +161,8 @@ if args.use_cache:
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
-    pickle.dump(data_flat, open("computed/bleu_corr_cache.pkl", "wb"))
+    if args.write_cache:
+        pickle.dump(data_flat, open("computed/bleu_corr_cache.pkl", "wb"))
 
 with multiprocess.Pool() as pool:
     data_flat = pool.map(
@@ -252,9 +273,17 @@ plt.fill_between(
     zorder=-10,
 )
 
-if args.predictor == "freq":
+if args.predictor in {"freq", "freq_prob"}:
     ADDITIONAL_SIGNATURE = {
-        "start_a": args.freq_alpha_start, "end_a": args.freq_alpha_end}
+        "start_a": args.freq_alpha_start,
+        "end_a": args.freq_alpha_end
+    }
+elif args.predictor in {"freq_prob_renyi"}:
+    ADDITIONAL_SIGNATURE = {
+        "start_a": args.freq_alpha_start,
+        "end_a": args.freq_alpha_end,
+        "renyi_alpha": args.renyi_alpha,
+    }
 else:
     ADDITIONAL_SIGNATURE = {}
 
