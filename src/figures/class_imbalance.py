@@ -20,16 +20,6 @@ args.add_argument(
     ])
 args = args.parse_args()
 
-# data_words = [
-#     freq
-#     for word, freq in collections.Counter([
-#         word
-#         for file in args.data_words
-#         for line in open(file, "r").readlines()
-#         for word in line.rstrip("\n").split(" ")
-#     ]).most_common()
-# ]
-
 data_bpe = list(collections.Counter([
         word
         for file in args.data_bpe
@@ -37,8 +27,8 @@ data_bpe = list(collections.Counter([
         for word in line.rstrip("\n").split(" ")
     ]).most_common())
 
-data_bpe_vals = [freq for word, freq in data_bpe[:120]]
-print(data_bpe[:20])
+total_subwords = sum([freq for word, freq in data_bpe])
+data_bpe_vals = [freq/total_subwords for word, freq in data_bpe[:120]]
 
 plt.figure(figsize=(8, 4))
 plt.bar(
