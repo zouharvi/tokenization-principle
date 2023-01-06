@@ -27,12 +27,16 @@ from predictors_bleu import get_predictor
 args = argparse.ArgumentParser()
 args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
 args.add_argument("-p", "--predictor", default="mu")
-args.add_argument("--ci", type=float, default=0.95)
-args.add_argument("--freq-alpha-start", type=float, default=0.65)
-args.add_argument("--freq-alpha-end", type=float, default=1.00)
-args.add_argument("--renyi-alpha", type=float, default=1)
 args.add_argument("--load-cache", action="store_true")
+args.add_argument("--no-graphics", action="store_true")
 args.add_argument("--write-cache", action="store_true")
+args.add_argument("--ci", type=float, default=0.95)
+args.add_argument("--freq-alpha-start", type=float, default=0.25)
+args.add_argument("--freq-alpha-end", type=float, default=0.75)
+args.add_argument("--power", type=float, default=None)
+args.add_argument("--central-measure", default=None)
+args.add_argument("--base-vals", default=None)
+args.add_argument("--aggregator", default=None)
 args = args.parse_args()
 args_kwargs = vars(args)
 
@@ -212,27 +216,19 @@ plt.fill_between(
     zorder=-10,
 )
 
-ADDITIONAL_SIGNATURE = {"predictor": args.predictor}
-if args.predictor in {"freq", "freq_prob"}:
-    ADDITIONAL_SIGNATURE |= {
-        "start_a": args.freq_alpha_start,
-        "end_a": args.freq_alpha_end
-    }
-elif args.predictor in {"renyi"}:
-    ADDITIONAL_SIGNATURE |= {
-        "start_a": args.freq_alpha_start,
-        "end_a": args.freq_alpha_end,
-        "renyi_alpha": args.renyi_alpha,
-    }
-
 print(
     "JSON!",
     json.dumps({
         "pearson": corr_pearson_rho, "spearman": corr_spearman_rho,
         "pearson_p": corr_pearson_pval, "spearman_p": corr_spearman_pval,
-    } | ADDITIONAL_SIGNATURE),
+        "args": args_kwargs
+    }),
     sep="",
 )
+
+if args.no_graphics:
+    exit()
+
 plt.title(
     f"Pearson correlation {corr_pearson_rho:.1%} (p={corr_pearson_pval:.4f})\n" +
     f"Spearman correlation {corr_spearman_rho:.1%} (p={corr_spearman_pval:.4f})"
