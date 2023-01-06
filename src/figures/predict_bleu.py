@@ -13,15 +13,15 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
+from predictors_bleu import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # find -path "./logs/train_mt_*.log" -exec sh -c "grep best_bleu {} | tail -n 1" \; | wc -l
-# ./src/patches/30-bleu_fig_recompute.py --predictor seq_len
-# ./src/patches/30-bleu_fig_recompute.py --predictor subwords
-# ./src/patches/30-bleu_fig_recompute.py --predictor bits
-# ./src/patches/30-bleu_fig_recompute.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --use-cache
-# ./src/patches/30-bleu_fig_recompute.py --predictor freq_prob --freq-alpha-start 0.25 --freq-alpha-end 0.75 --use-cache
-# ./src/patches/30-bleu_fig_recompute.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --use-cache
+# ./src/figures/predict_bleu.py --predictor bits --write-cache
+# ./src/figures/predict_bleu.py --predictor seq_len
+# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --load-cache
+# ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
+# ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
 
 
 args = argparse.ArgumentParser()
@@ -31,80 +31,15 @@ args.add_argument("--ci", type=float, default=0.95)
 args.add_argument("--freq-alpha-start", type=float, default=0.65)
 args.add_argument("--freq-alpha-end", type=float, default=1.00)
 args.add_argument("--renyi-alpha", type=float, default=1)
-args.add_argument("--use-cache", action="store_true")
+args.add_argument("--load-cache", action="store_true")
 args.add_argument("--write-cache", action="store_true")
 args = args.parse_args()
+args_kwargs = vars(args)
+
+predictor, predictor_title = get_predictor(args.predictor)
 
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
-
-
-def get_prediction(data, vocab_size):
-    if args.predictor in {"subwords", "mu"}:
-        return data.count(" ") + data.count("\n")
-    elif args.predictor in {"seq_len"}:
-        return np.average([line.count(" ") + 1 for line in data.split("\n")])
-    elif args.predictor in {"mu log v", "bits"}:
-        return (data.count(" ") + data.count("\n")) * np.log2(vocab_size)
-    elif args.predictor in {"freq"}:
-        words_freqs = list(collections.Counter(data.split()).most_common())
-        percentiles = np.arange(
-            args.freq_alpha_start,
-            # add epsilon to be included
-            args.freq_alpha_end + 0.001, step=0.05
-        )
-        freqs = np.average([
-            words_freqs[
-                min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
-            ][1]
-            for percentile in percentiles
-        ])
-        # freq_95 = words_freqs[index_85][1]+words_freqs[index_80][1]
-        # print(words_freqs[index_95], words_freqs[:10])
-        return freqs
-    elif args.predictor in {"freq_prob"}:
-        words_freqs = list(collections.Counter(data.split()).most_common())
-        total_subwords = sum([x[1] for x in words_freqs])
-        percentiles = np.arange(
-            args.freq_alpha_start,
-            # add epsilon to be included
-            args.freq_alpha_end + 0.001, step=0.001
-        )
-        freqs = np.sum([
-            words_freqs[
-                min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
-            ][1]
-            for percentile in percentiles
-        ]) / total_subwords
-        return freqs / np.log2(vocab_size)
-    elif args.predictor in {"freq_prob_renyi"}:
-        words_freqs = list(collections.Counter(data.split()).most_common())
-        total_subwords = sum([x[1] for x in words_freqs])
-        percentiles = np.arange(
-            args.freq_alpha_start,
-            # add epsilon to be included
-            args.freq_alpha_end + 0.001, step=0.001
-        )
-        freqs = np.sum([
-            words_freqs[
-                min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
-            ][1]**args.renyi_alpha
-            for percentile in percentiles
-        ]) / total_subwords
-        return freqs / np.log2(vocab_size)
-    else:
-        raise Exception("Unknown predictor " + args.predictor)
-
-
-def get_predictor_title():
-    if args.predictor in {"subwords", "mu"}:
-        return "Compressed data size"
-    elif args.predictor in {"seq_len"}:
-        return "Average sequence length"
-    elif args.predictor in {"mu log v", "bits"}:
-        return "Bits needed for encoding"
-    else:
-        return "Predictor doesn't have axis label assigned yet"
 
 
 def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
@@ -130,7 +65,7 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
 def load_mt_bleu(temperature, vocab_size_name):
     bleus = [
         load_mt_bleu_single(temperature, vocab_size_name, suffix)
-        for suffix in ["_s1", "_s2", "_s3", "_s4"]
+        for suffix in ["_s1", "_s2", "_s3", "_s4", "_s5"]
     ]
     bleus = [x for x in bleus if x]
     print(bleus)
@@ -156,7 +91,7 @@ def process_logfile(fname):
     return (vocab_size_name, temperature), ((data_en + data_de, vocab_size), bleu)
 
 
-if args.use_cache:
+if args.load_cache:
     data_flat = pickle.load(open("computed/bleu_corr_cache.pkl", "rb"))
 else:
     with multiprocess.Pool() as pool:
@@ -166,7 +101,11 @@ else:
 
 with multiprocess.Pool() as pool:
     data_flat = pool.map(
-        lambda x: (x[0], (get_prediction(x[1][0][0], x[1][0][1]), x[1][1])),
+        lambda x: (
+            x[0], (
+                predictor(x[1][0][0], x[1][0][1], args_kwargs),
+                x[1][1])
+            ),
         data_flat
     )
 
@@ -273,19 +212,18 @@ plt.fill_between(
     zorder=-10,
 )
 
+ADDITIONAL_SIGNATURE = {"predictor": args.predictor}
 if args.predictor in {"freq", "freq_prob"}:
-    ADDITIONAL_SIGNATURE = {
+    ADDITIONAL_SIGNATURE |= {
         "start_a": args.freq_alpha_start,
         "end_a": args.freq_alpha_end
     }
-elif args.predictor in {"freq_prob_renyi"}:
-    ADDITIONAL_SIGNATURE = {
+elif args.predictor in {"renyi"}:
+    ADDITIONAL_SIGNATURE |= {
         "start_a": args.freq_alpha_start,
         "end_a": args.freq_alpha_end,
         "renyi_alpha": args.renyi_alpha,
     }
-else:
-    ADDITIONAL_SIGNATURE = {}
 
 print(
     "JSON!",
@@ -310,7 +248,7 @@ plt.legend(
 # add space for legend
 plt.ylim(min(data_all_y) - 0.2, max(data_all_y) + 0.85)
 plt.ylabel("Dev BLEU")
-plt.xlabel(get_predictor_title())
+plt.xlabel(predictor_title)
 plt.tight_layout()
 
 plt.savefig(
