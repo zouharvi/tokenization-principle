@@ -46,13 +46,19 @@ def _predictor_freq_prob(data, vocab_size, extra_args):
         # add epsilon to be included
         extra_args["freq_alpha_end"] + 0.001, step=0.05
     )
+
+    if extra_args["power"] == 1:
+        scale = 1
+    else:
+        scale = 1/(1-extra_args["power"])
+
     freqs = np.sum([
         words_freqs[
             min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
         ][1]
         for percentile in percentiles
     ]) / total_subwords
-    return freqs / np.log2(vocab_size)
+    return scale * freqs / np.log2(vocab_size)
 
 def _predictor_renyi(data, vocab_size, extra_args):
     words_freqs, probs = get_prob_distribution(data)
@@ -60,11 +66,16 @@ def _predictor_renyi(data, vocab_size, extra_args):
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
     
+    if extra_args["power"] == 1:
+        scale = 1
+    else:
+        scale = 1/(1-extra_args["power"])
+
     freqs = np.log2(np.sum([
         (words_freqs[index] / total_subwords)**extra_args["power"]
         for index in range(index_start, index_end+1)
     ]))
-    return freqs
+    return scale*freqs
 
 def _predictor_renyi_log(data, vocab_size, extra_args):
     words_freqs, probs = get_prob_distribution(data)

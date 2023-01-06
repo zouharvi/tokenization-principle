@@ -63,6 +63,8 @@ for name_i, (name, data) in enumerate(zip(
 print("ENTROPY", predictor_entropy[0])
 print("RENYI", [line for line in predictor_renyi if line["args"]["power"] == 1][0])
 
+print("MAX", max(predictor_renyi_log, key=lambda line: abs(line["pearson"])))
+
 
 plt.legend(
     ncol=2,

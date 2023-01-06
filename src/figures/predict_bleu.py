@@ -160,9 +160,12 @@ for signature_i, (vocab_size_name, values) in enumerate(data):
 data_all_y = [x[1] for x in data_all]
 data_all_x = [x[0] for x in data_all]
 corr_pearson_rho, corr_pearson_pval = scipy.stats.pearsonr(
-    data_all_x, data_all_y)
+    data_all_x, data_all_y
+)
 corr_spearman_rho, corr_spearman_pval = scipy.stats.spearmanr(
-    data_all_x, data_all_y)
+    data_all_x, data_all_y
+)
+
 
 
 def linear_regression_ci(x, y, ci=0.95):
@@ -195,7 +198,9 @@ def linear_regression_ci(x, y, ci=0.95):
 
 
 coefs, coefs_low, coefs_high = linear_regression_ci(
-    data_all_x, data_all_y, ci=args.ci)
+    data_all_x, data_all_y,
+    ci=args.ci
+)
 
 lin_model_xs = np.linspace(min_xs, max_xs, 10)
 plt.plot(
@@ -216,12 +221,16 @@ plt.fill_between(
     zorder=-10,
 )
 
+# print section
+data_all_x, data_all_y = zip(*sorted(zip(data_all_x, data_all_y), key=lambda x: x[0]))
 print(
     "JSON!",
     json.dumps({
         "pearson": corr_pearson_rho, "spearman": corr_spearman_rho,
         "pearson_p": corr_pearson_pval, "spearman_p": corr_spearman_pval,
-        "args": args_kwargs
+        "args": args_kwargs,
+        "bleus": data_all_y,
+        "vals": data_all_x
     }),
     sep="",
 )
