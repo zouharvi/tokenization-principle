@@ -254,7 +254,7 @@ plt.legend(
 plt.ylim(min(data_all_y) - 0.2, max(data_all_y) + 0.85)
 plt.ylabel("Dev BLEU")
 plt.xlabel(predictor_title)
-plt.tight_layout()
+plt.tight_layout(pad=0)
 
 plt.savefig(
     "computed/figures/bleu_corr_" +

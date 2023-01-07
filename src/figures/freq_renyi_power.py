@@ -11,66 +11,61 @@ sys.path.append("src")
 import figures.fig_utils
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", default="computed/renyi_params.jsonl")
+args.add_argument("-i", "--input", default="computed/renyi_vals.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
     data = [json.loads(x) for x in f.readlines()]
 
-predictor_renyi = [line for line in data if line["args"]["predictor"] == "renyi"]
-predictor_renyi_log = [line for line in data if line["args"]["predictor"] == "renyi_log"]
-predictor_bits = [line for line in data if line["args"]["predictor"] == "bits"]
-predictor_seq_len = [line for line in data if line["args"]["predictor"] == "seq_len"]
-predictor_entropy = [line for line in data if line["args"]["predictor"] == "entropy"]
-
-def plot_renyi(data, name, name_i):
-    plt.plot(
-        [line["args"]["power"] for line in data],
-        [abs(line["pearson"]) for line in data],
-        label=f"{name} Pearson",
-        color=figures.fig_utils.COLORS[name_i],
-    )
-    plt.plot(
-        [line["args"]["power"] for line in data],
-        [abs(line["spearman"]) for line in data],
-        label=f"{name} Spearman",
-        color=figures.fig_utils.COLORS[name_i],
-        linestyle="-.",
-    )
-
-plot_renyi(predictor_renyi, "Renyi", 0)
-plot_renyi(predictor_renyi_log, "Renyi Log", 1)
-
-for name_i, (name, data) in enumerate(zip(
-    ["Bits", "Entropy", "Seq length"],
-    [predictor_bits, predictor_entropy, predictor_seq_len]
-)):
-    plt.hlines(
-        xmin=name_i, xmax=name_i+1,
-        y=abs(data[0]["pearson"]),
-        label=f"{name} Pearson",
-        color=figures.fig_utils.COLORS[name_i+2],
-    )
-    plt.hlines(
-        xmin=name_i, xmax=name_i+1,
-        y=abs(data[0]["spearman"]),
-        label=f"{name} Spearman",
-        color=figures.fig_utils.COLORS[name_i+2],
-        linestyle="-."
-    )
-
-
-print("ENTROPY", predictor_entropy[0])
-print("RENYI", [line for line in predictor_renyi if line["args"]["power"] == 1][0])
-
-print("MAX", max(predictor_renyi_log, key=lambda line: abs(line["pearson"])))
-
-
-plt.legend(
-    ncol=2,
+line_entropy = [line for line in data if line["args"]["predictor"] == "entropy"][0]
+line_entropy["args"]["power"] = 1
+line_entropy["vals"] = [-x/512 for x in line_entropy["vals"]]
+print(line_entropy["spearman"])
+print(np.average(line_entropy["vals"]))
+print(
+    [np.average(line["vals"]) for line in data],
 
 )
-plt.ylabel("Correlation")
-plt.xlabel("Renyi alpha")
+print(line_entropy)
+data = [
+    line if line["args"]["power"] != 1 else line_entropy
+    for line in data
+    if line["args"]["predictor"] == "renyi_log"
+]
+
+
+plt.figure(figsize=(5,3))
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+
+ax1.plot(
+    [line["args"]["power"] for line in data],
+    [(line["pearson"]) for line in data],
+    label=f"Rényi Pearson",
+    color=figures.fig_utils.COLORS[0],
+)
+ax1.plot(
+    [line["args"]["power"] for line in data],
+    [(line["spearman"]) for line in data],
+    label=f"Rényi Spearman",
+    color=figures.fig_utils.COLORS[0],
+    linestyle="-.",
+)
+ax2.plot(
+    [line["args"]["power"] for line in data],
+    [np.average(line["vals"]) for line in data],
+    label=f"Rényi values",
+    color=figures.fig_utils.COLORS[1],
+    linestyle="-.",
+)
+
+# plt.legend(
+#     ncol=2,
+# )
+
+ax1.set_ylabel(r"Rényi entropy correlation with BLEU")
+ax1.set_xlabel(r"$\alpha$")
+ax2.set_ylabel(r"Rényi entropy value")
 plt.tight_layout()
+plt.savefig("computed/figures/corr_renyi_alpha.pdf")
 plt.show()
