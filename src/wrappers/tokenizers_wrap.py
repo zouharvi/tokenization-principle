@@ -41,7 +41,7 @@ args.add_argument(
     "-pn", "--process-number-of-lines", type=int, nargs="+",
     default=[50000, 50000, 50000, 50000, 1000000, 1000000]
 )
-args.add_argument("-vs", "--vocab-size", type=int, default=8192)
+args.add_argument("-vs", "--vocab-size", type=int, default=8000)
 args.add_argument("-n", "--number-of-lines", type=int, default=100000)
 # unigram, wordlevel, wordpiece
 args.add_argument("--model", default="unigram")

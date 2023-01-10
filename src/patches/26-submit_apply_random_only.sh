@@ -18,8 +18,7 @@ for SPLIT in "train" "dev" "test"; do
 NOL=$(split_to_nol $SPLIT)
 for LANG in "en" "de"; do
 for VOCAB_SIZE in "2000" "4000" "8000" "16000" "32000"; do
-    for TEMPERATURE in "0.05"; do
-    # for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-0.00001"; do
+    for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-0.00001"; do
         TEMPERATURE_NAME=$(temperature_name $TEMPERATURE)
         VOCAB_SIZE_NAME=$(vocab_size_name $VOCAB_SIZE)
         SIGNATURE="${TEMPERATURE_NAME}_${VOCAB_SIZE_NAME}"

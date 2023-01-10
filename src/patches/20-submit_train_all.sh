@@ -1,133 +1,59 @@
 #!/usr/bin/bash
 
-VOCAB_SIZE="8192"
-
-train_lines_name() {
-    case $1 in
-        "400000")
-            echo "400k"
-        ;;
-        "100000")
-            echo "100k"
-        ;;
-        "10000")
-            echo "10k"
-        ;;
-        "5000")
-            echo "5k"
-        ;;
-        "2000")
-            echo "2k"
-        ;;
-    esac
+vocab_size_name() {
+    T=$(sed 's/000$/k/g' <<<"$1")
+    echo $T
 }
 
-for TRAIN_LINES in "100000" "5000" "2000"; do
-    TRAIN_LINES_NAME=$(train_lines_name $TRAIN_LINES)
-    SIGNATURE="obturate_${VOCAB_SIZE}_${TRAIN_LINES_NAME}"
-    mkdir -p data/{model_bpe_greedy,model_bpe_antigreedy,model_bpe_captrick,model_lzw,model_morfessor}/${TRAIN_LINES_NAME}
-
-    echo "Submitting BPE (greedy)";
-    sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="logs/fit_bpe_greedy_${SIGNATURE}.log" \
-        --job-name="fit_bpe_greedy_${SIGNATURE}" \
-        --wrap="python3 ./src/fit_bpe.py \
-            --model greedy \
-            --vocab-output data/model_bpe_greedy/${TRAIN_LINES_NAME}/model.bpe_merges \
-            --vocab-size ${VOCAB_SIZE} \
-            --number-of-lines ${TRAIN_LINES} \
-        ";
-
-    echo "Submitting BPE (antigreedy)";
-    sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="logs/fit_bpe_antigreedy_${SIGNATURE}.log" \
-        --job-name="fit_bpe_antigreedy_${SIGNATURE}" \
-        --wrap="python3 ./src/fit_bpe.py \
-            --model antigreedyalmost \
-            --threshold 2 \
-            --vocab-output data/model_bpe_antigreedy/${TRAIN_LINES_NAME}/model.bpe_merges \
-            --vocab-size ${VOCAB_SIZE} \
-            --number-of-lines ${TRAIN_LINES} \
-        ";
-
-    echo "Submitting BPE (captrick)";
-    sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="logs/fit_bpe_greedycaptrick_${SIGNATURE}.log" \
-        --job-name="fit_bpe_greedycaptrick_${SIGNATURE}" \
-        --wrap="python3 ./src/fit_bpe.py \
-            --model greedycaptrick \
-            --vocab-output data/model_bpe_captrick/${TRAIN_LINES_NAME}/model.bpe_merges \
-            --vocab-size ${VOCAB_SIZE} \
-            --number-of-lines ${TRAIN_LINES} \
-        ";
+for VOCAB_SIZE in "4000" "8000" "16000"; do
+for TRAIN_LINES in "100000" "8000" "2000"; do
+    TRAIN_LINES_NAME=$(vocab_size_name $TRAIN_LINES)
+    VOCAB_SIZE_NAME=$(vocab_size_name $VOCAB_SIZE)
+    SIGNATURE="l${TRAIN_LINES_NAME}_${VOCAB_SIZE_NAME}"
+    mkdir -p data/{model_lzw,model_morfessor}/${SIGNATURE}
+    echo "SIGNATURE ${SIGNATURE}"
 
     echo "Submitting LZW";
     sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="logs/fit_lzw_${SIGNATURE}.log" \
+        --output="/cluster/home/vzouhar/random-bpe/logs/fit_lzw_${SIGNATURE}.log" \
         --job-name="fit_lzw_${SIGNATURE}" \
         --wrap="python3 ./src/lempel_ziv_welsch/fit_lzw.py \
-            --vocab-output data/model_lzw/${TRAIN_LINES_NAME}/model.vocab \
+            --vocab-output data/model_lzw/${SIGNATURE}/model.vocab \
             --vocab-size ${VOCAB_SIZE} \
             --number-of-lines ${TRAIN_LINES} \
         ";
 
     echo "Submitting Morfessor";
     sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="logs/fit_morfessor_${SIGNATURE}.log" \
+        --output="/cluster/home/vzouhar/random-bpe/logs/fit_morfessor_${SIGNATURE}.log" \
         --job-name="fit_morfessor_${SIGNATURE}" \
         --wrap="python3 ./src/wrappers/morfessor_wrap_train.py \
-            --vocab-output data/model_morfessor/${TRAIN_LINES_NAME}/model.pkl \
+            --vocab-output data/model_morfessor/${SIGNATURE}/model.pkl \
             --vocab-size ${VOCAB_SIZE} \
             --number-of-lines ${TRAIN_LINES} \
         ";
 
     for TOKENIZER_METHOD in "bpe" "unigram" "wordpiece"; do
-        mkdir -p data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}
+        mkdir -p data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}
 
         echo "Submitting tokenizer/${TOKENIZER_METHOD} (${TRAIN_LINES_NAME})";
         sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-            --output="logs/fit_tokenizer_${TOKENIZER_METHOD}_${SIGNATURE}.log" \
+            --output="/cluster/home/vzouhar/random-bpe/logs/fit_tokenizer_${TOKENIZER_METHOD}_${SIGNATURE}.log" \
             --job-name="fit_tokenizer_${TOKENIZER_METHOD}_${SIGNATURE}" \
             --wrap="python3 ./src/wrappers/tokenizers_wrap.py \
-                --vocab-output data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/model.json \
+                --vocab-output data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/model.json \
                 --model ${TOKENIZER_METHOD} \
                 --vocab-size ${VOCAB_SIZE} \
                 --number-of-lines ${TRAIN_LINES} \
-                --logfile computed/bouree.jsonl \
+                --logfile computed/paten.jsonl \
                 --process-output \
-                        data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/dev.en \
-                        data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/dev.de \
-                        data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/test.en \
-                        data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/test.de \
-                        data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/train.en \
-                        data/model_tokenizer_${TOKENIZER_METHOD}/${TRAIN_LINES_NAME}/train.de \
+                        data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/dev.en \
+                        data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/dev.de \
+                        data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/test.en \
+                        data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/test.de \
+                        data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/train.en \
+                        data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/train.de \
             ";
         done
-done
-
-for TEMPERATURE in "0.4" "1000"; do
-    echo "Submitting BPE (random)";
-    mkdir -p "data/model_bpe_random/${TEMPERATURE}"
-    sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="logs/fit_bpe_random_${TEMPERATURE}.log" \
-        --job-name="fit_bpe_random_${TEMPERATURE}" \
-        --wrap="python3 ./src/fit_bpe.py \
-            --model random \
-            --randomness-dist softmax \
-            --randomness-temp ${TEMPERATURE} \
-            --vocab-output data/model_bpe_random/${TEMPERATURE}/model.bpe_merges \
-            --vocab-size ${VOCAB_SIZE} \
-            --number-of-lines 5000 \
-        ";
 done;
-
-
-# echo "Submitting SentencePiece (also for applying)";
-# sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-#     --output="logs/fit_spm_${SIGNATURE}.log" \
-#     --job-name="fit_spm_${SIGNATURE}" \
-#     --wrap="python3 ./src/wrappers/sentencepiece_wrap.py \
-#         --vocab-output data/model_spm/ \
-#         --vocab-size ${VOCAB_SIZE} \
-#         --number-of-lines ${TRAIN_LINES} \
-#     ";
+done;
