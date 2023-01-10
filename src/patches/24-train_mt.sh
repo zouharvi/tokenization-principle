@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-SEED="1"
+SEED="2"
 for VOCAB_SIZE_NAME in "4k" "8k" "16k"; do
 for TRAIN_LINES_NAME in "2k" "8k" "100k"; do
 for MODEL in \
@@ -43,7 +43,7 @@ do
                 --bpe fastbpe \
                 --best-checkpoint-metric bleu --maximize-best-checkpoint-metric \
                 --seed ${SEED} \
-                --keep-last-epochs 0 \
+                --no-epoch-checkpoints \
                 --amp \
             "
     done;

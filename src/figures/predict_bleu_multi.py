@@ -25,7 +25,7 @@ from predictors_bleu import get_predictor
 
 
 args = argparse.ArgumentParser()
-args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
+args.add_argument("-d", "--data", default="data/*/*/dev.en")
 args.add_argument("-p", "--predictor", default="bits")
 args.add_argument("--load-cache", action="store_true")
 args.add_argument("--no-graphics", action="store_true")
@@ -46,11 +46,10 @@ TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
 
-def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
-    global skipped_count
-    filename = f"logs/train_mt{suffix}_t{temperature}_v{vocab_size_name}.log"
+def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""):
+    filename = f"logs/train_mt_{model_name}{suffix}_l{train_lines_name}_v{vocab_size_name}.log"
     if not os.path.isfile(filename):
-        print("skipped", filename)
+        # print("skipped", filename)
         return None
     with open(filename, "r") as f:
         data = [
@@ -62,94 +61,98 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
         bleu = float(data[-1])
         return bleu
     else:
-        print("skipped", filename)
+        # print("skipped", filename)
         return None
 
 
-def load_mt_bleu(temperature, vocab_size_name):
+def load_mt_bleu(model_name, train_lines_name, vocab_size_name):
     bleus = [
-        load_mt_bleu_single(temperature, vocab_size_name, suffix)
-        for suffix in ["_s1", "_s2", "_s3", "_s4", "_s5"]
+        load_mt_bleu_single(
+            model_name, train_lines_name,
+            vocab_size_name, suffix
+        )
+        for suffix in ["_s1", "_s2"]
     ]
     bleus = [x for x in bleus if x]
-    print(bleus)
     if len(bleus) < 1:
         return None
     else:
+        print(bleus)
         return np.max(bleus)
 
 
 def process_logfile(fname):
+    if "bpe_random" in fname:
+        return None
     data_en = open(fname, "r").read()
     data_de = open(fname.replace(".en", ".de"), "r").read()
-    temperature_name, vocab_size_name = fname.split("/")[-2].split("_")
+    train_lines_name, vocab_size_name = fname.split("/")[-2].split("_")
+    train_lines_name = train_lines_name.removeprefix("l")
+    model_name = fname.split("/")[-3].removeprefix("model_")
 
-    temperature = temperature_name.replace("m", "-")
-    temperature = (
-        "^" + temperature
-    ).replace("^0", "0.").replace("^-0", "-0.").removeprefix("^")
-    temperature = float(temperature)
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    bleu = load_mt_bleu(temperature_name, vocab_size_name)
-    return (vocab_size_name, temperature), ((data_en + data_de, vocab_size), bleu)
+    bleu = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
+    if not bleu:
+        return None
+    model_name = model_name.removeprefix("tokenizer_")
+    return (model_name, vocab_size_name, train_lines_name), ((data_en + data_de, vocab_size), bleu)
 
 
 if args.load_cache:
-    data_flat = pickle.load(open("computed/bleu_corr_cache.pkl", "rb"))
+    data_flat = pickle.load(open("computed/bleu_corr_cache_multi.pkl", "rb"))
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
+        data_flat = [x for x in data_flat if x is not None]
     if args.write_cache:
-        pickle.dump(data_flat, open("computed/bleu_corr_cache.pkl", "wb"))
+        pickle.dump(data_flat, open("computed/bleu_corr_cache_multi.pkl", "wb"))
+
 
 with multiprocess.Pool() as pool:
     data_flat = pool.map(
         lambda x: (
+            # signature stuff
             x[0], (
+                # data, vocab_size, args
                 predictor(x[1][0][0], x[1][0][1], args_kwargs),
-                x[1][1])
-            ),
+                # bleu
+                x[1][1]
+            )
+        ),
         data_flat
     )
 
 
-for (vocab_size_name, temperature), val in data_flat:
-    if any([x is None for x in val]):
-        continue
-    data[vocab_size_name][temperature] = val
+for (model_name, vocab_size_name, train_lines_name), val in data_flat:
+    data[model_name][(vocab_size_name, train_lines_name)] = val
 
 data_all = []
 min_xs = np.inf
 max_xs = -np.inf
 
-plt.figure(figsize=(4.1, 3.5))
+plt.figure(figsize=(6, 5.5))
 
-data = sorted(data.items(), key=lambda x: int(x[0].replace("k", "000")))
+# sort by model name
+data = sorted(data.items(), key=lambda x: x[0])
 
-for signature_i, (vocab_size_name, values) in enumerate(data):
+for signature_i, (model_name, values) in enumerate(data):
     values = list(values.values())
     # sort by compression
     values.sort(key=lambda x: x[0])
 
     # remove outliers
-    values = [x for x in values if x[1] >= 33]
-    while True:
-        values_new = [values[0]] + [
-            values[i] for i in range(1, len(values))
-            if values[i][1] >= values[i - 1][1] - 1.8
-        ]
-        if values_new == values:
-            break
-        else:
-            values = values_new
+    values = [x for x in values if x[1] >= 30]
 
     xs = [x[0] for x in values]
     ys = [x[1] for x in values]
 
+    if model_name == "morfessor":
+        print("LEN", len(values))
+
     plt.plot(
         xs, ys,
-        label=r"V=" + vocab_size_name,
+        label=model_name,
         marker=".",
     )
     data_all += list(zip(xs, ys))
@@ -165,7 +168,6 @@ corr_pearson_rho, corr_pearson_pval = scipy.stats.pearsonr(
 corr_spearman_rho, corr_spearman_pval = scipy.stats.spearmanr(
     data_all_x, data_all_y
 )
-
 
 
 def linear_regression_ci(x, y, ci=0.95):
@@ -222,7 +224,8 @@ plt.fill_between(
 )
 
 # print section
-data_all_x, data_all_y = zip(*sorted(zip(data_all_x, data_all_y), key=lambda x: x[0]))
+data_all_x, data_all_y = zip(
+    *sorted(zip(data_all_x, data_all_y), key=lambda x: x[0]))
 print(
     "JSON!",
     json.dumps({
