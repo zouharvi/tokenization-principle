@@ -18,3 +18,4 @@ done;
 run_prediction "--predictor seq_len"
 run_prediction "--predictor bits"
 run_prediction "--predictor entropy"
+run_prediction "--predictor entropy_div_h0"

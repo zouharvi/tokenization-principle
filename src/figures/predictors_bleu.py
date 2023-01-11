@@ -83,12 +83,16 @@ def _predictor_renyi_log(data, vocab_size, extra_args):
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
     
-    freqs = np.log2(np.sum([
+    if extra_args["power"] == 1:
+        scale = 1
+    else:
+        scale = 1/(1-extra_args["power"])
+
+    freqs = scale*np.log2(np.sum([
         (words_freqs[index] / total_subwords)**extra_args["power"]
         for index in range(index_start, index_end+1)
     ]))/np.log2(vocab_size)
     return freqs
-
 
 def _predictor_aggregate_deviation(data, vocab_size, extra_args):
     freqs, probs = get_prob_distribution(data)
@@ -140,6 +144,11 @@ def _predictor_entropy(data, vocab_size, extra_args):
 
     return np.sum(probs * np.log2(probs))
 
+def _predictor_entropy_div_h0(data, vocab_size, extra_args):
+    freqs, probs = get_prob_distribution(data)
+
+    return np.sum(probs * np.log2(probs))/np.log2(vocab_size)
+
 def _predictor_coefficient_variation(data, vocab_size, extra_args):
     freqs, probs = get_prob_distribution(data)
     
@@ -171,6 +180,7 @@ PREDICTORS = {
     "agg_deviation": (_predictor_aggregate_deviation, "TODO"),
     "inter_quantile_range": (_predictor_iqr, "TODO"),
     "entropy": (_predictor_entropy, "Entropy"),
+    "entropy_div_h0": (_predictor_entropy_div_h0, "Entropy"),
     "coefficient_variation": (_predictor_coefficient_variation, "TODO"),
     "quartile_dispersion": (_predictor_quartile_dispersion, "TODO"),
     # "": (_predictor_, "TODO"),
