@@ -19,7 +19,7 @@ with open(args.input, "r") as f:
 
 DIM = 21
 image = np.full((DIM, DIM), np.nan)
-plt.figure(figsize=(3.5, 2.5))
+plt.figure(figsize=(3.5, 1.7))
 
 for line in data:
     s_a = int(line["start_a"] * 100 / 5)
@@ -32,11 +32,11 @@ for line in data:
             alpha=0.5,
         )
     else:
-        image[s_a][e_a] = np.abs(line["spearman"]*100)
+        image[s_a][e_a] = np.abs(line["pearson"]*100)
 
         # minus sign
         plt.text(
-            x=e_a, y=s_a,
+            x=e_a, y=s_a+0.4,
             s="-" if line["pearson"] < 0 else "",
             ha="center", va="center",
         )
@@ -55,18 +55,28 @@ for e_a in range(DIM):
             )
 
 image = np.ma.masked_invalid(image)
-cmap = matplotlib.cm.BuGn.copy()
+cmap = matplotlib.cm.Blues.copy()
 cmap.set_bad('gray', 0.35)
 plt.imshow(image, cmap=cmap, aspect="auto")
-plt.colorbar()
-TICKS = [
-    f"{i*5/100:.0%}" if i % 3 == 0 else ""
+BARTICKS = [30, 50, 70]
+cbar = plt.colorbar(
+    fraction=0.05, aspect=10,
+    ticks=BARTICKS,
+)
+cbar.ax.set_yticklabels([f"{x}%" for x in BARTICKS])
+
+XTICKS = [
+    f"{i*5/100:.0%}" if i % 6 == 0 else ""
     for i in range(DIM)
 ]
-plt.ylabel(r"Start percentile $\alpha$")
-plt.xlabel(r"End percentile $\alpha'$")
-plt.xticks(range(DIM), TICKS)
-plt.yticks(range(DIM), TICKS)
-plt.tight_layout(pad=0)
+YTICKS = [
+    f"{i*5/100:.0%}" if i % 6 == 0 else ""
+    for i in range(DIM)
+]
+plt.ylabel(r"Start percentile")
+plt.xlabel(r"End percentile")
+plt.yticks(range(DIM), YTICKS)
+plt.xticks(range(DIM), XTICKS)
+plt.tight_layout(pad=0.2)
 plt.savefig("computed/figures/freq_alphas_grid.pdf")
 plt.show()
