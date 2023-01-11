@@ -55,7 +55,7 @@ for e_a in range(DIM):
             )
 
 image = np.ma.masked_invalid(image)
-cmap = matplotlib.cm.Blues.copy()
+cmap = matplotlib.cm.YlGn.copy()
 cmap.set_bad('gray', 0.35)
 plt.imshow(image, cmap=cmap, aspect="auto")
 BARTICKS = [30, 50, 70]
