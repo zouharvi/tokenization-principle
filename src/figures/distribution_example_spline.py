@@ -45,7 +45,7 @@ plt.xticks([])
 plt.yticks([])
 
 
-def renyi_log(data, power):
+def renyi_eff(data, power):
     scale = 1 / (1 - power)
     return scale * np.log2(np.sum(np.power(data, power)))
 
@@ -55,10 +55,10 @@ def entropy(data):
     return -np.sum(data * np.log2(data))
 
 
-h_i = renyi_log(data_y, 200)
-h_3 = renyi_log(data_y, 9.0)
+h_i = renyi_eff(data_y, 200)
+h_3 = renyi_eff(data_y, 9.0)
 h_1 = entropy(data_y)
-h_0 = renyi_log(data_y, 0.0)
+h_0 = renyi_eff(data_y, 0.0)
 
 print(h_i)
 

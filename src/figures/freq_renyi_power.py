@@ -19,7 +19,7 @@ with open(args.input, "r") as f:
 
 line_entropy = [
     line for line in data if line["args"]
-    ["predictor"] == "entropy_div_h0"
+    ["predictor"] == "entropy_eff"
 ][0]
 line_entropy["args"]["power"] = 1
 line_entropy["vals"] = [-x for x in line_entropy["vals"]]
@@ -36,7 +36,7 @@ print(line_entropy)
 data = [
     line if line["args"]["power"] != 1 else line_entropy
     for line in data
-    if line["args"]["predictor"] == "renyi_log"
+    if line["args"]["predictor"] == "renyi_eff"
 ]
 
 best_pearson = max(data, key=lambda x: x["pearson"])

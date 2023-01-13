@@ -18,7 +18,7 @@ with open(args.input, "r") as f:
     data = [json.loads(x) for x in f.readlines()]
 
 predictor_renyi = [line for line in data if line["args"]["predictor"] == "renyi"]
-predictor_renyi_log = [line for line in data if line["args"]["predictor"] == "renyi_log"]
+predictor_renyi_eff = [line for line in data if line["args"]["predictor"] == "renyi_eff"]
 # predictor_bits = [line for line in data if line["args"]["predictor"] == "bits"]
 # predictor_seq_len = [line for line in data if line["args"]["predictor"] == "seq_len"]
 predictor_entropy = [line for line in data if line["args"]["predictor"] == "entropy"]
@@ -39,7 +39,7 @@ def plot_renyi(data, name, name_i):
     )
 
 plot_renyi(predictor_renyi, "Renyi", 0)
-plot_renyi(predictor_renyi_log, "Renyi Log", 1)
+plot_renyi(predictor_renyi_eff, "Renyi Log", 1)
 
 # for name_i, (name, data) in enumerate(zip(
 #     ["Bits", "Entropy", "Seq length"],

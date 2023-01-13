@@ -77,7 +77,7 @@ def _predictor_renyi(data, vocab_size, extra_args):
     ]))
     return scale*freqs
 
-def _predictor_renyi_log(data, vocab_size, extra_args):
+def _predictor_renyi_eff(data, vocab_size, extra_args):
     words_freqs, probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
@@ -144,7 +144,7 @@ def _predictor_entropy(data, vocab_size, extra_args):
 
     return -np.sum(probs * np.log2(probs))
 
-def _predictor_entropy_div_h0(data, vocab_size, extra_args):
+def _predictor_entropy_eff(data, vocab_size, extra_args):
     freqs, probs = get_prob_distribution(data)
 
     return -np.sum(probs * np.log2(probs))/np.log2(vocab_size)
@@ -176,11 +176,11 @@ PREDICTORS = {
     "freq": (_predictor_freq, "TODO"),
     "freq_prob": (_predictor_freq_prob, "TODO"),
     "renyi": (_predictor_renyi, "TODO"),
-    "renyi_log": (_predictor_renyi_log, "TODO"),
+    "renyi_eff": (_predictor_renyi_eff, "TODO"),
     "agg_deviation": (_predictor_aggregate_deviation, "TODO"),
     "inter_quantile_range": (_predictor_iqr, "TODO"),
     "entropy": (_predictor_entropy, "Shannon Entropy"),
-    "entropy_div_h0": (_predictor_entropy_div_h0, "Shannon Entropy"),
+    "entropy_eff": (_predictor_entropy_eff, "Shannon Entropy"),
     "coefficient_variation": (_predictor_coefficient_variation, "TODO"),
     "quartile_dispersion": (_predictor_quartile_dispersion, "TODO"),
     # "": (_predictor_, "TODO"),

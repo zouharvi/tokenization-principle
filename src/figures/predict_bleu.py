@@ -16,10 +16,9 @@ import scipy
 from predictors_bleu import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# find -path "./logs/train_mt_*.log" -exec sh -c "grep best_bleu {} | tail -n 1" \; | wc -l
 # ./src/figures/predict_bleu.py --predictor bits --write-cache
 # ./src/figures/predict_bleu.py --predictor seq_len
-# ./src/figures/predict_bleu.py --predictor renyi_log --power 3.0 --load-cache
+# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache

@@ -18,7 +18,7 @@ from predictors_bleu import get_predictor
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu_multi.py --predictor bits --write-cache
 # ./src/figures/predict_bleu_multi.py --predictor seq_len --load-cache
-# ./src/figures/predict_bleu_multi.py --predictor renyi_log --power 3.0 --load-cache
+# ./src/figures/predict_bleu_multi.py --predictor renyi_eff --power 3.0 --load-cache
 
 
 args = argparse.ArgumentParser()
