@@ -16,12 +16,12 @@ import scipy
 from predictors_bleu import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/predict_bleu.py --predictor bits --write-cache
+# ./src/figures/predict_bleu.py --predictor entropy --write-cache
 # ./src/figures/predict_bleu.py --predictor seq_len
 # ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
+# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.90 --freq-alpha-end 0.942 --power 1 --load-cache
+# ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
 
 
@@ -110,7 +110,7 @@ with multiprocess.Pool() as pool:
             x[0], (
                 predictor(x[1][0][0], x[1][0][1], args_kwargs),
                 x[1][1])
-            ),
+        ),
         data_flat
     )
 
@@ -168,7 +168,6 @@ corr_spearman_rho, corr_spearman_pval = scipy.stats.spearmanr(
 )
 
 
-
 def linear_regression_ci(x, y, ci=0.95):
     """
     Adapted from https://gist.github.com/riccardoscalco/5356167
@@ -222,8 +221,16 @@ plt.fill_between(
     zorder=-10,
 )
 
+if args.no_graphics:
+    TEXT_LATEX=\
+        f"{corr_pearson_rho:.1%}" + r" {\small(=" + f"{corr_pearson_pval:.3f}" + r")} & " \
+        f"{corr_spearman_rho:.1%}" + r" {\small(=" + f"{corr_spearman_pval:.3f}" + r")}"
+    print("LATEX!", TEXT_LATEX.replace("%", r"\%").replace("=0.000", "<0.001"))
+    exit()
+    
 # print section
-data_all_x, data_all_y = zip(*sorted(zip(data_all_x, data_all_y), key=lambda x: x[0]))
+data_all_x, data_all_y = zip(
+    *sorted(zip(data_all_x, data_all_y), key=lambda x: x[0]))
 print(
     "JSON!",
     json.dumps({
@@ -236,8 +243,6 @@ print(
     sep="",
 )
 
-if args.no_graphics:
-    exit()
 
 if corr_pearson_pval < 0.001:
     corr_pearson_pval = f"<0.001"
@@ -248,8 +253,9 @@ if corr_spearman_pval < 0.001:
 else:
     corr_spearman_pval = f"={corr_spearman_pval:.3f}"
 
+
 plt.title(
-    f"Pearson correlation {corr_pearson_rho:.1%} (p{corr_pearson_pval})\n" +
+    f"Pearson correlation {corr_pearson_rho:.1%} (p{corr_pearson_pval})\n" \
     f"Spearman correlation {corr_spearman_rho:.1%} (p{corr_spearman_pval})"
 )
 plt.legend(
@@ -264,7 +270,7 @@ plt.legend(
 plt.ylim(min(data_all_y) - 0.2, max(data_all_y) + 0.85)
 plt.ylabel("Dev BLEU")
 plt.xlabel(predictor_title)
-plt.tight_layout(pad=0)
+plt.tight_layout(pad=0.1)
 
 plt.savefig(
     "computed/figures/bleu_corr_" +

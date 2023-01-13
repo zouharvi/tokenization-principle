@@ -19,7 +19,10 @@ from predictors_bleu import get_predictor
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu_multi_lmm.py --predictor bits --write-cache
 # ./src/figures/predict_bleu_multi_lmm.py --predictor seq_len --load-cache
+# ./src/figures/predict_bleu_multi_lmm.py --predictor renyi --power 3.0 --load-cache
 # ./src/figures/predict_bleu_multi_lmm.py --predictor renyi_eff --power 3.0 --load-cache
+# ./src/figures/predict_bleu_multi_lmm.py --predictor freq --freq-alpha-start 0.90 --freq-alpha-end 0.942 --power 1 --load-cache
+
 
 args = argparse.ArgumentParser()
 args.add_argument("-d", "--data", default="data/*/*/dev.en")
@@ -167,3 +170,11 @@ print(mdf.normalized_cov_params)
 y_pred = mdf.predict()
 print("Pearson  (corr, p)", *pearsonr(y_pred, df["bleu"]))
 print("Spearman (corr, p)", *spearmanr(y_pred, df["bleu"]))
+
+
+corr_pearson_mixed_rho, corr_pearson_mixed_pval = spearmanr(y_pred, df["bleu"])
+corr_pearson_all_rho, corr_pearson_all_pval = spearmanr(df["pred"], df["bleu"])
+TEXT_LATEX=\
+    f"{corr_pearson_mixed_rho:.1%}" + r" {\small(=" + f"{corr_pearson_mixed_pval:.3f}" + r")} & " \
+    f"{corr_pearson_all_rho:.1%}" + r" {\small(=" + f"{corr_pearson_all_pval:.3f}" + r")}"
+print("LATEX!", TEXT_LATEX.replace("%", r"\%").replace("=0.000", "<0.001"))

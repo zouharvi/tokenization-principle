@@ -25,40 +25,60 @@ def _predictor_bits(data, vocab_size, extra_args):
 
 def _predictor_freq(data, vocab_size, extra_args):
     words_freqs, probs = get_prob_distribution(data)
-    percentiles = np.arange(
-        extra_args["freq_alpha_start"],
-        # add epsilon to be included
-        extra_args["freq_alpha_end"] + 0.001, step=0.05
+
+    start_i = min(
+        int(len(words_freqs) * extra_args["freq_alpha_start"]),
+        len(words_freqs) - 1
     )
-    freqs = np.average([
-        words_freqs[
-            min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
-        ][1]
-        for percentile in percentiles
+    end_i = min(
+        int(len(probs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1
+    )
+    if start_i == end_i:
+        start_i = max(0, start_i-1)
+    if start_i == end_i:
+        end_i = min(len(words_freqs)-1, end_i+1)
+
+    indicies = range(start_i, end_i)
+
+    indicies = [int(x) for x in np.linspace(
+        start_i, end_i + 0.001, 10
+    )]
+
+    freqs = np.sum([
+        words_freqs[i]
+        for i in indicies
     ])
+
     return freqs
 
 def _predictor_freq_prob(data, vocab_size, extra_args):
     words_freqs, probs = get_prob_distribution(data)
-    total_subwords = sum([x[1] for x in words_freqs])
-    percentiles = np.arange(
-        extra_args["freq_alpha_start"],
-        # add epsilon to be included
-        extra_args["freq_alpha_end"] + 0.001, step=0.05
-    )
 
-    if extra_args["power"] == 1:
-        scale = 1
-    else:
-        scale = 1/(1-extra_args["power"])
+    start_i = min(
+        int(len(probs) * extra_args["freq_alpha_start"]),
+        len(probs) - 1
+    )
+    end_i = min(
+        int(len(probs) * extra_args["freq_alpha_end"]), len(probs) - 1
+    )
+    if start_i == end_i:
+        start_i = max(0, start_i-1)
+    if start_i == end_i:
+        end_i = min(len(probs)-1, end_i+1)
+
+    indicies = range(start_i, end_i)
+
+    indicies = [int(x) for x in np.linspace(
+        start_i, end_i + 0.001, 10
+    )]
 
     freqs = np.sum([
-        words_freqs[
-            min(int(len(words_freqs) * percentile), len(words_freqs) - 1)
-        ][1]
-        for percentile in percentiles
-    ]) / total_subwords
-    return scale * freqs / np.log2(vocab_size)
+        probs[i]
+        for i in indicies
+    ])
+
+    return freqs
+    # return freqs/ np.log2(vocab_size)
 
 def _predictor_renyi(data, vocab_size, extra_args):
     words_freqs, probs = get_prob_distribution(data)
@@ -176,7 +196,7 @@ PREDICTORS = {
     "freq": (_predictor_freq, "TODO"),
     "freq_prob": (_predictor_freq_prob, "TODO"),
     "renyi": (_predictor_renyi, "TODO"),
-    "renyi_eff": (_predictor_renyi_eff, "TODO"),
+    "renyi_eff": (_predictor_renyi_eff, "Rényi efficiency"),
     "agg_deviation": (_predictor_aggregate_deviation, "TODO"),
     "inter_quantile_range": (_predictor_iqr, "TODO"),
     "entropy": (_predictor_entropy, "Shannon Entropy"),
