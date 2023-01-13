@@ -17,9 +17,10 @@ from predictors_bleu import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu.py --predictor entropy --write-cache
+# ./src/figures/predict_bleu.py --predictor entropy_eff --load-cache
 # ./src/figures/predict_bleu.py --predictor seq_len
-# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
+# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.90 --freq-alpha-end 0.942 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
@@ -230,15 +231,16 @@ if args.no_graphics:
     
 # print section
 data_all_x, data_all_y = zip(
-    *sorted(zip(data_all_x, data_all_y), key=lambda x: x[0]))
+    *sorted(zip(data_all_x, data_all_y), key=lambda x: x[0])
+)
 print(
     "JSON!",
     json.dumps({
-        "pearson": corr_pearson_rho, "spearman": corr_spearman_rho,
-        "pearson_p": corr_pearson_pval, "spearman_p": corr_spearman_pval,
+        "pearson": float(corr_pearson_rho), "spearman": float(corr_spearman_rho),
+        "pearson_p": float(corr_pearson_pval), "spearman_p": float(corr_spearman_pval),
         "args": args_kwargs,
         "bleus": data_all_y,
-        "vals": data_all_x
+        "vals": [float(x) for x in data_all_x]
     }),
     sep="",
 )
