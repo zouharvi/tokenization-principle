@@ -20,8 +20,7 @@ from predictors_bleu import get_predictor
 # ./src/figures/predict_bleu.py --predictor entropy_eff --load-cache
 # ./src/figures/predict_bleu.py --predictor seq_len
 # ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.90 --freq-alpha-end 0.942 --power 1 --load-cache
+# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.025 --freq-alpha-end 0.82 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
 

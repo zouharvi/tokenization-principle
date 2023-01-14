@@ -64,9 +64,9 @@ def predictor_freq_prob(probs, vocab_size, freq_alphas):
 
     indicies = range(start_i, end_i)
 
-    indicies = [int(x) for x in np.linspace(
-        start_i, end_i + 0.001, 10
-    )]
+    # indicies = [int(x) for x in np.linspace(
+    #     start_i, end_i + 0.001, 10
+    # )]
 
     freqs = np.sum([
         probs[i]
@@ -81,7 +81,7 @@ def tasker(freq_alphas):
     if freq_alphas[0] > freq_alphas[1]:
         return None
     data_local = [
-        predictor_freq_prob(probs, vocab_size, freq_alphas)
+        predictor_freq_prob(words_freqs, vocab_size, freq_alphas)
         for (vocab_size_name, temperature, words_freqs, probs, vocab_size) in data_flat
     ]
     pearson_rho, pearson_pval = pearsonr(data_flat_bleus, data_local)

@@ -40,9 +40,9 @@ def _predictor_freq(data, vocab_size, extra_args):
 
     indicies = range(start_i, end_i)
 
-    indicies = [int(x) for x in np.linspace(
-        start_i, end_i + 0.001, 10
-    )]
+    # indicies = [int(x) for x in np.linspace(
+    #     start_i, end_i + 0.001, 10
+    # )]
 
     freqs = np.sum([
         words_freqs[i]
