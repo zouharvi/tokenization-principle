@@ -193,7 +193,7 @@ PREDICTORS = {
     "subwords": (_predictor_subwords, "Subwords"),
     "seq_len": (_predictor_seq_len, "Sequence length"),
     "bits": (_predictor_bits, "Encoded bits with fixed-width"),
-    "freq": (_predictor_freq, r"Frequency from 90$^{th}$ to 94$^{th}$ percentile"),
+    "freq": (_predictor_freq, r"Frequency from 0.3$^{th}$ to 82$^{th}$ percentile   "),
     "freq_prob": (_predictor_freq_prob, "TODO"),
     "renyi": (_predictor_renyi, r"Rényi entropy with $\alpha=3$"),
     "renyi_eff": (_predictor_renyi_eff, r"Rényi entropy efficiency with $\alpha=3$"),
