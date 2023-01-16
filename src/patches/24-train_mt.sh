@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-SEED="3"
+SEED="5"
 for VOCAB_SIZE_NAME in "4k" "8k" "16k"; do
 for TRAIN_LINES_NAME in "2k" "8k" "100k"; do
 for MODEL in \
