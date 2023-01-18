@@ -22,17 +22,12 @@ line_entropy = [
     ["predictor"] == "entropy_eff"
 ][0]
 line_entropy["args"]["power"] = 1
-line_entropy["vals"] = [-x for x in line_entropy["vals"]]
-line_entropy["spearman"] = -line_entropy["spearman"]
-line_entropy["pearson"] = -line_entropy["pearson"]
+line_entropy["vals"] = [x for x in line_entropy["vals"]]
+line_entropy["spearman"] = line_entropy["spearman"]
+line_entropy["pearson"] = line_entropy["pearson"]
 
 print(line_entropy["spearman"])
 print(np.average(line_entropy["vals"]))
-print(
-    [np.average(line["vals"]) for line in data],
-
-)
-print(line_entropy)
 data = [
     line if line["args"]["power"] != 1 else line_entropy
     for line in data
@@ -41,6 +36,9 @@ data = [
 
 best_pearson = max(data, key=lambda x: x["pearson"])
 best_spearman = max(data, key=lambda x: x["spearman"])
+
+print(best_pearson)
+print(best_spearman)
 
 plt.figure(figsize=(4.1, 2.3))
 ax1 = plt.gca()

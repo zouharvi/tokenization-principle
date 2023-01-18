@@ -17,7 +17,7 @@ from predictors_bleu import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu_multi.py --predictor bits --write-cache
-# ./src/figures/predict_bleu_multi.py --predictor seq_len --load-cache
+# ./src/figures/predict_bleu_multi.py --predictor seq_len --write-cache
 # ./src/figures/predict_bleu_multi.py --predictor renyi_eff --power 3.0 --load-cache
 
 
@@ -69,7 +69,7 @@ def load_mt_bleu(model_name, train_lines_name, vocab_size_name):
             model_name, train_lines_name,
             vocab_size_name, suffix
         )
-        for suffix in ["_s1", "_s2"]
+        for suffix in ["_s1", "_s2", "_s3", "_s4", "_s5"]
     ]
     bleus = [x for x in bleus if x]
     if len(bleus) < 1:
@@ -144,7 +144,7 @@ for signature_i, (model_name, values) in enumerate(data):
     while True:
         values_new = [values[0]] + [
             values[i] for i in range(1, len(values))
-            if values[i][1] >= values[i - 1][1] - 2
+            if values[i][1] >= values[i - 1][1] - 4
         ]
         if values_new == values:
             break

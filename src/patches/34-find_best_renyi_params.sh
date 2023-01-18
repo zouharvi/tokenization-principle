@@ -4,7 +4,7 @@ rm -f computed/renyi_vals.jsonl
 
 function run_prediction {
     # run without graphical output
-    OUTPUT=$(DISPLAY="" ./src/figures/predict_bleu.py --no-graphics --load-cache $1 | grep "JSON!")
+    OUTPUT=$(DISPLAY="" ./src/figures/predict_bleu.py --load-cache $1 | grep "JSON!")
     OUTPUT=${OUTPUT#"JSON!"}
     echo $OUTPUT
     echo $OUTPUT >> computed/renyi_vals.jsonl

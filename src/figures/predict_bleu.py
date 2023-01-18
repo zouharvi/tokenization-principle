@@ -19,7 +19,7 @@ from predictors_bleu import get_predictor
 # ./src/figures/predict_bleu.py --predictor entropy --write-cache
 # ./src/figures/predict_bleu.py --predictor entropy_eff --load-cache
 # ./src/figures/predict_bleu.py --predictor seq_len
-# ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
+# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.003 --freq-alpha-end 0.82 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
@@ -226,7 +226,6 @@ if args.no_graphics:
         f"{corr_pearson_rho:.1%}" + r" {\small(=" + f"{corr_pearson_pval:.3f}" + r")} & " \
         f"{corr_spearman_rho:.1%}" + r" {\small(=" + f"{corr_spearman_pval:.3f}" + r")}"
     print("LATEX!", TEXT_LATEX.replace("%", r"\%").replace("=0.000", "<0.001"))
-    exit()
     
 # print section
 data_all_x, data_all_y = zip(
@@ -244,6 +243,8 @@ print(
     sep="",
 )
 
+if args.no_graphics:
+    exit()
 
 if corr_pearson_pval < 0.001:
     corr_pearson_pval = f"<0.001"
