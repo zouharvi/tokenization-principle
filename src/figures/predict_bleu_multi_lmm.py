@@ -21,7 +21,7 @@ from predictors_bleu import get_predictor
 # ./src/figures/predict_bleu_multi_lmm.py --predictor bits --load-cache
 # ./src/figures/predict_bleu_multi_lmm.py --predictor renyi --power 3.0 --load-cache
 # ./src/figures/predict_bleu_multi_lmm.py --predictor renyi_eff --power 3.0 --load-cache
-# ./src/figures/predict_bleu_multi_lmm.py --predictor freq --freq-alpha-start 0.90 --freq-alpha-end 0.942 --power 1 --load-cache
+# ./src/figures/predict_bleu_multi_lmm.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
 
 
 args = argparse.ArgumentParser()

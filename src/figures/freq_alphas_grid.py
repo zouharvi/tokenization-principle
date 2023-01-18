@@ -20,7 +20,7 @@ with open(args.input, "r") as f:
 
 DIM = 1000
 image = np.full((DIM, DIM), np.nan)
-fig = plt.figure(figsize=(3.5, 1.7))
+fig = plt.figure(figsize=(4, 2.0))
 ax1 = fig.gca()
 
 for line in data:
@@ -31,8 +31,9 @@ for line in data:
     else:
         image[s_a][e_a] = ((line["pearson"]*100))
 
-print("max pearson", max(data, key=lambda line: abs(line["pearson"])))
-print("max spearman", max(data, key=lambda line: abs(line["spearman"])))
+print(len(data), len(data[::500]))
+print("max pearson", max(data[::500], key=lambda line: abs(line["pearson"])))
+print("max spearman", max(data[::500], key=lambda line: abs(line["spearman"])))
 
 
 for e_a in range(DIM):

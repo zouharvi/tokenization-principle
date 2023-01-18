@@ -37,8 +37,8 @@ data = [
 best_pearson = max(data, key=lambda x: x["pearson"])
 best_spearman = max(data, key=lambda x: x["spearman"])
 
-print(best_pearson)
-print(best_spearman)
+print("PEARSON", best_pearson)
+print("SPEARMAN", best_spearman)
 
 plt.figure(figsize=(4.1, 2.3))
 ax1 = plt.gca()
