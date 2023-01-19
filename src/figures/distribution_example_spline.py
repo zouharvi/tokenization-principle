@@ -47,6 +47,7 @@ plt.yticks([])
 
 def renyi_eff(data, power):
     scale = 1 / (1 - power)
+    raise Exception("This is incorrect")
     return scale * np.log2(np.sum(np.power(data, power)))
 
 

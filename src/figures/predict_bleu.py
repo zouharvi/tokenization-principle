@@ -188,18 +188,38 @@ def linear_regression_ci(x, y, ci=0.95):
 
     # multi-side is alpha/2
     # we want to compare only one side, so only alpha
-    c = -1 * scipy.stats.t.ppf(alpha, n - 2)
+    tstat = scipy.stats.t.ppf(alpha, n - 2)
+    c = -1 * tstat
     coef_a_err = c * (s2 / ((n - 2) * (xx.mean() - (x.mean())**2)))**0.5
 
     coef_b_err = c * (
         (s2 / (n - 2)) * (1 + (x.mean()) ** 2 / (xx.mean() - (x.mean())**2))
     )**0.5
-    return (coef_a, coef_b), (coef_a - coef_a_err, coef_b - coef_b_err), (coef_a + coef_a_err, coef_b + coef_b_err)
+    return (coef_a, coef_b), (coef_a - coef_a_err, coef_b - coef_b_err), (coef_a + coef_a_err, coef_b + coef_b_err), tstat
 
 
-coefs, coefs_low, coefs_high = linear_regression_ci(
+coefs, coefs_low, coefs_high, tstat = linear_regression_ci(
     data_all_x, data_all_y,
     ci=args.ci
+)
+
+
+data_pred_y = coefs[0] * np.array(data_all_x) + coefs[1],
+data_all_y = np.array(data_all_y)
+mse = ((data_all_y - data_pred_y)**2).mean()
+mae = (np.abs(data_all_y - data_pred_y)).mean()
+print(
+    "BAND!",
+    json.dumps({
+        "mse": mse,
+        "mae": mae,
+        "tstat": tstat,
+        "a_lower": float(coefs_low[0]),
+        "a_higher": float(coefs_high[0]),
+        "b_lower": float(coefs_low[1]),
+        "b_higher": float(coefs_high[1]),
+    }),
+    sep="",
 )
 
 lin_model_xs = np.linspace(min_xs, max_xs, 10)
@@ -223,8 +243,8 @@ plt.fill_between(
 
 if args.no_graphics:
     TEXT_LATEX=\
-        f"{corr_pearson_rho:.1%}" + r" {\small(=" + f"{corr_pearson_pval:.3f}" + r")} & " \
-        f"{corr_spearman_rho:.1%}" + r" {\small(=" + f"{corr_spearman_pval:.3f}" + r")}"
+        f"{corr_pearson_rho:.2f}" + r" {\small(=" + f"{corr_pearson_pval:.3f}" + r")} & " \
+        f"{corr_spearman_rho:.2f}" + r" {\small(=" + f"{corr_spearman_pval:.3f}" + r")}"
     print("LATEX!", TEXT_LATEX.replace("%", r"\%").replace("=0.000", "<0.001"))
     
 # print section
@@ -257,8 +277,8 @@ else:
 
 
 plt.title(
-    f"Pearson correlation {corr_pearson_rho:.1%} (p{corr_pearson_pval})\n" \
-    f"Spearman correlation {corr_spearman_rho:.1%} (p{corr_spearman_pval})"
+    f"Pearson correlation {corr_pearson_rho:.2f} (p{corr_pearson_pval})\n" \
+    f"Spearman correlation {corr_spearman_rho:.2f} (p{corr_spearman_pval})"
 )
 plt.legend(
     ncol=5,

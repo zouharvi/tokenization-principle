@@ -9,6 +9,7 @@ import os
 import sys
 sys.path.append("src")
 import figures.fig_utils
+import matplotlib.ticker as mtick
 
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="computed/renyi_vals.jsonl")
@@ -76,10 +77,10 @@ ax1.scatter(
     **STAR_KWARGS
 )
 
-
+ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
 ax2.plot(
     [line["args"]["power"] for line in data],
-    [np.average(line["vals"]) for line in data],
+    [np.average(line["vals"])*100 for line in data],
     label=r"$H_\alpha\,/\,H_0$",
     color=figures.fig_utils.COLORS[2],
     linestyle="-.",

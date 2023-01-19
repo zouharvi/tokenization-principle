@@ -39,7 +39,7 @@ plt.ylim(0, 0.35)
 plt.xticks([])
 plt.yticks([])
 
-def renyi_log(data, power):
+def renyi_eff(data, power):
     scale = 1/(1-power)
     return scale*np.log2(np.sum(np.power(data, power)))
 

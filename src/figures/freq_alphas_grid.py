@@ -29,7 +29,7 @@ for line in data:
     if np.isnan(line["pearson"]):
         pass
     else:
-        image[s_a][e_a] = ((line["pearson"]*100))
+        image[s_a][e_a] = ((line["pearson"]))
 
 print(len(data), len(data[::500]))
 print("max pearson", max(data[::500], key=lambda line: abs(line["pearson"])))
