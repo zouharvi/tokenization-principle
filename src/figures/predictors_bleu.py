@@ -114,6 +114,29 @@ def _predictor_renyi_eff(data, vocab_size, extra_args):
     ]))/np.log2(vocab_size)
     return freqs
 
+def _predictor_renyi_eff_sexpect(data, vocab_size, extra_args):
+    subwords = data.count(" ")
+    inside_subwords = data.count("@@")
+    words = subwords - inside_subwords
+    sexpect = words / subwords
+    print(sexpect)
+
+    words_freqs, probs = get_prob_distribution(data)
+    total_subwords = sum(words_freqs)
+    index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
+    index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
+    
+    if extra_args["power"] == 1:
+        scale = 1
+    else:
+        scale = 1/(1-extra_args["power"])
+
+    freqs = scale*np.log2(np.sum([
+        (words_freqs[index] / total_subwords)**extra_args["power"]
+        for index in range(index_start, index_end+1)
+    ]))/np.log2(vocab_size)
+    return sexpect * freqs
+
 def _predictor_aggregate_deviation(data, vocab_size, extra_args):
     freqs, probs = get_prob_distribution(data)
 
@@ -197,6 +220,7 @@ PREDICTORS = {
     "freq_prob": (_predictor_freq_prob, "TODO"),
     "renyi": (_predictor_renyi, r"Rényi entropy with $\alpha=3$"),
     "renyi_eff": (_predictor_renyi_eff, r"Rényi entropy efficiency with $\alpha=3$"),
+    "renyi_eff_sexpect": (_predictor_renyi_eff_sexpect, r"Rényi entropy efficiency with $\alpha=3$"),
     "agg_deviation": (_predictor_aggregate_deviation, "TODO"),
     "inter_quantile_range": (_predictor_iqr, "TODO"),
     "entropy": (_predictor_entropy, "Shannon entropy"),

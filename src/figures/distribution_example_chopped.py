@@ -51,8 +51,8 @@ h1 = entropy(data_y)
 eff_h1 = entropy(data_y)/np.log2(len(data_y))
 
 plt.title(
-    f"$V={len(data_y):.0f}$, H=${h1:.2f}$, Eff=${eff_h1:.0%}$".replace("%", r"\%"),
-fontsize=8
+    f"$V={len(data_y):.0f}$, " + r"$\mathrm{H}$" + f"=${h1:.2f}$, Eff=${eff_h1:.0%}$".replace("%", r"\%"),
+    fontsize=8.5
 )
 plt.ylabel(
     "Frequency",
