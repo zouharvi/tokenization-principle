@@ -98,9 +98,9 @@ ax1.legend(
     bbox_to_anchor=(1, 0.15)
 )
 
-ax1.set_ylabel(r"$H_\alpha/H_0$ correlation with BLEU  ")
+ax1.set_ylabel(r"H$_\alpha$/H$_0$ correlation with BLEU")
 ax1.set_xlabel(r"$\alpha$")
-ax2.set_ylabel(r"$H_\alpha/H_0$ value")
-plt.tight_layout(pad=0.1)
+ax2.set_ylabel(r"H$_\alpha$/H$_0$ value")
+plt.tight_layout(pad=0.2)
 plt.savefig("computed/figures/corr_renyi_alpha.pdf")
 plt.show()
