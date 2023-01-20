@@ -81,7 +81,7 @@ ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
 ax2.plot(
     [line["args"]["power"] for line in data],
     [np.average(line["vals"])*100 for line in data],
-    label=r"$H_\alpha\,/\,H_0$",
+    label=r"H$_\alpha\,$/\,H$_0$",
     color=figures.fig_utils.COLORS[2],
     linestyle="-.",
 )

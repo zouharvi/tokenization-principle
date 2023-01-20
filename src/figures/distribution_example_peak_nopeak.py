@@ -20,12 +20,13 @@ plt.figure(figsize=(2, 1.2))
 # special_subword_freq = data.count(special_subword)
 if args.f == 0:
     special_subword = "the"
-    special_subword_freq = 90
+    special_subword_freq = 110
 elif args.f == 1:
     special_subword = "cow"
     special_subword_freq = 1
 # print(sorted(freqs.items(),reverse=True, key=lambda x: x[1]))
 freqs = {
+    ' ': 450,
     'e': 317,
     't': 228,
     'a': 220,
@@ -37,7 +38,7 @@ freqs = {
     'l': 116,
     'c': 102,
     'd': 95,
-    'h': 94,
+    'h': 114,
     'u': 87,
     'm': 73,
     'p': 69,
@@ -89,7 +90,7 @@ plt.bar(
     data_y,
     # edgecolor="black",
     linewidth=0,
-    width=1,
+    width=1.01,
     color=COLORS
 )
 plt.xticks([])

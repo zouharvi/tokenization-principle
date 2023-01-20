@@ -16,10 +16,11 @@ import scipy
 from predictors_bleu import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/predict_bleu.py --predictor entropy --write-cache
+# ./src/figures/predict_bleu.py --predictor entropy --load-cache
 # ./src/figures/predict_bleu.py --predictor entropy_eff --load-cache
-# ./src/figures/predict_bleu.py --predictor seq_len
+# ./src/figures/predict_bleu.py --predictor seq_len --load-cache
 # ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
+# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
@@ -267,11 +268,11 @@ if args.no_graphics:
     exit()
 
 if corr_pearson_pval < 0.001:
-    corr_pearson_pval = f"<0.001"
+    corr_pearson_pval = f"$<$0.001"
 else:
     corr_pearson_pval = f"={corr_pearson_pval:.3f}"
 if corr_spearman_pval < 0.001:
-    corr_spearman_pval = f"<0.001"
+    corr_spearman_pval = f"$<$0.001"
 else:
     corr_spearman_pval = f"={corr_spearman_pval:.3f}"
 

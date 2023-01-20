@@ -20,8 +20,9 @@ mpl.rcParams['axes.prop_cycle'] = cycler(color=COLORS)
 mpl.rcParams['lines.linewidth'] = 2
 mpl.rcParams['lines.markersize'] = 7
 mpl.rcParams['axes.linewidth'] = 1.5
-# mpl.rcParams['font.family'] = "cmr10"
-mpl.rcParams['axes.formatter.use_mathtext'] = True
+mpl.rc('text', usetex=True)
+mpl.rcParams['font.family'] = "serif"
+# mpl.rcParams['axes.formatter.use_mathtext'] = True
 
 # for font in matplotlib.font_manager.fontManager.ttflist:
 #     if "modern" in font.name.lower():
