@@ -50,8 +50,14 @@ def entropy(data):
 h1 = entropy(data_y)
 eff_h1 = entropy(data_y)/np.log2(len(data_y))
 
-plt.title(f"$V={len(data_y):.0f}$, H=${h1:.2f}$, Eff=${eff_h1:.0%}$%", fontsize=8)
-plt.ylabel("  Frequency" if args.f in {0, 2, 3} else r" ")
+plt.title(
+    f"$V={len(data_y):.0f}$, H=${h1:.2f}$, Eff=${eff_h1:.0%}$".replace("%", r"\%"),
+fontsize=8
+)
+plt.ylabel(
+    "Frequency",
+    color="black" if args.f == 0 else "white",
+)
 
 plt.xlabel(
     ["Efficient", "Inefficient", "Inefficient", "Mediocre"]

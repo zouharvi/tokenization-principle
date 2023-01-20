@@ -99,10 +99,14 @@ plt.xlim(data_x.min()- 0.5, data_x.max() - 4)
 
 
 plt.title(
-    f"$H_0={h_0:.2f}, H_1={h_1:.2f}, H_9 ={h_3:.2f}$   \n$H_1/H_0={h_1/h_0:.0%}$%," " $H_{9}" f"/H_0={h_3/h_0:.0%}$%",
+    f"$H_0={h_0:.2f}, H_1={h_1:.2f}, H_9 ={h_3:.2f}$\n$H_1/H_0={h_1/h_0:.0%}$," " $H_{9}" f"/H_0={h_3/h_0:.0%}$".replace("%", r"\%"),
+    x=0.45 if args.f == 0 else 0.45,
     fontsize=8.5
 )
-plt.ylabel("  Frequency" if args.f in {0, 2} else r" ")
+plt.ylabel(
+    "Frequency",
+    color="black" if args.f == 0 else "white"
+)
 
 plt.xlabel(
     ["More uniform", "Large peak"]
