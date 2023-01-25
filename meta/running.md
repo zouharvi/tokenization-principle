@@ -1,8 +1,8 @@
 |start date|status|nickname|comment|command|
 |-|-|-|-|-|
-|10-01-2023|running|paten|train MT seeds 1, 2, 3, 4, 5, amp|`./src/patches/24-train_mt.sh`|
+|10-01-2023|ok|paten|train MT seeds 1, 2, 3, 4, 5, amp|`./src/patches/24-train_mt.sh`|
 |10-01-2023|ok|paten|train & apply tokenizer 16k, 8k, 4k|`./src/patches/20-submit_train_all.sh`|
-|01-01-2023|running|kinetics (glabrus)|train MT, seeds 1, 2, 3, 4, 5, amp|`./src/patches/28-train_mt_random_only.sh`|
+|01-01-2023|ok|kinetics (glabrus)|train MT, seeds 1, 2, 3, 4, 5, amp|`./src/patches/28-train_mt_random_only.sh`|
 |31-12-2022|ok|glabrus|train MT, seed 2, amp|`./src/patches/28-train_mt_random_only.sh`|
 |29-12-2022|ok|glabrus|train MT|`./src/patches/28-train_mt_random_only.sh`|
 |29-12-2022|ok|glabrus|apply tokenizers|`./src/patches/26-submit_apply_random_only.sh`|
