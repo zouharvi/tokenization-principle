@@ -206,11 +206,6 @@ def _predictor_quartile_dispersion(data, vocab_size, extra_args):
     # here we don't have to use base_vals because it's automatically normalized
     return (freqs[index_end] - freqs[index_start])/(freqs[index_end] + freqs[index_start])
 
-# def _predictor_(data, vocab_size, extra_args):
-# def _predictor_(data, vocab_size, extra_args):
-# def _predictor_(data, vocab_size, extra_args):
-# def _predictor_(data, vocab_size, extra_args):
-# def _predictor_(data, vocab_size, extra_args):
 
 PREDICTORS = {
     "subwords": (_predictor_subwords, "Subwords"),
@@ -227,9 +222,6 @@ PREDICTORS = {
     "entropy_eff": (_predictor_entropy_eff, "Shannon entropy efficiency"),
     "coefficient_variation": (_predictor_coefficient_variation, "TODO"),
     "quartile_dispersion": (_predictor_quartile_dispersion, "TODO"),
-    # "": (_predictor_, "TODO"),
-    # "": (_predictor_, "TODO"),
-    # "": (_predictor_, "TODO"),
 }
 
 def get_predictor(predictor):
