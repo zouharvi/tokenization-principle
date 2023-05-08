@@ -13,8 +13,8 @@ head -n 10000000 ParaCrawl.en-zh.zh > PCrawl.zh-en/orig.zh
 # create split
 head -n 9000000 PCrawl.zh-en/orig.en > PCrawl.zh-en/train.en
 head -n 9000000 PCrawl.zh-en/orig.zh > PCrawl.zh-en/train.zh
-tail -n 1000000  PCrawl.zh-en/orig.en | head -n 500000 > PCrawl.zh-en/zhv.en
-tail -n 1000000  PCrawl.zh-en/orig.zh | head -n 500000 > PCrawl.zh-en/zhv.zh
+tail -n 1000000  PCrawl.zh-en/orig.en | head -n 500000 > PCrawl.zh-en/dev.en
+tail -n 1000000  PCrawl.zh-en/orig.zh | head -n 500000 > PCrawl.zh-en/dev.zh
 tail -n 500000 PCrawl.zh-en/orig.en > PCrawl.zh-en/test.en
 tail -n 500000 PCrawl.zh-en/orig.zh > PCrawl.zh-en/test.zh
 
