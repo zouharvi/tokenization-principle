@@ -1,5 +1,17 @@
 #!/usr/bin/bash
 
+temperature_name() {
+    T=$(sed 's/^-/m/g' <<<"$1")
+    T=$(sed 's/^0./0/g' <<<"$T")
+    T=$(sed 's/m0./m0/g' <<<"$T")
+    echo $T
+}
+
+vocab_size_name() {
+    T=$(sed 's/000$/k/g' <<<"$1")
+    echo $T
+}
+
 split_to_nol() {
     case $1 in
         "train")
@@ -21,37 +33,41 @@ file_to_lang() {
     echo $LANGS
 }
 
-for FILES in \
-    "data/CCrawl.de-en/train.tok.en^data/CCrawl.de-en/train.tok.de" \
-    "data/CCrawl.cs-en/train.tok.en^data/CCrawl.cs-en/train.tok.cs" \
-    "data/PCrawl.zh-en/train.tok.en^data/PCrawl.zh-en/train.tok.zh"; do
+prefix_to_lang() {
+    LANGS=$(sed 's/.Crawl\.//g' <<<"$1")
+    echo $LANGS
+}
 
-    IFS='^' read -r -a FILES <<< "${FILES}";
-    FILE1="${FILES[0]}"
-    FILE2="${FILES[1]}"
-
-    LANGS=$(file_to_lang $FILE1)
-    LANGSSTR=LANGS
+for PREFIX in "CCrawl.de-en" "PCrawl.zh-en"; do
+    LANGS=$(prefix_to_lang $PREFIX)
+    LANGSSTR=$LANGS
     IFS='-' read -r -a LANGS <<< "${LANGS}";
-    for SPLIT in "train" "dev" "test"; do
+
+    for SPLIT in "dev" "test" "train"; do
     NOL=$(split_to_nol $SPLIT)
     for LANG in "${LANGS[0]}" "${LANGS[1]}"; do
-    for VOCAB_SIZE in "2000" "4000" "8000" "16000" "32000"; do
-        for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-0.00001"; do
+    # for VOCAB_SIZE in "2000" "4000" "8000" "16000" "32000"; do
+    #     for TEMPERATURE in "0.05" "0.2" "0.4" "0.9" "100" "-100" "-0.9" "-0.4" "-0.2" "-0.00001"; do
+    # smaller vocab range
+    for VOCAB_SIZE in "4000" "8000" "16000" "32000"; do
+        # smaller temperature range
+        for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
             TEMPERATURE_NAME=$(temperature_name $TEMPERATURE)
             VOCAB_SIZE_NAME=$(vocab_size_name $VOCAB_SIZE)
             SIGNATURE="${TEMPERATURE_NAME}_${VOCAB_SIZE_NAME}"
-            echo "Submitting BPE random (${LANGSSTR}/${SIGNATURE})";
+            echo "Submitting BPE random (${LANGSSTR}/${SIGNATURE}/${SPLIT})";
 
-            sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-                --output="logs/apply_bpe_random_${LANGSSTR}_${SIGNATURE}.log" \
-                --job-name="apply_bpe_random_${LANGSSTR}_${SIGNATURE}" \
+            mkdir -p "data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/"
+
+            sbatch --time=0-4 --ntasks=50 --mem-per-cpu=500M \
+                --output="logs/apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}.log" \
+                --job-name="apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}" \
                 --wrap="python3 ./src/apply_bpe.py \
                     --vocab-input data/model_bpe_random/${SIGNATURE}/model.bpe_merges \
-                    --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
+                    --input data/${PREFIX}/${SPLIT}.tok.${LANG} \
                     --output data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/${SPLIT}.${LANG} \
                     --number-of-lines ${NOL} \
-                    --logfile computed/glabrus.jsonl \
+                    --logfile computed/tandem.jsonl \
                 ";
         done;
     done;
