@@ -19,7 +19,7 @@ file_to_lang() {
     echo $LANGS
 }
 
-SEED="0"
+SEED="1"
 MODEL="bpe_random"
 for FILES in \
     "data/CCrawl.de-en/train.tok.en^data/CCrawl.de-en/train.tok.de" \
