@@ -23,6 +23,7 @@ SEED="1"
 MODEL="bpe_random"
 for FILES in \
     "data/CCrawl.de-en/train.tok.en^data/CCrawl.de-en/train.tok.de" \
+    "data/CCrawl.de-en/train.tok.en^data/CCrawl.cs-en/train.tok.de" \
     "data/PCrawl.zh-en/train.tok.en^data/PCrawl.zh-en/train.tok.zh"; do
 
     IFS='^' read -r -a FILES <<< "${FILES}";
@@ -33,7 +34,8 @@ for FILES in \
 # smaller vocab range
 for VOCAB_SIZE in "4000" "8000" "16000" "32000"; do
 # smaller temperature range
-for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
+for TEMPERATURE in "0.05"; do
+# for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
     MODEL="bpe_random"
     TEMPERATURE_NAME=$(temperature_name $TEMPERATURE)
     VOCAB_SIZE_NAME=$(vocab_size_name $VOCAB_SIZE)
