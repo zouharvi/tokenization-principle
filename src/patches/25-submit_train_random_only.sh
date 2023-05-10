@@ -16,13 +16,12 @@ file_to_lang() {
     LANGS=$(sed 's/data\///g' <<<"$1")
     LANGS=$(sed 's/\/train.tok.en//g' <<<"$LANGS")
     LANGS=$(sed 's/.Crawl\.//g' <<<"$LANGS")
-    LANGS=$(sed 's/-//g' <<<"$LANGS")
     echo $LANGS
 }
 
-# "data/CCrawl.cs-en/train.tok.en^data/CCrawl.cs-en/train.tok.cs" \
 for FILES in \
     "data/CCrawl.de-en/train.tok.en^data/CCrawl.de-en/train.tok.de" \
+    "data/CCrawl.cs-en/train.tok.en^data/CCrawl.cs-en/train.tok.cs" \
     "data/PCrawl.zh-en/train.tok.en^data/PCrawl.zh-en/train.tok.zh"; do
 
     IFS='^' read -r -a FILES <<< "${FILES}";

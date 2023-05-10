@@ -50,6 +50,7 @@ data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
 def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
     global skipped_count
+    # TODO: for `repl`, switched to sacrebleu
     filename = f"logs/train_mt{suffix}_t{temperature}_v{vocab_size_name}.log"
     if not os.path.isfile(filename):
         print("skipped", filename)

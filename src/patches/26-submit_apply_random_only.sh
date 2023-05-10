@@ -35,10 +35,12 @@ file_to_lang() {
 
 prefix_to_lang() {
     LANGS=$(sed 's/.Crawl\.//g' <<<"$1")
+    LANGS=$(sed 's/.Prawl\.//g' <<<"$LANGS")
     echo $LANGS
 }
 
-for PREFIX in "CCrawl.de-en" "PCrawl.zh-en"; do
+# "PCrawl.zh-en" "CCrawl.de-en" 
+for PREFIX in "CCrawl.cs-en"; do
     LANGS=$(prefix_to_lang $PREFIX)
     LANGSSTR=$LANGS
     IFS='-' read -r -a LANGS <<< "${LANGS}";
@@ -60,10 +62,10 @@ for PREFIX in "CCrawl.de-en" "PCrawl.zh-en"; do
             mkdir -p "data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/"
 
             sbatch --time=0-4 --ntasks=50 --mem-per-cpu=500M \
-                --output="logs/apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}.log" \
+                --output="logs_repl/apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}.log" \
                 --job-name="apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}" \
                 --wrap="python3 ./src/apply_bpe.py \
-                    --vocab-input data/model_bpe_random/${SIGNATURE}/model.bpe_merges \
+                    --vocab-input data/model_bpe_random/${LANGSTR}/${SIGNATURE}/model.bpe_merges \
                     --input data/${PREFIX}/${SPLIT}.tok.${LANG} \
                     --output data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/${SPLIT}.${LANG} \
                     --number-of-lines ${NOL} \

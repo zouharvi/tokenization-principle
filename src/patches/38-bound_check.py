@@ -45,7 +45,6 @@ elif CODETYPE == "const_entropy":
 
 
 data_lens = np.array(data_lens)
-print(data_lens)
 assert len(data_lens) == len(data)
 
 

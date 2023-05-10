@@ -51,7 +51,7 @@ for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
 
     sbatch --time=07-00 --ntasks=3 --mem-per-cpu=10G --gpus=1 \
         --job-name="train_mt_${SIGNATURE} (${LANG1}-${LANG2})" \
-        --output="logs/train_mt_${SIGNATURE}_${LANG1}-${LANG2}.log" \
+        --output="logs_repl/train_mt_${SIGNATURE}_${LANG1}-${LANG2}.log" \
         --wrap="CUDA_VISIBLE_DEVICES=0 fairseq-train \
             $TEXT_DIR \
             --source-lang $LANG1 --target-lang $LANG2 \

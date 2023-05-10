@@ -55,7 +55,7 @@ for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
 
     sbatch --time=0-1 --ntasks=10 --mem-per-cpu=2G \
         --job-name="preprocess_${MODEL}_${SIGNATURE}.${LANG1}-${LANG2}" \
-        --output="logs/preprocess_${MODEL}_${SIGNATURE}.${LANG1}-${LANG2}.log" \
+        --output="logs_repl/preprocess_${MODEL}_${SIGNATURE}.${LANG1}-${LANG2}.log" \
         --wrap="fairseq-preprocess --source-lang $LANG1 --target-lang $LANG2 \
             --trainpref $ORIG_DIR/train --validpref $ORIG_DIR/dev --testpref $ORIG_DIR/test  \
             --destdir $TEXT_DIR \
