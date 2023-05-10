@@ -39,8 +39,8 @@ prefix_to_lang() {
     echo $LANGS
 }
 
-# "PCrawl.zh-en" "CCrawl.de-en" 
-for PREFIX in "CCrawl.cs-en"; do
+for PREFIX in "PCrawl.zh-en" "CCrawl.de-en"; do
+# for PREFIX in "CCrawl.cs-en"; do
     LANGS=$(prefix_to_lang $PREFIX)
     LANGSSTR=$LANGS
     IFS='-' read -r -a LANGS <<< "${LANGS}";

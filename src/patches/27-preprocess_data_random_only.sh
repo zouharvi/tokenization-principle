@@ -22,6 +22,7 @@ file_to_lang() {
 MODEL="bpe_random"
 for FILES in \
     "data/CCrawl.de-en/train.tok.en^data/CCrawl.de-en/train.tok.de" \
+    "data/CCrawl.de-en/train.tok.en^data/CCrawl.de-en/train.tok.de" \
     "data/PCrawl.zh-en/train.tok.en^data/PCrawl.zh-en/train.tok.zh"; do
 
     IFS='^' read -r -a FILES <<< "${FILES}";
