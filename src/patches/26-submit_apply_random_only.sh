@@ -39,7 +39,7 @@ prefix_to_lang() {
     echo $LANGS
 }
 
-for PREFIX in "PCrawl.zh-en" "CCrawl.de-en"; do
+for PREFIX in "PCrawl.zh-en" "CCrawl.de-en" "CCrawl.cs-en"; do
 # for PREFIX in "CCrawl.cs-en"; do
     LANGS=$(prefix_to_lang $PREFIX)
     LANGSSTR=$LANGS
@@ -65,7 +65,7 @@ for PREFIX in "PCrawl.zh-en" "CCrawl.de-en"; do
                 --output="logs_repl/apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}.log" \
                 --job-name="apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}" \
                 --wrap="python3 ./src/apply_bpe.py \
-                    --vocab-input data/model_bpe_random/${LANGSTR}/${SIGNATURE}/model.bpe_merges \
+                    --vocab-input data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/model.bpe_merges \
                     --input data/${PREFIX}/${SPLIT}.tok.${LANG} \
                     --output data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/${SPLIT}.${LANG} \
                     --number-of-lines ${NOL} \
