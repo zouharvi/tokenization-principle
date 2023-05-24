@@ -12,9 +12,10 @@ vocab_size_name() {
     echo $T
 }
 
-SEED="1"
+SEED="2"
 MODEL="bpe_random"
-for LANGS in "de-en" "cs-en" "zh-en"; do
+# for LANGS in "de-en" "cs-en" "zh-en"; do
+for LANGS in "de-en" "cs-en"; do
     IFS='-' read -r -a LANGS <<< "${LANGS}";
     LANG1="${LANGS[0]}"
     LANG2="${LANGS[1]}"
@@ -23,8 +24,7 @@ for LANGS in "de-en" "cs-en" "zh-en"; do
 # smaller vocab range
 for VOCAB_SIZE in "4000" "8000" "16000" "32000"; do
 # smaller temperature range
-for TEMPERATURE in "0.05"; do
-# for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
+for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
     MODEL="bpe_random"
     TEMPERATURE_NAME=$(temperature_name $TEMPERATURE)
     VOCAB_SIZE_NAME=$(vocab_size_name $VOCAB_SIZE)
