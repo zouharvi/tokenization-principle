@@ -114,6 +114,54 @@ def _predictor_renyi_eff(data, vocab_size, extra_args):
     ]))/np.log2(vocab_size)
     return freqs
 
+
+def _predictor_renyi_eff_cov(data, vocab_size, extra_args):
+    from dahuffman import HuffmanCodec
+    from statistics import covariance
+    import collections
+    import numpy as np
+
+    words_freqs, probs = get_prob_distribution(data)
+    total_subwords = sum(words_freqs)
+    index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
+    index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
+    
+    if extra_args["power"] == 1:
+        scale = 1
+    else:
+        scale = 1/(1-extra_args["power"])
+
+    freqs = scale*np.log2(np.sum([
+        (words_freqs[index] / total_subwords)**extra_args["power"]
+        for index in range(index_start, index_end+1)
+    ]))/np.log2(vocab_size)
+
+    data_sent = [line.split(" ") for line in data.split("\n")]
+
+    # get bit encoder
+    data_word_freqs = collections.Counter(
+        [x for line in data_sent for x in line]
+    )
+    codec = HuffmanCodec.from_frequencies(data_word_freqs)
+    # find word to bit len mapping
+    codec_lens = {
+        k: l - 1
+        for k, (l, code) in codec.get_code_table().items() if type(k) is str
+    }
+
+    data_sent_encoded_len = [
+        # sum number of bits fo each word
+        np.average([codec_lens[w] for w in x])
+        for x in data_sent
+        if x
+    ]
+    # number of tokens in each sentence
+    data_sent_tok_count = [len(x) for x in data_sent if x]
+
+    cov = covariance(data_sent_encoded_len, data_sent_tok_count)
+
+    return freqs-cov
+
 def _predictor_renyi_eff_sexpect(data, vocab_size, extra_args):
     subwords = data.count(" ")
     inside_subwords = data.count("@@")
@@ -215,6 +263,7 @@ PREDICTORS = {
     "freq_prob": (_predictor_freq_prob, "TODO"),
     "renyi": (_predictor_renyi, "Rényi entropy"),
     "renyi_eff": (_predictor_renyi_eff, "Rényi efficiency"),
+    "renyi_eff_cov": (_predictor_renyi_eff_cov, "Rényi efficiency + cov"),
     "renyi_eff_sexpect": (_predictor_renyi_eff_sexpect, r"Rényi entropy efficiency with $\alpha=3$"),
     "agg_deviation": (_predictor_aggregate_deviation, "TODO"),
     "inter_quantile_range": (_predictor_iqr, "TODO"),

@@ -31,6 +31,7 @@ PREDICTORS = [
     ("entropy", {}),
     ("entropy_eff", {}),
     ("renyi", {"power": 3, "freq_alpha_start": 0, "freq_alpha_end": 1}),
+    # ("renyi_eff_cov", {"power": 3, "freq_alpha_start": 0, "freq_alpha_end": 1}),
     ("renyi_eff", {"power": 3, "freq_alpha_start": 0, "freq_alpha_end": 1}),
 ]
 
