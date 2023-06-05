@@ -21,6 +21,8 @@ elif args.f == 2:
     data_y = np.array([45, 40, 20, 20, 11, 10])
 elif args.f == 3:
     data_y = np.array([45, 35, 14, 14, 13, 12, 11, 11, 9, 8, 5, 3])
+elif args.f == 4:
+    data_y = np.array([18, 15, 14, 14, 13, 12, 11, 11, 10, 7, 7, 6])
 
 
 data_y = data_y / data_y.sum()
@@ -60,7 +62,7 @@ plt.ylabel(
 )
 
 plt.xlabel(
-    ["Efficient", "Inefficient", "Inefficient", "Mediocre"]
+    ["Efficient", "Inefficient", "Inefficient", "Mediocre", "x"]
     [args.f]
 )
 plt.tight_layout(pad=0.5)
