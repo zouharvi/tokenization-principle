@@ -98,6 +98,8 @@ def _predictor_renyi(data, vocab_size, extra_args):
     return scale*freqs
 
 def _predictor_renyi_eff(data, vocab_size, extra_args):
+    if extra_args["power"] == 1:
+        return _predictor_entropy_eff(data, vocab_size, extra_args)
     words_freqs, probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
