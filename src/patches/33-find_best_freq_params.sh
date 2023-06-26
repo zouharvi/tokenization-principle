@@ -13,6 +13,6 @@ for END_A in $(seq 0.0 0.02 1.00); do
     OUTPUT=$(DISPLAY="" ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start $START_A --freq-alpha-end $END_A --power 1 --load-cache | grep "JSON!")
     OUTPUT=${OUTPUT#"JSON!"}
     echo $START_A $END_A $OUTPUT
-    echo $OUTPUT >> computed/freq_prob_alphas_grid.jsonl
+    echo $OUTPUT >> computed/freq_prob_alphas_grid_sub.jsonl
 done;
 done;

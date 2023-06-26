@@ -12,7 +12,7 @@ sys.path.append("src")
 import figures.fig_utils
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", default="computed/freq_true_alphas_grid.jsonl")
+args.add_argument("-i", "--input", default="computed/freq_prob_alphas_grid_sub.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:

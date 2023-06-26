@@ -1,13 +1,13 @@
 #!/usr/bin/bash
 
-rm -f computed/renyi_vals.jsonl
+rm -f computed/renyi_vals_sub.jsonl
 
 function run_prediction {
     # run without graphical output
-    OUTPUT=$(DISPLAY="" ./src/figures/predict_bleu.py --load-cache $1 | grep "JSON!")
+    OUTPUT=$(./src/figures/predict_bleu.py --load-cache $1 --data-train --no-graphics | grep "JSON!")
     OUTPUT=${OUTPUT#"JSON!"}
     echo $1 $OUTPUT
-    echo $OUTPUT >> computed/renyi_vals.jsonl
+    echo $OUTPUT >> computed/renyi_vals_sub.jsonl
 }
 
 for POWER in $(seq 0.0 0.1 10.00); do

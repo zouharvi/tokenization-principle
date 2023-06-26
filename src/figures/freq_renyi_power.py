@@ -12,7 +12,7 @@ import figures.fig_utils
 import matplotlib.ticker as mtick
 
 args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", default="computed/renyi_vals.jsonl")
+args.add_argument("-i", "--input", default="computed/renyi_vals_sub.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:

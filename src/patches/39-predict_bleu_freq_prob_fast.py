@@ -11,6 +11,7 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from itertools import product
 from figures.predictors_bleu import get_prob_distribution
+from sklearn.model_selection import train_test_split
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu.py --predictor entropy --write-cache
@@ -81,8 +82,13 @@ def tasker(freq_alphas):
         predictor_freq_prob(words_freqs, vocab_size, freq_alphas)
         for (vocab_size_name, temperature, words_freqs, probs, vocab_size) in data_flat
     ]
-    pearson_rho, pearson_pval = pearsonr(data_flat_bleus, data_local)
-    spearman_rho, spearman_pval = spearmanr(data_flat_bleus, data_local)
+
+    data_train_x, data_dev_x, data_train_y, data_dev_y = train_test_split(
+        data_flat_bleus, data_local, test_size=0.5,
+        random_state=0
+    )
+    pearson_rho, pearson_pval = pearsonr(data_train_x, data_train_y)
+    spearman_rho, spearman_pval = spearmanr(data_train_x, data_train_y)
 
     return {
         "pearson": pearson_rho, "spearman": spearman_rho,

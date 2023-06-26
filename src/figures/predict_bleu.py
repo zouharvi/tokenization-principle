@@ -14,13 +14,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 from predictors_bleu import get_predictor
+from sklearn.model_selection import train_test_split
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu.py --predictor entropy --load-cache
 # ./src/figures/predict_bleu.py --predictor entropy_eff --load-cache
 # ./src/figures/predict_bleu.py --predictor seq_len --load-cache
 # ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
+# ./src/figures/predict_bleu.py --predictor renyi_eff --power 2.5 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
 # ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
@@ -31,6 +32,7 @@ args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
 args.add_argument("-p", "--predictor", default="bits")
 args.add_argument("--load-cache", action="store_true")
 args.add_argument("--no-graphics", action="store_true")
+args.add_argument("--data-train", action="store_true")
 args.add_argument("--write-cache", action="store_true")
 args.add_argument("--ci", type=float, default=0.95)
 args.add_argument("--freq-alpha-start", type=float, default=0.0)
@@ -160,13 +162,22 @@ for signature_i, (vocab_size_name, values) in enumerate(data):
     min_xs = min(min_xs, min(xs))
     max_xs = max(max_xs, max(xs))
 
+
 data_all_y = [x[1] for x in data_all]
 data_all_x = [x[0] for x in data_all]
+
+data_train_x, data_dev_x, data_train_y, data_dev_y = train_test_split(
+    data_all_x, data_all_y, test_size=0.5,
+    random_state=0
+)
+if args.data_train:
+    data_dev_x = data_train_x
+    data_dev_y = data_train_y
 corr_pearson_rho, corr_pearson_pval = scipy.stats.pearsonr(
-    data_all_x, data_all_y
+    data_dev_x, data_dev_y
 )
 corr_spearman_rho, corr_spearman_pval = scipy.stats.spearmanr(
-    data_all_x, data_all_y
+    data_dev_x, data_dev_y
 )
 
 
@@ -200,16 +211,17 @@ def linear_regression_ci(x, y, ci=0.95):
     return (coef_a, coef_b), (coef_a - coef_a_err, coef_b - coef_b_err), (coef_a + coef_a_err, coef_b + coef_b_err), tstat
 
 
+
 coefs, coefs_low, coefs_high, tstat = linear_regression_ci(
-    data_all_x, data_all_y,
+    data_train_x, data_train_y,
     ci=args.ci
 )
 
 
-data_pred_y = coefs[0] * np.array(data_all_x) + coefs[1],
-data_all_y = np.array(data_all_y)
-mse = ((data_all_y - data_pred_y)**2).mean()
-mae = (np.abs(data_all_y - data_pred_y)).mean()
+data_pred_y = coefs[0] * np.array(data_dev_x) + coefs[1],
+data_dev_y = np.array(data_dev_y)
+mse = ((data_dev_y - data_pred_y)**2).mean()
+mae = (np.abs(data_dev_y - data_pred_y)).mean()
 print(
     "BAND!",
     json.dumps({
