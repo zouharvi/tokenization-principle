@@ -2,7 +2,7 @@
 
 Why are some tokenizations better than others? 
 
-Read the [paper here](https://arxiv.org/abs/2306.16842, watch a [3-minute video](https://www.youtube.com/watch?v=rCBDcKD8UEg) of the paper or take a look [at the poster](meta/poster.pdf).
+Read the [paper here](https://arxiv.org/abs/2306.16842), watch a [3-minute video](https://www.youtube.com/watch?v=rCBDcKD8UEg) of the paper or take a look [at the poster](meta/poster.pdf).
 
 For now, cite as:
 ```
