@@ -2,7 +2,7 @@
 
 Why are some tokenizations better than others? 
 
-Read the [paper here](https://arxiv.org/abs/2306.16842), watch a [3-minute video](https://www.youtube.com/watch?v=rCBDcKD8UEg) of the paper or take a look [at the poster](meta/poster.pdf).
+Read the [paper here](https://aclanthology.org/2023.acl-long.284/), watch a [3-minute video](https://www.youtube.com/watch?v=rCBDcKD8UEg) of the paper or take a look [at the poster](meta/poster.pdf).
 
 For now, cite as:
 ```
@@ -11,6 +11,6 @@ For now, cite as:
     author={Zouhar, Vilém and Meister, Clara and Gastaldi, Juan Luis and Sachan, Mrinmaya and Cotterell, Ryan},
     booktitle={Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics},
     year={2023},
-    url={https://arxiv.org/abs/2306.16842},
+    url={https://aclanthology.org/2023.acl-long.284/},
 }
 ```
