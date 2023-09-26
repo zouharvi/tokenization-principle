@@ -4,7 +4,7 @@ Why are some tokenizations better than others?
 
 Read the [paper here](https://aclanthology.org/2023.acl-long.284/), watch a [3-minute video](https://www.youtube.com/watch?v=rCBDcKD8UEg) of the paper or take a look [at the poster](meta/poster.pdf).
 
-For now, cite as:
+Cite as:
 ```
 @inproceedings{tokenization_noiseless, 
     title={Tokenization and the Noiseless Channel},
@@ -14,3 +14,5 @@ For now, cite as:
     url={https://aclanthology.org/2023.acl-long.284/},
 }
 ```
+
+[![Paper video presentation](https://img.youtube.com/vi/rCBDcKD8UEg/0.jpg)](https://www.youtube.com/watch?v=rCBDcKD8UEg)
