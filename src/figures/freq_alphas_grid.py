@@ -20,7 +20,7 @@ with open(args.input, "r") as f:
 
 DIM = 1000
 image = np.full((DIM, DIM), np.nan)
-fig = plt.figure(figsize=(4, 2.0))
+fig = plt.figure(figsize=(4, 2.5))
 ax1 = fig.gca()
 
 for line in data:
