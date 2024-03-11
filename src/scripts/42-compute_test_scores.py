@@ -3,11 +3,11 @@
 # sbatch --time=00-12 --ntasks=8 --mem-per-cpu=6G --gpus=1 \
 #     --job-name="compute_test_scores" \
 #     --output="logs_repl/compute_test_scores.log" \
-#     --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/patches/42-compute_test_scores.py"
+#     --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/scripts/42-compute_test_scores.py"
 # sbatch --time=00-4 --ntasks=8 --mem-per-cpu=6G --gpus=1 \
 #     --job-name="compute_test_scores_comet" \
 #     --output="logs_repl/compute_test_scores_comet.log" \
-#     --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/patches/42-compute_test_scores_comet.py"
+#     --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/scripts/42-compute_test_scores_comet.py"
 
 import glob
 import collections
