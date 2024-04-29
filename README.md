@@ -23,6 +23,6 @@ Cite as:
 
 ## YouTube Presentations
 
-[![Paper video presentation](https://img.youtube.com/vi/yeEZpf4BlDA/maxresdefault.jpg)](https://www.youtube.com/watch?v=yeEZpf4BlDA)
 
-[![Paper video presentation](https://img.youtube.com/vi/rCBDcKD8UEg/maxresdefault.jpg)](https://www.youtube.com/watch?v=rCBDcKD8UEg)
+[<img src="https://img.youtube.com/vi/yeEZpf4BlDA/maxresdefault.jpg" width=400px>](https://www.youtube.com/watch?v=yeEZpf4BlDA)
+[<img src="https://img.youtube.com/vi/rCBDcKD8UEg/maxresdefault.jpg" width=400px>](https://www.youtube.com/watch?v=rCBDcKD8UEg)
