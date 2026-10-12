@@ -28,7 +28,8 @@ with tempfile.NamedTemporaryFile() as fname:
     fname = fname.name
     with open(fname, "w") as f:
         for input_fname in args.input:
-            data = open(input_fname, "r").readlines()[:args.number_of_lines]
+            with open(input_fname, "r") as f_in:
+                data = f_in.readlines()[:args.number_of_lines]
             # data = [line.replace(" ", "\n") for line in data]
             f.writelines(data)
 
@@ -46,4 +47,4 @@ with tempfile.NamedTemporaryFile() as fname:
         # txt_train_command += f" -p {args.p} "
 
     print("RUNNING", txt_train_command)
-    subprocess.run(txt_train_command, shell=True)
+    subprocess.run(txt_train_command, shell=True, check=False)

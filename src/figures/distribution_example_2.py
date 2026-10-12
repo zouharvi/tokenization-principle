@@ -30,8 +30,6 @@ sys.exit()
 
 
 def funfun(b, k):
-    global data_y
-
     ent_val = entropy(data_y, base=b)
 
     log_val = np.log2(k)/np.log2(b)

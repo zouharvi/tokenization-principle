@@ -46,7 +46,8 @@ def predictor_renyi_eff(probs, vocab_size, power):
     ]))/np.log2(vocab_size)
     return freqs
 
-data_flat = pickle.load(open("computed/bleu_corr_cache.pkl", "rb"))
+with open("computed/bleu_corr_cache.pkl", "rb") as f:
+    data_flat = pickle.load(f)
 data_flat_new = []
 data_flat_renyis = []
 for line in tqdm.tqdm(data_flat):

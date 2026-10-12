@@ -81,7 +81,8 @@ with tempfile.NamedTemporaryFile() as fname:
     fname = fname.name
     with open(fname, "w") as f:
         for input_fname, number_of_lines in zip(args.input, args.number_of_lines):
-            data = open(input_fname, "r").readlines()[:number_of_lines]
+            with open(input_fname, "r") as f_in:
+                data = f_in.readlines()[:number_of_lines]
             f.writelines(data)
 
     # weird inconsistency

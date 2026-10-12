@@ -34,8 +34,9 @@ observed_vocabulary = set()
 with tempfile.NamedTemporaryFile() as fname1, tempfile.NamedTemporaryFile() as fname2:
     fname1 = fname1.name
     fname2 = fname2.name
+    with open(input_fname, "r") as f_in:
+        data_in = f_in.readlines()[:args.number_of_lines]
     with open(fname1, "w") as f:
-        data_in = open(input_fname, "r").readlines()[:args.number_of_lines]
         f.writelines(data_in)
 
     txt_train_command = f"\
@@ -45,11 +46,13 @@ with tempfile.NamedTemporaryFile() as fname1, tempfile.NamedTemporaryFile() as f
         "
 
     print("RUNNING", " ".join(txt_train_command.split()))
-    subprocess.run(txt_train_command, shell=True)
+    subprocess.run(txt_train_command, shell=True, check=False)
 
-    segmented_words = open(fname2, "r").readlines()
+    with open(fname2, "r") as f:
+        segmented_words = f.readlines()
     with open(output_fname, "w") as fout:
-        data_out = open(input_fname, "r").readlines()
+        with open(input_fname, "r") as f_in:
+            data_out = f_in.readlines()
         cur_line = []
 
         new_line = []

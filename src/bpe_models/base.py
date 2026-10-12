@@ -58,11 +58,11 @@ class BaseBPE:
 
         corpus_freqs_new = {}
         # replace a pair in all vocabulary
-        for word in corpus_freqs:
+        for word, freq in corpus_freqs.items():
             w_out = bigram_joined_space_re.sub(
                 bigram_joined, word
             ).replace("\\\\", "\\")
-            corpus_freqs_new[w_out] = corpus_freqs[word]
+            corpus_freqs_new[w_out] = freq
 
         return corpus_freqs_new
 

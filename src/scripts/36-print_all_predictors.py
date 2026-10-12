@@ -11,7 +11,8 @@ args.add_argument("--data", default="computed/all_predictors_grid.jsonl")
 args.add_argument("--metric", default="pearson")
 args = args.parse_args()
 
-data = [json.loads(x) for x in open(args.data, "r") if len(x) > 1]
+with open(args.data, "r") as f:
+    data = [json.loads(x) for x in f if len(x) > 1]
 
 data_groupped = collections.defaultdict(list)
 

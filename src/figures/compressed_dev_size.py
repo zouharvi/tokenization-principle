@@ -38,9 +38,12 @@ for line_i, line_en in enumerate(data_en):
         model_name = line_en["model"]+"/"+line_en["method"]
     vocab_size = get_vocab_size(line_en["output"])
 
-    if model_name == "morfessor" and vocab_size == 8000:
-        if line_en["output"].split("/")[-2].split("_")[0] == "l2k":
-            continue
+    if (
+        model_name == "morfessor"
+        and vocab_size == 8000
+        and line_en["output"].split("/")[-2].split("_")[0] == "l2k"
+    ):
+        continue
             # print(model_name, vocab_size, )
 
     vocab_present = True

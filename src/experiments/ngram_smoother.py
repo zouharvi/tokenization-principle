@@ -100,13 +100,13 @@ def apply_ngram_char_model(datas, model):
     return datas, char_not_hit/char_total
 
 
-datas = [
-    [
-        line.rstrip("\n").split(" ")
-        for line in open(file, "r").readlines()[:10000]
-    ]
-    for file in args.data_in
-]
+datas = []
+for file in args.data_in:
+    with open(file, "r") as f:
+        datas.append([
+            line.rstrip("\n").split(" ")
+            for line in f.readlines()[:10000]
+        ])
 
 while True:
     print("fitting")

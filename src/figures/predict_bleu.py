@@ -53,7 +53,6 @@ data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
 
 def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
-    global skipped_count
     # TODO: for `repl`, switched to sacrebleu
     filename = f"logs/train_mt{suffix}_t{temperature}_v{vocab_size_name}.log"
     if not os.path.isfile(filename):
@@ -87,8 +86,10 @@ def load_mt_bleu(temperature, vocab_size_name):
 
 
 def process_logfile(fname):
-    data_en = open(fname, "r").read()
-    data_de = open(fname.replace(".en", ".de"), "r").read()
+    with open(fname, "r") as f:
+        data_en = f.read()
+    with open(fname.replace(".en", ".de"), "r") as f:
+        data_de = f.read()
     temperature_name, vocab_size_name = fname.split("/")[-2].split("_")
 
     temperature = temperature_name.replace("m", "-")
@@ -103,12 +104,14 @@ def process_logfile(fname):
 
 
 if args.load_cache:
-    data_flat = pickle.load(open("computed/bleu_corr_cache.pkl", "rb"))
+    with open("computed/bleu_corr_cache.pkl", "rb") as f:
+        data_flat = pickle.load(f)
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
     if args.write_cache:
-        pickle.dump(data_flat, open("computed/bleu_corr_cache.pkl", "wb"))
+        with open("computed/bleu_corr_cache.pkl", "wb") as f:
+            pickle.dump(data_flat, f)
 
 with multiprocess.Pool() as pool:
     data_flat = pool.map(

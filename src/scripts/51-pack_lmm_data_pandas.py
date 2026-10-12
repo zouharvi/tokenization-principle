@@ -8,7 +8,8 @@ import pandas as pd
 data_all = []
 for fname in glob.glob("computed/bleu_corr_cache_multi_processed_*.pkl"):
     power = float(fname.split("/")[-1].removeprefix("bleu_corr_cache_multi_processed_").removesuffix(".pkl"))
-    data_local = pickle.load(open(fname, "rb"))
+    with open(fname, "rb") as f:
+        data_local = pickle.load(f)
     
     for tokenizer_name, tokenizer_data in data_local:
         for (val_pred, val_bleu) in tokenizer_data.values():

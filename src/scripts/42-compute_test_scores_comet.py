@@ -43,10 +43,11 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
         continue
     signature = fs[-2]
     print(lang, signature)
-    text_src = [
-        l.rstrip().split("\t")[-1]
-        for l in open(f, "r") if l.startswith("S")
-    ]
+    with open(f, "r") as file_in:
+        text_src = [
+            l.rstrip().split("\t")[-1]
+            for l in file_in if l.startswith("S")
+        ]
 
     if lines_src_all[lang] is None:
         lines_src_all[lang] = set(text_src)
@@ -59,23 +60,21 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     signature = fs[-2]
     signature_small = "_".join(signature.split("_")[1:])
 
+    with open(f, "r") as file_in:
+        lines_f = file_in.readlines()
     text_src = [
         l.rstrip().split("\t")[-1]
-        for l in open(f, "r") if l.startswith("S")
+        for l in lines_f if l.startswith("S")
     ]
     text_hyp = [
         l.rstrip().split("\t")[-1]
-        for l in open(f, "r") if l.startswith("H")
+        for l in lines_f if l.startswith("H")
     ]
 
-    gold_src = [
-        l.rstrip()
-        for l in open(ref_files[lang]["src"], "r")
-    ]
-    gold_ref = [
-        l.rstrip()
-        for l in open(ref_files[lang]["ref"], "r")
-    ]
+    with open(ref_files[lang]["src"], "r") as file_src:
+        gold_src = [l.rstrip() for l in file_src]
+    with open(ref_files[lang]["ref"], "r") as file_ref:
+        gold_ref = [l.rstrip() for l in file_ref]
 
     text = [
         (s, h)
@@ -104,8 +103,9 @@ metric_scores = {
     }
     for lang, metric_scores_lang in metric_scores.items()
 }
-json.dump(
-    metric_scores,
-    open("computed/metric_scores_repl_comet.json", "w"),
-    ensure_ascii=False
-)
+with open("computed/metric_scores_repl_comet.json", "w") as f_out:
+    json.dump(
+        metric_scores,
+        f_out,
+        ensure_ascii=False
+    )

@@ -9,12 +9,10 @@ from scipy.stats import pearsonr
 
 from figures.predictors_bleu import get_predictor
 
-data_metrics_1 = json.load(
-    open("computed/metric_scores_repl.json", "r"),
-)
-data_metrics_2 = json.load(
-    open("computed/metric_scores_repl_comet.json", "r"),
-)
+with open("computed/metric_scores_repl.json", "r") as f:
+    data_metrics_1 = json.load(f)
+with open("computed/metric_scores_repl_comet.json", "r") as f:
+    data_metrics_2 = json.load(f)
 
 data_metrics = {
     lang: {
@@ -52,8 +50,10 @@ for lang in ["de-en", "cs-en"]:
         for signature, metric_scores in data_metrics[lang].items():
             signature_small = signature.replace("t", "").replace("v", "")
             vocab_size = float(signature_small.split("_")[1].replace("k", "000"))
-            text_1 = open(f"data/model_bpe_random/{lang}/{signature_small}/dev.{lang.split('-')[0]}", "r").read()
-            text_2 = open(f"data/model_bpe_random/{lang}/{signature_small}/dev.{lang.split('-')[1]}", "r").read()
+            with open(f"data/model_bpe_random/{lang}/{signature_small}/dev.{lang.split('-')[0]}", "r") as f:
+                text_1 = f.read()
+            with open(f"data/model_bpe_random/{lang}/{signature_small}/dev.{lang.split('-')[1]}", "r") as f:
+                text_2 = f.read()
             score = predictor_fn(text_1 + text_2, vocab_size, predictor_args)
             data_predictions[lang][predictor_key].append(score)
 

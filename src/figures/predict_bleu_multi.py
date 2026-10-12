@@ -84,8 +84,10 @@ def load_mt_bleu(model_name, train_lines_name, vocab_size_name):
 def process_logfile(fname):
     if "bpe_random" in fname:
         return None
-    data_en = open(fname, "r").read()
-    data_de = open(fname.replace(".en", ".de"), "r").read()
+    with open(fname, "r") as f:
+        data_en = f.read()
+    with open(fname.replace(".en", ".de"), "r") as f:
+        data_de = f.read()
     train_lines_name, vocab_size_name = fname.split("/")[-2].split("_")
     train_lines_name = train_lines_name.removeprefix("l")
     model_name = fname.split("/")[-3].removeprefix("model_")
@@ -100,13 +102,15 @@ def process_logfile(fname):
 
 
 if args.load_cache:
-    data_flat = pickle.load(open("computed/bleu_corr_cache_multi.pkl", "rb"))
+    with open("computed/bleu_corr_cache_multi.pkl", "rb") as f:
+        data_flat = pickle.load(f)
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
         data_flat = [x for x in data_flat if x is not None]
     if args.write_cache:
-        pickle.dump(data_flat, open("computed/bleu_corr_cache_multi.pkl", "wb"))
+        with open("computed/bleu_corr_cache_multi.pkl", "wb") as f:
+            pickle.dump(data_flat, f)
 
 
 with multiprocess.Pool() as pool:

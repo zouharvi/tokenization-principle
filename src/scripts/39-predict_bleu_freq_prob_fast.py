@@ -35,7 +35,8 @@ args_kwargs = vars(args)
 freq_alphas = np.arange(0, 1000, 1)/1000
 freq_alphas = product(freq_alphas, freq_alphas)
 
-data_flat = pickle.load(open("computed/bleu_corr_cache.pkl", "rb"))
+with open("computed/bleu_corr_cache.pkl", "rb") as f:
+    data_flat = pickle.load(f)
 data_flat_new = []
 data_flat_bleus = []
 for line in tqdm.tqdm(data_flat):

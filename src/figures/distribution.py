@@ -30,12 +30,12 @@ args = args.parse_args()
 data = []
 
 for data_bpe_names in [args.data_bpe1, args.data_bpe2, args.data_bpe3]:
-    data_bpe = list(collections.Counter([
-            word
-            for file in data_bpe_names
-            for line in open(file, "r")
-            for word in line.rstrip("\n").split(" ")
-        ]).most_common())
+    words = []
+    for file in data_bpe_names:
+        with open(file, "r") as f:
+            for line in f:
+                words.extend(line.rstrip("\n").split(" "))
+    data_bpe = list(collections.Counter(words).most_common())
 
     total_subwords = sum([freq for word, freq in data_bpe])
     data_bpe_vals = [freq/total_subwords for word, freq in data_bpe]

@@ -29,7 +29,8 @@ for fname in glob.glob(args.logfiles):
     balance = balance.replace("k", "000").split("-")
     balance_ratio = float(balance[0]) / (float(balance[0]) + float(balance[1]))
 
-    data = [l for l in open(fname, "r") if "best_bleu" in l]
+    with open(fname, "r") as f:
+        data = [l for l in f if "best_bleu" in l]
     if not data:
         continue
     bleu = [float(l.split("best_bleu ")[-1]) for l in data][-1]

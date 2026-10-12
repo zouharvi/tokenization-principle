@@ -39,7 +39,7 @@ for line_dev in data_dev:
         "train_subwords": (line_train_all[0]["total_subwords"]+line_train_all[1]["total_subwords"])/2,
         "dev_subwords": (line_dev_all[0]["total_subwords"]+line_dev_all[1]["total_subwords"])/2,
         "method": line_dev["method"],
-        "model": line_dev["model"].rstrip(".bpe_merges"),
+        "model": line_dev["model"].removesuffix(".bpe_merges"),
     }
     data_new.append(line_new)
 
