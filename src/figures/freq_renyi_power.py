@@ -19,10 +19,10 @@ args = args.parse_args()
 with open(args.input, "r") as f:
     data = [json.loads(x) for x in f]
 
-line_entropy = [
+line_entropy = next(
     line for line in data if line["args"]
     ["predictor"] == "entropy_eff"
-][0]
+)
 line_entropy["args"]["power"] = 1
 line_entropy["vals"] = [x for x in line_entropy["vals"]]
 line_entropy["spearman"] = line_entropy["spearman"]

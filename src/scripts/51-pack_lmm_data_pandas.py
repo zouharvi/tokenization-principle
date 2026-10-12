@@ -11,7 +11,7 @@ for fname in glob.glob("computed/bleu_corr_cache_multi_processed_*.pkl"):
     data_local = pickle.load(open(fname, "rb"))
     
     for tokenizer_name, tokenizer_data in data_local:
-        for tokenizer_config, (val_pred, val_bleu) in tokenizer_data.items():
+        for (val_pred, val_bleu) in tokenizer_data.values():
             data_all.append((
                 power, tokenizer_name, val_pred, val_bleu
             ))

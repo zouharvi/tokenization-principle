@@ -87,7 +87,7 @@ def tasker(freq_alphas):
         for (vocab_size_name, temperature, words_freqs, probs, vocab_size) in data_flat
     ]
 
-    data_train_x, data_dev_x, data_train_y, data_dev_y = train_test_split(
+    data_train_x, _data_dev_x, data_train_y, _data_dev_y = train_test_split(
         data_flat_bleus, data_local, test_size=0.5,
         random_state=0
     )

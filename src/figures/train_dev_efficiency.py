@@ -19,7 +19,7 @@ with open(args.logfile, "r") as f:
 data_train = [x for x in data if "train" in x["input"]]
 data_dev = [x for x in data if "dev" in x["input"]]
 data = [
-    (x, [y for y in data_dev if y["model"] == x["model"]][0])
+    (x, next(y for y in data_dev if y["model"] == x["model"]))
     for x in data_train
 ]
 
@@ -62,7 +62,7 @@ for vocab_size, data_vocabsize_local in data_vocabsize.items():
         name = model
 
         if "random" in name:
-            if any([f"_{x}_" in name for x in [1, 2, 3, 4]]):
+            if any(f"_{x}_" in name for x in [1, 2, 3, 4]):
                 name = None
             else:
                 name = name.split("_")

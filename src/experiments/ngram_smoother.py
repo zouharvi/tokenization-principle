@@ -63,9 +63,8 @@ def apply_ngram_char_model(datas, model):
     char_total = 0
     char_not_hit = 0
     # edit only word ids to make this faster
-    replacement_vocab = dict()
+    replacement_vocab = {}
     for word in vocab:
-        modified = False
         word_new = " " * args.n + word + " " * args.n
         word_builder = ""
         for i in range(args.n, len(word) + args.n):
@@ -76,7 +75,6 @@ def apply_ngram_char_model(datas, model):
             if observed_char in possible_char:
                 word_builder += observed_char
             else:
-                modified = True
                 word_builder += random.choices(
                     population=possible_char,
                     weights=possible_char_weights,

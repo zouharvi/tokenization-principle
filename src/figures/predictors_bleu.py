@@ -54,7 +54,7 @@ def _predictor_freq(data, vocab_size, extra_args):
     return freqs
 
 def _predictor_freq_prob(data, vocab_size, extra_args):
-    words_freqs, probs = get_prob_distribution(data)
+    _words_freqs, probs = get_prob_distribution(data)
 
     start_i = min(
         int(len(probs) * extra_args["freq_alpha_start"]),
@@ -83,7 +83,7 @@ def _predictor_freq_prob(data, vocab_size, extra_args):
     # return freqs/ np.log2(vocab_size)
 
 def _predictor_renyi(data, vocab_size, extra_args):
-    words_freqs, probs = get_prob_distribution(data)
+    words_freqs, _probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
@@ -102,7 +102,7 @@ def _predictor_renyi(data, vocab_size, extra_args):
 def _predictor_renyi_eff(data, vocab_size, extra_args):
     if extra_args["power"] == 1:
         return _predictor_entropy_eff(data, vocab_size, extra_args)
-    words_freqs, probs = get_prob_distribution(data)
+    words_freqs, _probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
@@ -126,7 +126,7 @@ def _predictor_renyi_eff_cov(data, vocab_size, extra_args):
     import numpy as np
     from dahuffman import HuffmanCodec
 
-    words_freqs, probs = get_prob_distribution(data)
+    words_freqs, _probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
@@ -174,7 +174,7 @@ def _predictor_renyi_eff_sexpect(data, vocab_size, extra_args):
     sexpect = words / subwords
     print(sexpect)
 
-    words_freqs, probs = get_prob_distribution(data)
+    words_freqs, _probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)
     index_start = int(len(words_freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(words_freqs) * extra_args["freq_alpha_end"]), len(words_freqs) - 1)
@@ -191,7 +191,7 @@ def _predictor_renyi_eff_sexpect(data, vocab_size, extra_args):
     return sexpect * freqs
 
 def _predictor_aggregate_deviation(data, vocab_size, extra_args):
-    freqs, probs = get_prob_distribution(data)
+    freqs, _probs = get_prob_distribution(data)
 
     if extra_args["central_measure"] == "mean":
         central_measure = np.mean(freqs)
@@ -236,22 +236,22 @@ def _predictor_iqr(data, vocab_size, extra_args):
     return vals[index_end] - vals[index_start]
 
 def _predictor_entropy(data, vocab_size, extra_args):
-    freqs, probs = get_prob_distribution(data)
+    _freqs, probs = get_prob_distribution(data)
 
     return -np.sum(probs * np.log2(probs))
 
 def _predictor_entropy_eff(data, vocab_size, extra_args):
-    freqs, probs = get_prob_distribution(data)
+    _freqs, probs = get_prob_distribution(data)
 
     return -np.sum(probs * np.log2(probs))/np.log2(vocab_size)
 
 def _predictor_coefficient_variation(data, vocab_size, extra_args):
-    freqs, probs = get_prob_distribution(data)
+    freqs, _probs = get_prob_distribution(data)
     
     return np.std(freqs)/np.average(freqs)
 
 def _predictor_quartile_dispersion(data, vocab_size, extra_args):
-    freqs, probs = get_prob_distribution(data)
+    freqs, _probs = get_prob_distribution(data)
     
     index_start = int(len(freqs) * extra_args["freq_alpha_start"])
     index_end = min(int(len(freqs) * extra_args["freq_alpha_end"]), len(freqs) - 1)

@@ -22,7 +22,7 @@ data_metrics = {
             **metric_scores_lang[signature],
             **data_metrics_2[lang][signature],
         }
-        for signature in metric_scores_lang.keys()
+        for signature in metric_scores_lang
     }
     for lang, metric_scores_lang in data_metrics_1.items()
 }

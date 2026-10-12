@@ -53,11 +53,11 @@ for line_i, line_en in enumerate(data_en):
 
     model_i = MODEL_I[model_name]
 
-    line_de = [
+    line_de = next(
         line
         for line in data_de
         if line["output"].removesuffix(".de") == line_en["output"].removesuffix(".en")
-    ][0]
+    )
     data_value = [line_en["total_subwords"]+line_de["total_subwords"]]
     plt.scatter(
         [data_value], [model_i+VOCAB_I[vocab_size]/10],

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +26,7 @@ def renyi_entropy(data, alpha):
 data_y = np.random.rand(50)
 data_y = data_y / data_y.sum()
 print(entropy(data_y, len(data_y)))
-exit()
+sys.exit()
 
 
 def funfun(b, k):
@@ -34,7 +35,7 @@ def funfun(b, k):
     ent_val = entropy(data_y, base=b)
 
     log_val = np.log2(k)/np.log2(b)
-    val_out = ent_val / log_val
+    ent_val / log_val
 
     return ent_val / np.log2(k)
 

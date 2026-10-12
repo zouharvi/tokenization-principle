@@ -43,7 +43,7 @@ for vocab_size, data_vocabsize_local in data_vocabsize.items():
         name = model
 
         if "random" in name:
-            if any([f"_{x}_" in name for x in [1, 2, 3, 4]]):
+            if any(f"_{x}_" in name for x in [1, 2, 3, 4]):
                 name = None
             else:
                 name = name.split("_")

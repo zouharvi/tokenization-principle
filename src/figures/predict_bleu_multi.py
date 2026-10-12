@@ -248,7 +248,7 @@ print(
 )
 
 if args.no_graphics:
-    exit()
+    sys.exit()
 
 
 plt.title(

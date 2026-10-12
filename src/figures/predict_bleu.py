@@ -122,7 +122,7 @@ with multiprocess.Pool() as pool:
 
 
 for (vocab_size_name, temperature), val in data_flat:
-    if any([x is None for x in val]):
+    if any(x is None for x in val):
         continue
     data[vocab_size_name][temperature] = val
 
@@ -280,7 +280,7 @@ print(
 )
 
 if args.no_graphics:
-    exit()
+    sys.exit()
 
 if corr_pearson_pval < 0.001:
     corr_pearson_pval = "$<$0.001"

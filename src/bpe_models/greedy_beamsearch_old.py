@@ -51,12 +51,12 @@ class GreedyBeamSearchOldBPE(BaseBPE):
         pairs = self.get_pairs(corpus_freqs)
         # add all characters to subword vocab even if they are not merge operations
         merge_operations = list({
-            s for pair in pairs.keys() for s in pair
+            s for pair in pairs for s in pair
         })
         # add end characters
         merge_operations += list({
             pair[0] + pair[1]
-            for pair in pairs.keys() if pair[1] == "</w>"
+            for pair in pairs if pair[1] == "</w>"
         })
 
         beams = [Beam(merge_operations, corpus_freqs)]
