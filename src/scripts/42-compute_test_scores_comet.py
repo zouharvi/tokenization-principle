@@ -20,7 +20,7 @@ metric_scores = {
     "de-en": collections.defaultdict(list),
 }
 
-lines_src_all = {
+lines_src_all: dict[str, set[str] | None] = {
     "cs-en": None,
     "de-en": None,
 }
@@ -76,9 +76,10 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     with open(ref_files[lang]["ref"], "r") as file_ref:
         gold_ref = [l.rstrip() for l in file_ref]
 
+    curr_lines_all = lines_src_all[lang] or set()
     text = [
         (s, h)
-        for s, h in zip(text_src, text_hyp) if s in lines_src_all[lang]
+        for s, h in zip(text_src, text_hyp) if s in curr_lines_all
     ][:10000]
     text_gold = {s: r for s, r in zip(gold_src, gold_ref)}
 

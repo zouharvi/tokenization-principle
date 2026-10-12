@@ -44,7 +44,7 @@ class GreedyBeamSearchOldBPE(BaseBPE):
         # TODO: there is no point in self.beam_n_expand > self.beam_n
         return pairs[:self.beam_n_expand]
 
-    def fit(self, corpus: str, vocab_size: int):
+    def fit(self, corpus: list[str], vocab_size: int):
         corpus_freqs = self.build_vocab_freq(corpus)
 
         # get initial characters

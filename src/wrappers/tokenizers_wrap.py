@@ -5,6 +5,9 @@ import json
 import tempfile
 
 import tokenizers
+import tokenizers.models
+import tokenizers.pre_tokenizers
+import tokenizers.trainers
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -59,6 +62,8 @@ def get_trainer(name):
         return tokenizers.trainers.WordPieceTrainer
     elif name == "bpe":
         return tokenizers.trainers.BpeTrainer
+    else:
+        raise ValueError(f"Unknown trainer: {name}")
 
 
 def get_tokenizer(name):
@@ -70,6 +75,8 @@ def get_tokenizer(name):
         return tokenizers.models.WordPiece
     elif name == "bpe":
         return tokenizers.models.BPE
+    else:
+        raise ValueError(f"Unknown tokenizer: {name}")
 
 
 with tempfile.NamedTemporaryFile() as fname:
@@ -118,6 +125,7 @@ for fname_out, fname_in, process_number_of_lines in zip(
     print(data[0].tokens)
     with open(fname_out, "w") as f:
         total_subwords += sum(len(line.tokens) for line in data)
+        line = ""
         for line_in, line in zip(data_in, data):
             last_right = None
             tokens = []

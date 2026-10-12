@@ -20,7 +20,7 @@ def entropy(data):
 
 def renyi_entropy(data, alpha):
     if alpha == 1:
-        ent_val = entropy(data, len(data))
+        ent_val = entropy(data)
         return ent_val
     scale = 1/(1-alpha)
     return scale*np.log2(np.sum(np.power(data, alpha)))
@@ -42,6 +42,8 @@ elif CODETYPE == "const_loglen":
     data_lens = [np.ceil(np.log2(len(data)))]* len(data)
 elif CODETYPE == "const_entropy":
     data_lens = [np.ceil(entropy(data))]* len(data)
+else:
+    raise ValueError(f"Unknown CODETYPE: {CODETYPE}")
 
 
 data_lens = np.array(data_lens)

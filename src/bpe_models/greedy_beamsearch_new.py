@@ -24,8 +24,7 @@ class Hypothesis:
         self.score = 0
 
     def __len__(self):
-        self.get_merge_operations()
-        return len(self.merge_operations)
+        return len(self.get_merge_operations())
 
     def spawn_child(self, pair):
         child = Hypothesis(self.get_merge_operations(), self.get_corpus_freqs())
@@ -34,10 +33,10 @@ class Hypothesis:
 
     def get_possible_extensions(self):
         # make sure we have corpus freqs
-        self.get_corpus_freqs()
+        corpus_freqs = self.get_corpus_freqs()
 
-        if self.possible_extensions == None:
-            self.possible_extensions = BaseBPE.get_pairs(self.corpus_freqs).items()
+        if self.possible_extensions is None:
+            self.possible_extensions = BaseBPE.get_pairs(corpus_freqs).items()
 
         return self.possible_extensions
 
@@ -71,7 +70,7 @@ class GreedyBeamSearchNewBPE(BaseBPE):
         self.beam_n = beam_n
         self.beam_n_expand = beam_n_expand
 
-    def fit(self, corpus: str, vocab_size: int):
+    def fit(self, corpus: list[str], vocab_size: int):
 
         # ====================================================
         # NOTE: this is just a boostrap code (not beam search)
@@ -92,6 +91,7 @@ class GreedyBeamSearchNewBPE(BaseBPE):
 
         beam_t = {0: [Hypothesis(merge_operations, corpus_freqs)]}
 
+        t = 0
         for t in tqdm.tqdm(range(1, vocab_size-len(merge_operations)+1)):
             beam = PriorityQueue(maxsize=0)
             for hyp in beam_t[t-1]:

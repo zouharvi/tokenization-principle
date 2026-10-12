@@ -7,10 +7,10 @@ import json
 import fig_utils
 import matplotlib.pyplot as plt
 
-args = argparse.ArgumentParser()
-args.add_argument("-l", "--logfile", default="computed/apply_bpe_all.jsonl")
-args.add_argument("-y", "--y-axis", default="entropy_subword")
-args = args.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--logfile", default="computed/apply_bpe_all.jsonl")
+parser.add_argument("-y", "--y-axis", default="entropy_subword")
+args = parser.parse_args()
 
 
 with open(args.logfile, "r") as f:

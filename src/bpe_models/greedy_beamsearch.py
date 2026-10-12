@@ -58,7 +58,7 @@ class GreedyBeamSearchBPE(BaseBPE):
         self.beam_n = beam_n
         self.beam_n_expand = beam_n_expand
 
-    def fit(self, corpus: str, vocab_size: int):
+    def fit(self, corpus: list[str], vocab_size: int):
         corpus_freqs = self.build_vocab_freq(corpus)
 
         # get initial characters

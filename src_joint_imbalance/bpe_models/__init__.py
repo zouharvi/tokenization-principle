@@ -9,3 +9,5 @@ def get_model(name):
     elif name == "random_pmi_freq":
         from bpe_models.random_pmi_freq import RandomPMIFreqBPE
         return RandomPMIFreqBPE
+    else:
+        raise ValueError(f"Unknown model: {name}")

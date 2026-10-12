@@ -4,21 +4,21 @@ import argparse
 import collections
 import random
 
-args = argparse.ArgumentParser()
-args.add_argument(
+parser = argparse.ArgumentParser()
+parser.add_argument(
     "-di", "--data-in", nargs="+",
     default=[
         "data/CCrawl.de-en/dev.tok.de",
         "data/CCrawl.de-en/dev.tok.en",
     ])
-args.add_argument(
+parser.add_argument(
     "-do", "--data-out", nargs="+",
     default=[
         "data/flattened/n3_e10_p01_k3/dev.de",
         "data/flattened/n3_e10_p01_k3/dev.en",
     ])
-args.add_argument("-n", type=int, default=2)
-args = args.parse_args()
+parser.add_argument("-n", type=int, default=2)
+args = parser.parse_args()
 
 
 def fit_ngram_char_model(datas):

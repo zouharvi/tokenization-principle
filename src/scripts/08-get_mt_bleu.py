@@ -32,14 +32,20 @@ for fname in glob.glob(args.glob):
     if len(data_local) == 0:
         continue
 
-    data_local = [
-        (
-            int(re_epoch.search(x).group(1)),
-            float(re_best_bleu.search(x).group(1)),
-            float(re_bleu.search(x).group(1)),
-        )
-        for x in data_local
-    ]
+    data_parsed = []
+    for x in data_local:
+        m_epoch = re_epoch.search(x)
+        m_best_bleu = re_best_bleu.search(x)
+        m_bleu = re_bleu.search(x)
+        if m_epoch and m_best_bleu and m_bleu:
+            data_parsed.append((
+                int(m_epoch.group(1)),
+                float(m_best_bleu.group(1)),
+                float(m_bleu.group(1)),
+            ))
+    if not data_parsed:
+        continue
+    data_local = data_parsed
     # max should take the first max best_bleu
     best_bleu = max(data_local, key=lambda x: x[1])
     cur_epoch = max(data_local, key=lambda x: x[0])

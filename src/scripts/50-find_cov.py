@@ -28,7 +28,7 @@ codec_lens = {
 
 data_sent_encoded_len = [
     # sum number of bits fo each word
-    np.average([codec_lens[w] for w in x])
+    float(np.average([codec_lens[w] for w in x]))
     for x in data_sent_train
     if x
 ]

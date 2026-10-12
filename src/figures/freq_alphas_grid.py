@@ -4,10 +4,10 @@ import argparse
 import json
 import sys
 
-import matplotlib
 import matplotlib.patches as mplp
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import cm
 
 sys.path.append("src")
 
@@ -42,7 +42,7 @@ for e_a in range(DIM):
             pass
 
 image = np.ma.masked_invalid(image)
-cmap = matplotlib.cm.YlGn.copy()
+cmap = cm.YlGn.copy()
 cmap.set_bad('gray', 0.05)
 mappable = ax1.imshow(image, cmap=cmap, aspect="auto", interpolation="none")
 
@@ -54,7 +54,7 @@ cbar = plt.colorbar(
     # ticks=[30, 50, 70],
 )
 
-ax2 = ax1.inset_axes([0.05, 0.07, 0.45, 0.4])
+ax2 = ax1.inset_axes((0.05, 0.07, 0.45, 0.4))
 ax2.imshow(image[:30,:30], cmap=cmap, aspect="auto")
 ax2.set_axis_off()
 ax2.set_xticklabels([])

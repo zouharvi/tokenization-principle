@@ -23,6 +23,8 @@ if args.f == 0:
 elif args.f == 1:
     special_subword = "cow"
     special_subword_freq = 1
+else:
+    raise ValueError(f"Unknown f: {args.f}")
 # print(sorted(freqs.items(),reverse=True, key=lambda x: x[1]))
 freqs = {
     ' ': 450,

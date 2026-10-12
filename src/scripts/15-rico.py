@@ -30,7 +30,7 @@ def bpe(vocab):
     # for _ in tqdm.tqdm(range(num_merges)):
     for _ in range(num_merges):
         pairs = get_stats(vocab)
-        best = max(pairs, key=pairs.get)
+        best = max(pairs, key=lambda x: pairs[x])
         vocab = merge_vocab(best, vocab)
 
 
@@ -38,10 +38,10 @@ def build_vocab_freq(corpus: list[str]):
     """Build vocab from text corpus"""
 
     # join lines together
-    corpus = " ".join(corpus)
+    corpus_str = " ".join(corpus)
 
     # separate each char in word by space and add mark end of token
-    tokens = [" ".join(word) + " </w>" for word in corpus.split()]
+    tokens = [" ".join(word) + " </w>" for word in corpus_str.split()]
 
     # count frequency of tokens in corpus
     vocab_freq = collections.Counter(tokens)

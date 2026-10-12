@@ -22,6 +22,8 @@ elif args.f == 2:
     data_y = np.array([6, 5, 5, 5, 4, 2])
 elif args.f == 3:
     data_y = np.array([10, 5, 5, 5, 4, 2])
+else:
+    raise ValueError(f"Unknown f: {args.f}")
 
 # TODO: add code length for each bar
 

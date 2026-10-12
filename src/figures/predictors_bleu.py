@@ -156,7 +156,7 @@ def _predictor_renyi_eff_cov(data, vocab_size, extra_args):
 
     data_sent_encoded_len = [
         # sum number of bits fo each word
-        np.average([codec_lens[w] for w in x])
+        float(np.average([codec_lens[w] for w in x]))
         for x in data_sent
         if x
     ]

@@ -22,6 +22,7 @@ class BaseLZW:
                 line_new = []
                 j = 0
                 while j < len(line):
+                    k = 1
                     for k in range(1, max_stored_length + 2)[::-1]:
                         if "".join(line[j:j + k]) in dictionary:
                             break
@@ -70,8 +71,7 @@ class BaseLZW:
 
             if not found:
                 # subword = "UNK"
-                subword = list(token)
-                token_out += subword
+                token_out += list(token)
                 break
 
             token_out.append(subword)
@@ -83,8 +83,7 @@ class BaseLZW:
 
     def encode(self, corpus: list[str]) -> list[str]:
         # make sure it's sorted from longest to shortest
-        subword_vocab = self.vocab
-        subword_vocab.sort(key=lambda x: len(x), reverse=True)
+        subword_vocab = sorted(self.vocab, key=lambda x: len(x), reverse=True)
 
         import multiprocess
 

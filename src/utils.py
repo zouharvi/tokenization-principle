@@ -27,3 +27,5 @@ def get_model(name):
     elif name == "random":
         from bpe_models.random import RandomBPE
         return RandomBPE
+    else:
+        raise ValueError(f"Unknown model: {name}")

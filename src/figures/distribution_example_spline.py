@@ -24,6 +24,8 @@ elif args.f == 2:
     data_y = np.array([5.5, 4.5, 4, 3.5, 3.3, 2.5])
 elif args.f == 3:
     data_y = np.array([1, 1, 1, 1, 1, 1])
+else:
+    raise ValueError(f"Unknown f: {args.f}")
 
 data_y = data_y / data_y.sum()
 data_x = np.array(range(len(data_y)))

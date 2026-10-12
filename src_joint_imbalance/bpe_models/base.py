@@ -16,12 +16,12 @@ class BaseBPE:
         """Build vocab from text corpus"""
 
         # join lines together
-        corpus = " ".join(corpus)
+        corpus_str = " ".join(corpus)
         # collapse whitespace and newlines
-        corpus = COLLAPSE_WHITESPACE.sub(" ", corpus)
+        corpus_str = COLLAPSE_WHITESPACE.sub(" ", corpus_str)
 
         # separate each char in word by space and add mark end of token
-        tokens = [" ".join(word) + " </w>" for word in corpus.split()]
+        tokens = [" ".join(word) + " </w>" for word in corpus_str.split()]
 
         # count frequency of tokens in corpus
         vocab_freq = Counter(tokens)
@@ -82,7 +82,10 @@ class BaseBPE:
 
         return corpus_freqs_new
 
-    def fit(self, corpus: str, vocab_size: int):
+    def choose_pair_to_merge(self, pairs: dict[tuple[str, str], int], singles: dict[str, int]) -> tuple[str, str]:
+        raise NotImplementedError
+
+    def fit(self, corpus: list[str], vocab_size: int):
         corpus_freqs = self.build_vocab_freq(corpus)
 
         # get initial characters
@@ -129,7 +132,7 @@ class BaseBPE:
 
         self.corpus_freqs = corpus_freqs
 
-    def encode_token_merge_operations(self, token: str, merge_operations: str, subword_vocab: set[str]):
+    def encode_token_merge_operations(self, token: str, merge_operations: list[str], subword_vocab: set[str]):
         # ASSERT: merge_operations are sanitized
 
         # insert spaces between and around
@@ -177,8 +180,7 @@ class BaseBPE:
             if not found:
                 # subword = "UNK"
                 # fall back to characters
-                subword = list(token)
-                token_out += subword
+                token_out += list(token)
                 break
 
             token_out.append(subword)

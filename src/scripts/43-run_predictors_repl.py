@@ -64,6 +64,6 @@ for predictor_key, predictor_args in PREDICTORS:
         for metric in ["bleu", "chrf", "bleurt", "comet"]:
             metric_list = data_predictions[lang][metric]
             pred_list = data_predictions[lang][predictor_key]
-            score = pearsonr(metric_list, pred_list)[0]**2
+            score = float(pearsonr(metric_list, pred_list)[0])**2
             print(f"{score:.0%}".replace("%", "\\%"), end=" & ")
     print("\\\\")
