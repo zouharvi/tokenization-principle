@@ -9,12 +9,13 @@
 #     --output="logs_repl/compute_test_scores_comet.log" \
 #     --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/scripts/42-compute_test_scores_comet.py"
 
-import glob
 import collections
-import tqdm
+import glob
 import json
+
 import evaluate
 import numpy as np
+import tqdm
 
 metric_chrf = evaluate.load("chrf")
 metric_bleu = evaluate.load("bleu")
@@ -50,7 +51,7 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     print(lang, signature)
     text_src = [
         l.rstrip().split("\t")[-1]
-        for l in open(f, "r").readlines() if l.startswith("S")
+        for l in open(f, "r") if l.startswith("S")
     ]
 
     if lines_src_all[lang] is None:
@@ -66,20 +67,20 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
 
     text_src = [
         l.rstrip().split("\t")[-1]
-        for l in open(f, "r").readlines() if l.startswith("S")
+        for l in open(f, "r") if l.startswith("S")
     ]
     text_hyp = [
         l.rstrip().split("\t")[-1]
-        for l in open(f, "r").readlines() if l.startswith("H")
+        for l in open(f, "r") if l.startswith("H")
     ]
 
     gold_src = [
         l.rstrip()
-        for l in open(ref_files[lang]["src"], "r").readlines()
+        for l in open(ref_files[lang]["src"], "r")
     ]
     gold_ref = [
         l.rstrip()
-        for l in open(ref_files[lang]["ref"], "r").readlines()
+        for l in open(ref_files[lang]["ref"], "r")
     ]
 
     text = [

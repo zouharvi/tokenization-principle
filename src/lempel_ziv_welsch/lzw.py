@@ -2,7 +2,8 @@
 
 import tqdm
 
-class BaseLZW():
+
+class BaseLZW:
     def __init__(self, **kwargs):
         pass
 
@@ -101,11 +102,10 @@ class BaseLZW():
 
     def load(self, path):
         with open(path, "r") as f:
-            self.vocab = [x.rstrip("\n") for x in f.readlines()]
+            self.vocab = [x.rstrip("\n") for x in f]
             self.vocab = [x for x in self.vocab if len(x) != 0]
 
     def save(self, path):
         with open(path, "w") as f:
-            for word in self.vocab:
-                f.write(word + "\n")
+            f.writelines(word + "\n" for word in self.vocab)
 

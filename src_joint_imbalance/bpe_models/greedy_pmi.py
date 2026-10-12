@@ -1,6 +1,7 @@
-from .base import BaseBPE
-import collections
+
 import numpy as np
+
+from .base import BaseBPE
 
 
 class GreedyPMIBPE(BaseBPE):

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
+
 import fig_utils
 import matplotlib.pyplot as plt
-import argparse
 import numpy as np
 
 # for f in "0" "1" "2" "3"; do DISPLAY="" ./src/figures/distribution_example_chopped.py -f $f; done

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import numpy as np
-import collections
 import json
+
 from bpe_models.base import BaseBPE
 from bpe_models.greedy_captrick import GreedyCaptrickBPE
 
@@ -48,8 +47,7 @@ data = model.encode(data, method=args.method)
 
 # save to file
 with open(args.output, "w") as f:
-    for line in data:
-        f.write(line + "\n")
+    f.writelines(line + "\n" for line in data)
 
 total_subwords = sum(line.count(" ") + 1 for line in data)
 print("Outputting", total_subwords, "total subwords")

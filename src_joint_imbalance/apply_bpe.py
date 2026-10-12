@@ -2,6 +2,7 @@
 
 import argparse
 import json
+
 from bpe_models.base import BaseBPE
 
 args = argparse.ArgumentParser()
@@ -38,8 +39,7 @@ data = model.encode(data, method=args.method)
 
 # save to file
 with open(args.output, "w") as f:
-    for line in data:
-        f.write(line + "\n")
+    f.writelines(line + "\n" for line in data)
 
 total_subwords = sum(line.count(" ") + 1 for line in data)
 print("Outputting", total_subwords, "total subwords")

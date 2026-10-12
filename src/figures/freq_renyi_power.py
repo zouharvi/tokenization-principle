@@ -2,21 +2,22 @@
 
 import argparse
 import json
-import matplotlib
-import numpy as np
-import matplotlib.pyplot as plt
-import os
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 sys.path.append("src")
-import figures.fig_utils
 import matplotlib.ticker as mtick
+
+import figures.fig_utils
 
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="computed/renyi_vals_sub.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
-    data = [json.loads(x) for x in f.readlines()]
+    data = [json.loads(x) for x in f]
 
 line_entropy = [
     line for line in data if line["args"]
@@ -48,13 +49,13 @@ ax2 = ax1.twinx()
 ax1.plot(
     [line["args"]["power"] for line in data],
     [(line["pearson"]) for line in data],
-    label=f"Pearson",
+    label="Pearson",
     color=figures.fig_utils.COLORS[0],
 )
 ax1.plot(
     [line["args"]["power"] for line in data],
     [(line["spearman"]) for line in data],
-    label=f"Spearman",
+    label="Spearman",
     color=figures.fig_utils.COLORS[1],
 )
 # markeredgewidth

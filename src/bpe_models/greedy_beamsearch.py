@@ -1,15 +1,16 @@
-from .base import BaseBPE
 import copy
-import re
-import tqdm
 import itertools
-import sys
 import operator
+import re
+import sys
+
+import tqdm
+
 from .base import BaseBPE
 
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
-class BeamHypothesis():
+class BeamHypothesis:
     def __init__(self, merge_operations, corpus_freqs):
         self.merge_operations = merge_operations
         self.corpus_freqs = corpus_freqs

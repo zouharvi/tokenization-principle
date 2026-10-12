@@ -1,7 +1,9 @@
+import random
+
 from .base import BaseBPE
 from .greedy import GreedyBPE
 from .greedy_pmi import GreedyPMIBPE
-import random
+
 
 class RandomPMIFreqBPE(BaseBPE):
     def __init__(self, seed, **kwargs):

@@ -1,7 +1,7 @@
-import matplotlib.style
 import matplotlib as mpl
-from cycler import cycler
 import matplotlib.font_manager
+import matplotlib.style
+from cycler import cycler
 
 FONT_MONOSPACE = {'fontname':'monospace'}
 MARKERS = "o^s*DP1"

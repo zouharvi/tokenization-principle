@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-import collections
 import argparse
+import collections
 import random
-import tqdm
 
 args = argparse.ArgumentParser()
 args.add_argument(

@@ -1,5 +1,7 @@
-import numpy as np
 import collections
+
+import numpy as np
+
 
 def get_prob_distribution(data):
     words_freqs = list(collections.Counter(data.split()).most_common())
@@ -118,10 +120,11 @@ def _predictor_renyi_eff(data, vocab_size, extra_args):
 
 
 def _predictor_renyi_eff_cov(data, vocab_size, extra_args):
-    from dahuffman import HuffmanCodec
-    from statistics import covariance
     import collections
+    from statistics import covariance
+
     import numpy as np
+    from dahuffman import HuffmanCodec
 
     words_freqs, probs = get_prob_distribution(data)
     total_subwords = sum(words_freqs)

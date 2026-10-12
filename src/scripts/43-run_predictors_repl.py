@@ -3,9 +3,11 @@
 import collections
 import json
 import sys
+
 sys.path.append("src")
-from figures.predictors_bleu import get_predictor
 from scipy.stats import pearsonr
+
+from figures.predictors_bleu import get_predictor
 
 data_metrics_1 = json.load(
     open("computed/metric_scores_repl.json", "r"),
@@ -17,7 +19,7 @@ data_metrics_2 = json.load(
 data_metrics = {
     lang: {
         signature: {
-            **data_metrics_1[lang][signature],
+            **metric_scores_lang[signature],
             **data_metrics_2[lang][signature],
         }
         for signature in metric_scores_lang.keys()

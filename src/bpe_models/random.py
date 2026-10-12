@@ -1,6 +1,9 @@
-from .base import BaseBPE
-import numpy as np
 import random
+
+import numpy as np
+
+from .base import BaseBPE
+
 
 class RandomBPE(BaseBPE):
     def __init__(self, seed, randomness_dist, randomness_temp, **kwargs):

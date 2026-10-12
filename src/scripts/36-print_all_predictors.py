@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import tabulate
-import json
-import collections
 import argparse
+import collections
+import json
+
+import tabulate
 
 args = argparse.ArgumentParser()
 args.add_argument("--data", default="computed/all_predictors_grid.jsonl")

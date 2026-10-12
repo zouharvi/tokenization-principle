@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
+
 import fig_utils
 import matplotlib.pyplot as plt
-import argparse
 import numpy as np
-import collections
-import re
 
 args = argparse.ArgumentParser()
 args.add_argument("-f", type=int, default=0)

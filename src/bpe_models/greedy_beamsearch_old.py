@@ -1,14 +1,15 @@
-from .base import BaseBPE
 import copy
-import re
-import tqdm
 import itertools
+import re
 import sys
-import math
+
+import tqdm
+
+from .base import BaseBPE
 
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
-class Beam():
+class Beam:
     def __init__(self, merge_operations, corpus_freqs):
         self.merge_operations = copy.deepcopy(merge_operations)
         self.corpus_freqs = copy.deepcopy(corpus_freqs)

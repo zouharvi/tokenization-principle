@@ -1,0 +1,21 @@
+[project]
+name = "tokenization-principle"
+version = "0.0.0"
+description = "Tokenization and the Noiseless Channel"
+readme = "README.md"
+authors = [{ name = "Vilém Zouhar", email = "vilem.zouhar@gmail.com" }]
+dependencies = [
+    "multiprocess",
+    "tqdm",
+    "matplotlib",
+    "numpy",
+    "sacremoses",
+    "tokenizers",
+]
+
+[project.urls]
+Repository = "https://github.com/zouharvi/tokenization-principle"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

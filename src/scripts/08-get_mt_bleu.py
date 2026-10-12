@@ -2,9 +2,9 @@
 
 import argparse
 import collections
+import glob
 import json
 import re
-import glob
 
 import numpy as np
 
@@ -19,14 +19,14 @@ re_best_bleu = re.compile(r" best_bleu (\d+\.?\d*)")
 re_bleu = re.compile(r" bleu (\d+\.?\d*)")
 
 with open(args.input_logfile, "r") as f:
-    data_logfile = [json.loads(x) for x in f.readlines()]
+    data_logfile = [json.loads(x) for x in f]
 
 data_raw = collections.defaultdict(list)
 for fname in glob.glob(args.glob):
     with open(fname, "r") as f:
         data_local = [
             x.rstrip()
-            for x in f.readlines()
+            for x in f
             if "best_bleu" in x
         ]
     if len(data_local) == 0:

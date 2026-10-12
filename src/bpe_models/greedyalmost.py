@@ -1,6 +1,7 @@
 
 from .base import BaseBPE
 
+
 class GreedyAlmostBPE(BaseBPE):
     def __init__(self, greedy_n, **kwargs):
         self.n = greedy_n

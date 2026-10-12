@@ -2,6 +2,7 @@
 
 import argparse
 import json
+
 from lzw import BaseLZW
 
 args = argparse.ArgumentParser()
@@ -35,8 +36,7 @@ data = model.encode(data)
 
 # save to file
 with open(args.output, "w") as f:
-    for line in data:
-        f.write(line + "\n")
+    f.writelines(line + "\n" for line in data)
 
 total_subwords = sum(line.count(" ") + 1 for line in data)
 print("Outputting", total_subwords, "total subwords")

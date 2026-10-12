@@ -1,16 +1,17 @@
-from .base import BaseBPE
-from .base import BaseBPE
-from queue import PriorityQueue
-import re
-import tqdm
 import operator
+import re
 from dataclasses import dataclass, field
+from queue import PriorityQueue
 from typing import Any
+
+import tqdm
+
+from .base import BaseBPE
 
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
 @dataclass(order=True)
-class Hypothesis():
+class Hypothesis:
     score: Any=field(compare=True)
 
     def __init__(self, merge_operations_parent, corpus_freqs_parent):
@@ -46,7 +47,6 @@ class Hypothesis():
                 # we don't need to clone corpus_freqs
                 # TODO: ??
                 self.corpus_freqs = self.corpus_freqs_parent
-                pass
                 # this should occur only once
                 # self.corpus_freqs = copy.deepcopy(self.corpus_freqs_parent)
             else:

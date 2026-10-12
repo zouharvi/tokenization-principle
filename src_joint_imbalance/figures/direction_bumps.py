@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-import matplotlib.pyplot as plt
-import json
-import numpy as np
 import argparse
-import fig_utils
-import glob
 import collections
+import glob
+
+import fig_utils
+import matplotlib.pyplot as plt
+import numpy as np
 import scipy.stats as st
+
 
 # returns confidence interval of mean
 def confidence_interval(data, conf=0.95):
@@ -28,7 +29,7 @@ for fname in glob.glob(args.logfiles):
     balance = balance.replace("k", "000").split("-")
     balance_ratio = float(balance[0]) / (float(balance[0]) + float(balance[1]))
 
-    data = [l for l in open(fname, "r").readlines() if "best_bleu" in l]
+    data = [l for l in open(fname, "r") if "best_bleu" in l]
     if not data:
         continue
     bleu = [float(l.split("best_bleu ")[-1]) for l in data][-1]

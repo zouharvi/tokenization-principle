@@ -2,11 +2,11 @@
 
 import argparse
 import json
-import matplotlib
-import numpy as np
-import matplotlib.pyplot as plt
-import os
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 sys.path.append("src")
 import figures.fig_utils
 
@@ -15,7 +15,7 @@ args.add_argument("-i", "--input", default="computed/renyi_vals.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
-    data = [json.loads(x) for x in f.readlines()]
+    data = [json.loads(x) for x in f]
 
 predictor_renyi = [line for line in data if line["args"]["predictor"] == "renyi"]
 predictor_renyi_eff = [line for line in data if line["args"]["predictor"] == "renyi_eff"]

@@ -3,12 +3,13 @@
 import argparse
 import collections
 import json
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 sys.path.append("src")
-import figures.fig_utils
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 
@@ -18,7 +19,7 @@ args.add_argument("-b", "--bits", action="store_true")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
-    data_logfile = [json.loads(x) for x in f.readlines()]
+    data_logfile = [json.loads(x) for x in f]
 
 SIZES = set()
 
@@ -38,7 +39,7 @@ def load_mt_bleu(temperature, vocab_size):
         print("skipping", filename)
         return None
     with open(filename, "r") as f:
-        data = [line.split("best_bleu ")[1] for line in f.readlines() if "best_bleu" in line]
+        data = [line.split("best_bleu ")[1] for line in f if "best_bleu" in line]
     if data and len(data) >= 8:
         bleu = float(data[-1])
         return bleu

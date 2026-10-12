@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import argparse
+
 import fig_utils
 import matplotlib.pyplot as plt
-import argparse
 import numpy as np
 from scipy.interpolate import make_interp_spline
-
 
 # for f in "0" "1" "2" "3"; do DISPLAY="" ./src/figures/distribution_example.py -f $f; done
 

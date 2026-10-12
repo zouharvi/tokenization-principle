@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
+import argparse
 import collections
+import json
+
 import fig_utils
 import matplotlib.pyplot as plt
-import argparse
-import json
 
 args = argparse.ArgumentParser()
 args.add_argument("-l", "--logfile", default="computed/apply_bpe_all.jsonl")
@@ -13,7 +14,7 @@ args = args.parse_args()
 
 
 with open(args.logfile, "r") as f:
-    data = [json.loads(x) for x in f.readlines()]
+    data = [json.loads(x) for x in f]
 
 data_train = [x for x in data if "train" in x["input"]]
 data_dev = [x for x in data if "dev" in x["input"]]

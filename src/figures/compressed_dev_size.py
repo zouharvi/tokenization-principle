@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import collections
 
-import numpy as np
-import fig_utils
-import matplotlib.pyplot as plt
 import argparse
 import json
+
+import fig_utils
+import matplotlib.pyplot as plt
 
 # scp euler:/cluster/work/sachan/vilem/random-bpe/computed/paten.jsonl computed/
 
@@ -15,7 +14,7 @@ args.add_argument("-l", "--logfile", default="computed/paten.jsonl")
 args = args.parse_args()
 
 with open(args.logfile, "r") as f:
-    data = [json.loads(x) for x in f.readlines()]
+    data = [json.loads(x) for x in f]
 
 data_en = [x for x in data if "dev.en" in x["output"]]
 data_de = [x for x in data if "dev.de" in x["output"]]

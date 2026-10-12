@@ -3,6 +3,7 @@
 import argparse
 import collections
 import json
+
 import numpy as np
 
 args = argparse.ArgumentParser()
@@ -10,7 +11,7 @@ args.add_argument("-i", "--input", default="computed/apply_bpe_beam.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
-    data_logfile = [json.loads(x) for x in f.readlines()]
+    data_logfile = [json.loads(x) for x in f]
 
 # model + method defines
 

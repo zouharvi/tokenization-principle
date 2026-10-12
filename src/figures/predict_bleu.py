@@ -4,14 +4,16 @@ import json
 import os
 import pickle
 import sys
+
 import multiprocess
+
 sys.path.append("src")
-import figures.fig_utils
 import argparse
 import collections
 import glob
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 import scipy
 from predictors_bleu import get_predictor
 from sklearn.model_selection import train_test_split
@@ -60,7 +62,7 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
     with open(filename, "r") as f:
         data = [
             line.split("best_bleu ")[1]
-            for line in f.readlines()
+            for line in f
             if "best_bleu" in line
         ]
     if data:
@@ -281,11 +283,11 @@ if args.no_graphics:
     exit()
 
 if corr_pearson_pval < 0.001:
-    corr_pearson_pval = f"$<$0.001"
+    corr_pearson_pval = "$<$0.001"
 else:
     corr_pearson_pval = f"={corr_pearson_pval:.3f}"
 if corr_spearman_pval < 0.001:
-    corr_spearman_pval = f"$<$0.001"
+    corr_spearman_pval = "$<$0.001"
 else:
     corr_spearman_pval = f"={corr_spearman_pval:.3f}"
 

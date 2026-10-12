@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import random
-import numpy as np
-from dahuffman import HuffmanCodec
 import string
 
+import numpy as np
+from dahuffman import HuffmanCodec
 
-data = np.random.random((50))
+data = np.random.random(50)
 data.sort()
 data = data[::-1]
 data /= data.sum()

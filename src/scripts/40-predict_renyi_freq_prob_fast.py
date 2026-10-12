@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
 import json
-import os
 import pickle
 import sys
+
 import multiprocess
 import tqdm
+
 sys.path.append("src")
 import argparse
-import collections
-import numpy as np
-import scipy
-from scipy.stats import pearsonr, spearmanr
 from itertools import product
+
+import numpy as np
+from scipy.stats import pearsonr, spearmanr
+
 from figures.predictors_bleu import get_prob_distribution
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/

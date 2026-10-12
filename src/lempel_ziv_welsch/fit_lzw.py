@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from lzw import BaseLZW
 import argparse
+
+from lzw import BaseLZW
 
 args = argparse.ArgumentParser()
 args.add_argument(

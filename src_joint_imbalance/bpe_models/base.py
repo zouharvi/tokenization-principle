@@ -1,9 +1,10 @@
 import itertools
 import re
-from collections import Counter, defaultdict
 import sys
+from collections import Counter, defaultdict
 
 import tqdm
+
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
 
@@ -259,9 +260,8 @@ class BaseBPE:
 
     def save(self, path):
         with open(path, "w") as f:
-            for merge_operation in self.merge_operations:
-                f.write(merge_operation + "\n")
+            f.writelines(merge_operation + "\n" for merge_operation in self.merge_operations)
 
     def load(self, path):
         with open(path, "r") as f:
-            self.merge_operations = [x.rstrip("\n") for x in f.readlines()]
+            self.merge_operations = [x.rstrip("\n") for x in f]

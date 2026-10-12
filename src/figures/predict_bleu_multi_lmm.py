@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 
-import json
 import os
 import pickle
 import sys
+
 import multiprocess
+
 sys.path.append("src")
 import argparse
 import collections
 import glob
+
 import numpy as np
-import statsmodels
-import statsmodels.formula.api as smf
 import pandas as pd
-from scipy.stats import pearsonr, spearmanr
+import statsmodels.formula.api as smf
 from predictors_bleu import get_predictor
+from scipy.stats import pearsonr, spearmanr
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/predict_bleu_multi_lmm.py --predictor seq_len --write-cache
@@ -52,7 +53,7 @@ def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""
     with open(filename, "r") as f:
         data = [
             line.split("best_bleu ")[1]
-            for line in f.readlines()
+            for line in f
             if "best_bleu" in line
         ]
     if data:

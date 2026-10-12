@@ -13,6 +13,17 @@ Why are some tokenizations better than others?
 - watch a quick [3-minute video](https://www.youtube.com/watch?v=rCBDcKD8UEg) of the paper,
 - watch a [13-minute video](https://www.youtube.com/watch?v=yeEZpf4BlDA) of the paper and two others,
 
+
+## Running the code
+
+The code in this repository is used to replicate the paper.
+For evaluation tokenizations, see the [tokenization-scorer](https://github.com/zouharvi/tokenization-scorer).
+
+First, install the local dependencies:
+```bash
+pip install -e .
+```
+
 Cite as:
 ```
 @inproceedings{tokenization_noiseless, 

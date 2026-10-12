@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+
 from utils import get_model
 
 args = argparse.ArgumentParser()

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
-from dahuffman import HuffmanCodec
-from statistics import covariance
 import collections
+from statistics import covariance
+
 import numpy as np
+from dahuffman import HuffmanCodec
 
 # load & split data
 data_sent = [
     x.rstrip("\n").split()
-    for x in open("data/dev.bpe.en", "r").readlines()
+    for x in open("data/dev.bpe.en", "r")
 ]
 data_sent_train = data_sent[10000:]
 data_sent_dev = data_sent[:10000]

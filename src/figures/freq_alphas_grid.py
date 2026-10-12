@@ -2,21 +2,21 @@
 
 import argparse
 import json
+import sys
+
 import matplotlib
-import numpy as np
 import matplotlib.patches as mplp
 import matplotlib.pyplot as plt
-import os
-import sys
+import numpy as np
+
 sys.path.append("src")
-import figures.fig_utils
 
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="computed/freq_prob_alphas_grid_sub.jsonl")
 args = args.parse_args()
 
 with open(args.input, "r") as f:
-    data = [json.loads(x) for x in f.readlines()]
+    data = [json.loads(x) for x in f]
 
 DIM = 1000
 image = np.full((DIM, DIM), np.nan)
@@ -29,7 +29,7 @@ for line in data:
     if np.isnan(line["pearson"]):
         pass
     else:
-        image[s_a][e_a] = ((line["pearson"]))
+        image[s_a][e_a] = (line["pearson"])
 
 print(len(data), len(data[::500]))
 print("max pearson", max(data[::500], key=lambda line: abs(line["pearson"])))

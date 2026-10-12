@@ -3,6 +3,7 @@
 import argparse
 import json
 import tempfile
+
 import tokenizers
 
 args = argparse.ArgumentParser()

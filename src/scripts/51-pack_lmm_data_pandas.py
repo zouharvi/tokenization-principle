@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import pickle
 import glob
+import pickle
+
 import pandas as pd
 
 data_all = []

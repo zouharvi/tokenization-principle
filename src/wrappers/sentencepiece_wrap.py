@@ -2,6 +2,7 @@
 
 import argparse
 import json
+
 import sentencepiece as spm
 
 args = argparse.ArgumentParser()
@@ -63,8 +64,7 @@ for fname_out, fname_in, process_number_of_lines in zip(
     total_words = sum(line.count(" ") + 1 for line in data)
     data = [" ".join(line) for line in sp.encode(data, out_type="str")]
     with open(fname_out, "w") as f:
-        for line in data:
-            f.write(line + "\n")
+        f.writelines(line + "\n" for line in data)
         total_subwords = sum(line.count(" ") + 1 for line in data)
         total_unks = sum((" " + line).count("<unk>") for line in data)
 

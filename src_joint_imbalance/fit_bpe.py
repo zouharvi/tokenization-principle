@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+
 from bpe_models import get_model
 
 args = argparse.ArgumentParser()

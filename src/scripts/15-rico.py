@@ -1,7 +1,6 @@
-import re
-import collections
-import tqdm
 import argparse
+import collections
+import re
 
 
 def get_stats(vocab):

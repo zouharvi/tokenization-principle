@@ -1,4 +1,5 @@
-from .base import BaseBPE, COLLAPSE_WHITESPACE, Counter
+from .base import COLLAPSE_WHITESPACE, BaseBPE, Counter
+
 
 class GreedyCaptrickBPE(BaseBPE):
     def choose_pair_to_merge(self, pairs):

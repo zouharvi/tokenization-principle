@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import fig_utils
-import matplotlib.pyplot as plt
 import argparse
+
+import matplotlib.pyplot as plt
 import numpy as np
 
 args = argparse.ArgumentParser()

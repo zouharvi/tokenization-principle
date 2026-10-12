@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 import collections
 
-import numpy as np
-import fig_utils
 import matplotlib.pyplot as plt
-import argparse
+import numpy as np
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -34,7 +33,7 @@ for data_bpe_names in [args.data_bpe1, args.data_bpe2, args.data_bpe3]:
     data_bpe = list(collections.Counter([
             word
             for file in data_bpe_names
-            for line in open(file, "r").readlines()
+            for line in open(file, "r")
             for word in line.rstrip("\n").split(" ")
         ]).most_common())
 
