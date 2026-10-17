@@ -36,12 +36,18 @@ ref_files = {
     },
 }
 
-for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_out.en"))):
-    fs = f.split("/")
-    lang = fs[1]
+dev_files = list(glob.glob("data/prepared/*/*/dev_out.en")) + list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_out.en"))
+
+def parse_lang_sig(path):
+    fs = path.split("/")
+    if path.startswith("data/prepared"):
+        return fs[2], fs[3]
+    return fs[1], fs[-2]
+
+for f in tqdm.tqdm(dev_files):
+    lang, signature = parse_lang_sig(f)
     if lang not in {"cs-en", "de-en"}:
         continue
-    signature = fs[-2]
     print(lang, signature)
     with open(f, "r") as file_in:
         lines_f = [l.rstrip() for l in file_in]
@@ -59,10 +65,10 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     else:
         lines_src_all[lang] &= set(text_src)
 
-for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_out.en"))):
-    fs = f.split("/")
-    lang = fs[1]
-    signature = fs[-2]
+for f in tqdm.tqdm(dev_files):
+    lang, signature = parse_lang_sig(f)
+    if lang not in {"cs-en", "de-en"}:
+        continue
     signature_small = "_".join(signature.split("_")[1:])
 
     with open(f, "r") as file_in:

@@ -33,7 +33,7 @@ for line in data_logfile:
 
 data_plotting = collections.defaultdict(list)
 
-def load_mt_bleu(temperature, vocab_size):
+def load_mt_perf(temperature, vocab_size):
     filename = f"logs/train_mt_{temperature}_{vocab_size}.log"
     if not os.path.isfile(filename):
         print("skipping", filename)
@@ -46,7 +46,7 @@ def load_mt_bleu(temperature, vocab_size):
         ]
     if data and len(data) >= 8:
         perf = float(data[-1])
-        return bleu
+        return perf
     else:
         print("skipping", filename)
         return None
@@ -62,11 +62,11 @@ for vocab_size_name, data_local in data.items():
             for x in data_size
         )
         print(vocab_size_name, temperature)
-        perf = load_mt_bleu(temperature, vocab_size_name)
-        if bleu is None:
+        perf = load_mt_perf(temperature, vocab_size_name)
+        if perf is None:
             continue
 
-        data_plotting[(vocab_size_name, data_size[0]["vocab_size"])].append((total_subwords, bleu))
+        data_plotting[(vocab_size_name, data_size[0]["vocab_size"])].append((total_subwords, perf))
 
 
 for signature_i, ((vocab_size_name, vocab_size), values) in enumerate(data_plotting.items()):
