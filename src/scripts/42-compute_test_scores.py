@@ -58,7 +58,7 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     if lines_src_all[lang] is None:
         lines_src_all[lang] = set(text_src)
     else:
-        lines_src_all[lang] &= set(text_src)
+        lines_src_all[lang] &= set(text_src) # type: ignore
 
 for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_out.en"))):
     fs = f.split("/")

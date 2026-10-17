@@ -17,22 +17,10 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
             mkdir -p ${TEXT_DIR};
         
             # take only 1M for train and 50k for eval
-            head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG1}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG1}";
-            head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG2}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/train.${LANG2}";
-            head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG1}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG1}";
-            head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG2}" > "data_bin/CCrawl.${LANG1}-${LANG2}/${BPE_NAME}/dev.${LANG2}";
-
-            sbatch --time=0-1 --ntasks=40 --mem-per-cpu=1G \
-                --job-name="preprocess_${BPE_NAME}.${LANG1}-${LANG2}" \
-                --output="logs/preprocess_${BPE_NAME}.${LANG1}-${LANG2}" \
-                --wrap="fairseq-preprocess --source-lang $LANG1 --target-lang $LANG2 \
-                    --trainpref $TEXT_DIR/train --validpref $TEXT_DIR/dev  \
-                    --destdir $TEXT_DIR \
-                    --bpe fastbpe \
-                    --joined-dictionary \
-                    --tokenizer moses \
-                    --workers 40 \
-                ";
+            head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG1}" > "${TEXT_DIR}/train.${LANG1}";
+            head -n 1000000 "data_bpe/CCrawl.de-en/train.tok.${BPE_NAME}.${LANG2}" > "${TEXT_DIR}/train.${LANG2}";
+            head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG1}" > "${TEXT_DIR}/dev.${LANG1}";
+            head -n 50000 "data_bpe/CCrawl.de-en/dev.tok.${BPE_NAME}.${LANG2}" > "${TEXT_DIR}/dev.${LANG2}";
         done;
 
     done;

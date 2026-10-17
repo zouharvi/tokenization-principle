@@ -8,32 +8,20 @@ function launch_mt_infer() {
 
     echo "Launching ${1} ${2} ${3} ${4}" 
     MODEL_PATH="data_bin_ckpt_repl/${1}/model_bpe_random/${2}/checkpoints/checkpoint_best.pt"
-    TEXT_PATH="data_bin_repl/${1}/model_bpe_random/${4}/"
     DATAOUT_PATH="data_bin_ckpt_repl/${1}/model_bpe_random/${2}/dev_out.en"
     
-    # we use fairseq-interactive because fairseq-generate had some issues
-    # it shouldn't be that much slower because we're using buffe-size 100 (batching)
-    # so the only part where we're slower is some piping and the binarization,
-    # which is fairly lightweight
     awk 'length >= 1 && length <= 100' "${3}" > "${3}.small"
-    sbatch --time=00-01 --ntasks=8 --mem-per-cpu=6G --gpus=1 \
+    sbatch --time=00-01 --ntasks=4 --mem-per-cpu=4G --gpus=1 \
     --job-name="infer_mt_${2}" \
     --output="logs_repl/infer_mt_${2}.log" \
-    --wrap="CUDA_VISIBLE_DEVICES=0 
-    fairseq-interactive \
-        ${TEXT_PATH} \
-        --path ${MODEL_PATH} \
-        --beam 5 \
-        --remove-bpe \
-        --max-tokens 4096 \
-        --tokenizer space \
-        --seed 0 \
-        --buffer-size 100 \
+    --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/infer_mt_pytorch.py \
+        --model-path ${MODEL_PATH} \
         --input ${3}.small \
-        > ${DATAOUT_PATH} \
+        --output ${DATAOUT_PATH} \
+        --format fairseq \
+        --batch-size 256 \
     "
 }
-# --gres=gpumem:12g \
 
 temperature_name() {
     T=$(sed 's/^-/m/g' <<<"$1")
@@ -47,15 +35,12 @@ vocab_size_name() {
     echo $T
 }
 
-# 
 for SEED in "0" "1" "2"; do
 for LANGS in "cs-en" "de-en"; do
     IFS='-' read -r -a LANGS <<< "${LANGS}";
     LANG1="${LANGS[0]}"
     LANG2="${LANGS[1]}"
-# smaller vocab range
 for VOCAB_SIZE in "4000" "8000" "16000" "32000"; do
-# smaller temperature range
 for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
     TEMPERATURE_NAME=$(temperature_name $TEMPERATURE)
     VOCAB_SIZE_NAME=$(vocab_size_name $VOCAB_SIZE)
@@ -68,6 +53,3 @@ done;
 done;
 done;
 done;
-
-# tail -n 1 logs_repl/infer_mt_s*
-# awk 'length >= 1 && length <= 100' "data/model_bpe_random/cs-en/005_4k/dev.cs" | wc -l
