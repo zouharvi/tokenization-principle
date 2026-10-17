@@ -14,16 +14,16 @@ from itertools import product
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 
-from figures.predictors_bleu import get_prob_distribution
+from figures.performance_predictors import get_prob_distribution
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/predict_bleu.py --predictor entropy --write-cache
-# ./src/figures/predict_bleu.py --predictor seq_len
-# ./src/figures/predict_bleu.py --predictor renyi_eff --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --power 1 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
+# ./src/figures/performance_predict.py --predictor entropy --write-cache
+# ./src/figures/performance_predict.py --predictor seq_len
+# ./src/figures/performance_predict.py --predictor renyi_eff --power 3.0 --load-cache
+# ./src/figures/performance_predict.py --predictor renyi --power 3.0 --load-cache
+# ./src/figures/performance_predict.py --predictor freq --freq-alpha-start 0.80 --freq-alpha-end 0.90 --power 1 --load-cache
+# ./src/figures/performance_predict.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
+# ./src/figures/performance_predict.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
 
 
 args = argparse.ArgumentParser()

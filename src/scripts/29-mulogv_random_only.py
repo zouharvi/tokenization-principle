@@ -39,9 +39,13 @@ def load_mt_bleu(temperature, vocab_size):
         print("skipping", filename)
         return None
     with open(filename, "r") as f:
-        data = [line.split("best_bleu ")[1] for line in f if "best_bleu" in line]
+        data = [
+            line.split("best_chrf ")[1]
+            for line in f
+            if "best_chrf" in line
+        ]
     if data and len(data) >= 8:
-        bleu = float(data[-1])
+        perf = float(data[-1])
         return bleu
     else:
         print("skipping", filename)
@@ -58,7 +62,7 @@ for vocab_size_name, data_local in data.items():
             for x in data_size
         )
         print(vocab_size_name, temperature)
-        bleu = load_mt_bleu(temperature, vocab_size_name)
+        perf = load_mt_bleu(temperature, vocab_size_name)
         if bleu is None:
             continue
 

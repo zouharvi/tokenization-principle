@@ -12,20 +12,18 @@ import collections
 import glob
 
 import numpy as np
-from predictors_bleu import get_predictor
+import pandas as pd
+import statsmodels.formula.api as smf
+from figures.performance_predictors import get_predictor
+from scipy.stats import pearsonr, spearmanr
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/predict_bleu_multi_lmm.py --predictor seq_len --write-cache
-# ./src/figures/predict_bleu_multi_lmm.py --predictor bits --load-cache
-# ./src/figures/predict_bleu_multi_lmm.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/predict_bleu_multi_lmm.py --predictor renyi_eff --power 3.0 --load-cache
-# ./src/figures/predict_bleu_multi_lmm.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
+# ./src/figures/performance_predict_multi_lmm.py --predictor seq_len --write-cache
+# ./src/figures/performance_predict_multi_lmm.py --predictor bits --load-cache
+# ./src/figures/performance_predict_multi_lmm.py --predictor renyi --power 3.0 --load-cache
+# ./src/figures/performance_predict_multi_lmm.py --predictor renyi_eff --power 3.0 --load-cache
+# ./src/figures/performance_predict_multi_lmm.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
 
-
-# for POWER in $(seq 0.0 0.1 10.00); do
-#     echo $POWER
-#     ./src/figures/predict_bleu_multi_lmm_data.py --predictor renyi_eff --freq-alpha-start 0.0 --freq-alpha-end 1.0 --power $POWER --write-cache --write-cache-name _$POWER
-# done;
 
 args = argparse.ArgumentParser()
 args.add_argument("-d", "--data", default="data/*/*/dev.en")
@@ -54,12 +52,12 @@ def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""
         return None
     with open(filename, "r") as f:
         data = [
-            line.split("best_bleu ")[1]
+            line.split("best_chrf ")[1]
             for line in f
-            if "best_bleu" in line
+            if "best_chrf" in line
         ]
     if data:
-        bleu = float(data[-1])
+        perf = float(data[-1])
         return bleu
     else:
         return None
@@ -94,7 +92,7 @@ def process_logfile(fname):
 
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    bleu = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
+    perf = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
     if not bleu:
         return None
     model_name = model_name.removeprefix("tokenizer_")
@@ -137,6 +135,52 @@ max_xs = -np.inf
 
 # sort by model name
 data = sorted(data.items(), key=lambda x: x[0])
-if args.write_cache:
-    with open(f"computed/bleu_corr_cache_multi_processed{args.write_cache_name}.pkl", "wb") as f:
-        pickle.dump(data, f)
+
+for signature_i, (model_name, values) in enumerate(data):
+    values = list(values.values())
+    # sort by compression
+    values.sort(key=lambda x: x[0])
+
+    # remove outliers
+    values = [x for x in values if x[1] >= 30]
+    while True:
+        values_new = [values[0]] + [
+            values[i] for i in range(1, len(values))
+            if values[i][1] >= values[i - 1][1] - 2
+        ]
+        if values_new == values:
+            break
+        else:
+            values = values_new
+
+
+    xs = [x[0] for x in values]
+    ys = [x[1] for x in values]
+
+    # for further processing
+    data_all += list(zip(xs, ys))
+    data_out += [(model_name, x, y) for x, y in zip(xs, ys)]
+
+    min_xs = min(min_xs, min(xs))
+    max_xs = max(max_xs, max(xs))
+
+df = pd.DataFrame(data_out, columns =["model", "pred", "bleu"])
+md = smf.mixedlm("bleu ~ pred + model", df, groups=df["model"])
+mdf = md.fit()
+print(mdf.summary())
+print("pred (pval)", mdf.pvalues["pred"])
+# print(mdf.conf_int())
+print(mdf.normalized_cov_params)
+
+# https://www.statsmodels.org/stable/generated/statsmodels.regression.mixed_linear_model.MixedLMResults.html
+y_pred = mdf.predict()
+print("Pearson  (corr, p)", *pearsonr(y_pred, df["bleu"]))
+print("Spearman (corr, p)", *spearmanr(y_pred, df["bleu"]))
+
+
+corr_pearson_mixed_rho, corr_pearson_mixed_pval = spearmanr(y_pred, df["bleu"])
+corr_pearson_all_rho, corr_pearson_all_pval = spearmanr(df["pred"], df["bleu"])
+TEXT_LATEX=\
+    f"{corr_pearson_mixed_rho:.1%}" + r" {\small(=" + f"{corr_pearson_mixed_pval:.3f}" + r")} & " \
+    f"{corr_pearson_all_rho:.1%}" + r" {\small(=" + f"{corr_pearson_all_pval:.3f}" + r")}"
+print("LATEX!", TEXT_LATEX.replace("%", r"\%").replace("=0.000", "<0.001"))

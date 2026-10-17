@@ -10,7 +10,7 @@ for SPLIT in "train" "dev" "test"; do
     LANGS=$(prefix_to_lang $PREFIX)
     IFS='-' read -r -a LANGS <<< "${LANGS}";
     for LANG in "${LANGS[0]}" "${LANGS[1]}"; do
-        sbatch --time=0-4 --ntasks=20 --mem-per-cpu=1G \
+        sbatch --time=0-4 --ntasks=5 --mem-per-cpu=10G \
             --output="logs/tokenize_${PREFIX}.${SPLIT}.${LANG}.log" \
             --job-name="tokenize_${PREFIX}.${SPLIT}.${LANG}" \
             --wrap="cat \"data/${PREFIX}/${SPLIT}.${LANG}\" \
@@ -19,4 +19,16 @@ for SPLIT in "train" "dev" "test"; do
             ";
     done;
 done;
+done;
+
+PREFIX="CCrawl.de-en"
+SPLIT="train"
+LANG="en"
+sbatch --time=0-4 --ntasks=5 --mem-per-cpu=10G \
+--output="logs/tokenize_${PREFIX}.${SPLIT}.${LANG}.log" \
+--job-name="tokenize_${PREFIX}.${SPLIT}.${LANG}" \
+--wrap="cat \"data/${PREFIX}/${SPLIT}.${LANG}\" \
+    | sacremoses -j 20 -l ${LANG} tokenize \
+    > \"data/${PREFIX}/${SPLIT}.tok.${LANG}\"\
+";
 done;

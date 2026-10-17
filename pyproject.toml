@@ -11,6 +11,7 @@ dependencies = [
     "numpy",
     "sacremoses",
     "tokenizers",
+    "sacrebleu",
 ]
 
 [project.urls]

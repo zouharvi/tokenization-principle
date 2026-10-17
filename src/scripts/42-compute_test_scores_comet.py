@@ -44,10 +44,15 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     signature = fs[-2]
     print(lang, signature)
     with open(f, "r") as file_in:
+        lines_f = [l.rstrip() for l in file_in]
+    if any(l.startswith("S\t") or l.startswith("S-") for l in lines_f):
         text_src = [
-            l.rstrip().split("\t")[-1]
-            for l in file_in if l.startswith("S")
+            l.split("\t")[-1]
+            for l in lines_f if l.startswith("S")
         ]
+    else:
+        with open(ref_files[lang]["src"], "r") as file_src:
+            text_src = [l.rstrip() for l in file_src if 1 <= len(l.rstrip()) <= 100][:len(lines_f)]
 
     if lines_src_all[lang] is None:
         lines_src_all[lang] = set(text_src)
@@ -61,15 +66,20 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     signature_small = "_".join(signature.split("_")[1:])
 
     with open(f, "r") as file_in:
-        lines_f = file_in.readlines()
-    text_src = [
-        l.rstrip().split("\t")[-1]
-        for l in lines_f if l.startswith("S")
-    ]
-    text_hyp = [
-        l.rstrip().split("\t")[-1]
-        for l in lines_f if l.startswith("H")
-    ]
+        lines_f = [l.rstrip() for l in file_in]
+    if any(l.startswith("H\t") or l.startswith("H-") for l in lines_f):
+        text_src = [
+            l.split("\t")[-1]
+            for l in lines_f if l.startswith("S")
+        ]
+        text_hyp = [
+            l.split("\t")[-1]
+            for l in lines_f if l.startswith("H")
+        ]
+    else:
+        text_hyp = lines_f
+        with open(ref_files[lang]["src"], "r") as file_src:
+            text_src = [l.rstrip() for l in file_src if 1 <= len(l.rstrip()) <= 100][:len(text_hyp)]
 
     with open(ref_files[lang]["src"], "r") as file_src:
         gold_src = [l.rstrip() for l in file_src]

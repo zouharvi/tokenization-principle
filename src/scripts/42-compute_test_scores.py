@@ -18,8 +18,6 @@ import numpy as np
 import tqdm
 
 metric_chrf = evaluate.load("chrf")
-metric_bleu = evaluate.load("bleu")
-metric_bleurt = evaluate.load("bleurt", module_type="metric")
 
 metric_scores = {
     "cs-en": collections.defaultdict(list),
@@ -50,10 +48,15 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     signature = fs[-2]
     print(lang, signature)
     with open(f, "r") as file_in:
+        lines_f = [l.rstrip() for l in file_in]
+    if any(l.startswith("S\t") or l.startswith("S-") for l in lines_f):
         text_src = [
-            l.rstrip().split("\t")[-1]
-            for l in file_in if l.startswith("S")
+            l.split("\t")[-1]
+            for l in lines_f if l.startswith("S")
         ]
+    else:
+        with open(ref_files[lang]["src"], "r") as file_src:
+            text_src = [l.rstrip() for l in file_src if 1 <= len(l.rstrip()) <= 100][:len(lines_f)]
 
     if lines_src_all[lang] is None:
         lines_src_all[lang] = set(text_src)
@@ -100,24 +103,11 @@ for f in tqdm.tqdm(list(glob.glob("data_bin_ckpt_repl/*/model_bpe_random/*/dev_o
     )
     val_chrf = res_chrf["score"] if res_chrf else 0.0
     print("chrf", val_chrf)
-    res_bleu = metric_bleu.compute(
-        predictions=[h for s, h in text if s in text_gold],
-        references=[[text_gold[s]] for s, h in text if s in text_gold]
-    )
-    val_bleu = res_bleu["bleu"] if res_bleu else 0.0
-    print("bleu", val_bleu)
-    res_bleurt = metric_bleurt.compute(
-        predictions=[h for s, h in text if s in text_gold],
-        references=[text_gold[s] for s, h in text if s in text_gold]
-    )
-    val_bleurt = np.average(res_bleurt["scores"]) if res_bleurt else 0.0
-    print("bleurt", val_bleurt)
-
     metric_scores[lang][signature_small].append({
-        "bleu": val_bleu, "chrf": val_chrf, "bleurt": val_bleurt
+        "chrf": val_chrf
     })
 
-metrics = ["bleu", "chrf", "bleurt"]
+metrics = ["chrf"]
 
 metric_scores = {
     lang: {

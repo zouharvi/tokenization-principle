@@ -15,12 +15,12 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-from predictors_bleu import get_predictor
+from figures.performance_predictors import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/predict_bleu_multi.py --predictor bits --write-cache
-# ./src/figures/predict_bleu_multi.py --predictor seq_len --write-cache
-# ./src/figures/predict_bleu_multi.py --predictor renyi_eff --power 3.0 --load-cache
+# ./src/figures/performance_predict_multi.py --predictor bits --write-cache
+# ./src/figures/performance_predict_multi.py --predictor seq_len --write-cache
+# ./src/figures/performance_predict_multi.py --predictor renyi_eff --power 3.0 --load-cache
 
 
 args = argparse.ArgumentParser()
@@ -53,12 +53,12 @@ def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""
         return None
     with open(filename, "r") as f:
         data = [
-            line.split("best_bleu ")[1]
+            line.split("best_chrf ")[1]
             for line in f
-            if "best_bleu" in line
+            if "best_chrf" in line
         ]
     if data:
-        bleu = float(data[-1])
+        perf = float(data[-1])
         return bleu
     else:
         # print("skipped", filename)
@@ -94,7 +94,7 @@ def process_logfile(fname):
 
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    bleu = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
+    perf = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
     if not bleu:
         return None
     model_name = model_name.removeprefix("tokenizer_")

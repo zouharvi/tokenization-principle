@@ -7,7 +7,7 @@ import sys
 sys.path.append("src")
 from scipy.stats import pearsonr
 
-from figures.predictors_bleu import get_predictor
+from figures.performance_predictors import get_predictor
 
 with open("computed/metric_scores_repl.json", "r") as f:
     data_metrics_1 = json.load(f)

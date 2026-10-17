@@ -15,18 +15,18 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-from predictors_bleu import get_predictor
+from figures.performance_predictors import get_predictor
 from sklearn.model_selection import train_test_split
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/predict_bleu.py --predictor entropy --load-cache
-# ./src/figures/predict_bleu.py --predictor entropy_eff --load-cache
-# ./src/figures/predict_bleu.py --predictor seq_len --load-cache
-# ./src/figures/predict_bleu.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/predict_bleu.py --predictor renyi_eff --power 2.5 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
-# ./src/figures/predict_bleu.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
+# ./src/figures/performance_predict.py --predictor entropy --load-cache
+# ./src/figures/performance_predict.py --predictor entropy_eff --load-cache
+# ./src/figures/performance_predict.py --predictor seq_len --load-cache
+# ./src/figures/performance_predict.py --predictor renyi --power 3.0 --load-cache
+# ./src/figures/performance_predict.py --predictor renyi_eff --power 2.5 --load-cache
+# ./src/figures/performance_predict.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
+# ./src/figures/performance_predict.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
+# ./src/figures/performance_predict.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
 
 
 args = argparse.ArgumentParser()
@@ -60,12 +60,12 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
         return None
     with open(filename, "r") as f:
         data = [
-            line.split("best_bleu ")[1]
+            line.split("best_chrf ")[1]
             for line in f
-            if "best_bleu" in line
+            if "best_chrf" in line
         ]
     if data:
-        bleu = float(data[-1])
+        perf = float(data[-1])
         return bleu
     else:
         print("skipped", filename)
@@ -99,7 +99,7 @@ def process_logfile(fname):
     temperature = float(temperature)
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    bleu = load_mt_bleu(temperature_name, vocab_size_name)
+    perf = load_mt_bleu(temperature_name, vocab_size_name)
     return (vocab_size_name, temperature), ((data_en + data_de, vocab_size), bleu)
 
 

@@ -21,7 +21,7 @@ args = argparse.ArgumentParser()
 args.add_argument("-l", "--logfiles", default="logs/train_mt_s*")
 args = args.parse_args()
 
-BLEUS = collections.defaultdict(lambda: collections.defaultdict(list))
+PERFORMANCES = collections.defaultdict(lambda: collections.defaultdict(list))
 
 for fname in glob.glob(args.logfiles):
     seed, langs, balance = fname.split(
@@ -30,17 +30,17 @@ for fname in glob.glob(args.logfiles):
     balance_ratio = float(balance[0]) / (float(balance[0]) + float(balance[1]))
 
     with open(fname, "r") as f:
-        data = [l for l in f if "best_bleu" in l]
+        data = [l for l in f]
     if not data:
         continue
-    bleu = [float(l.split("best_bleu ")[-1]) for l in data][-1]
+    perf = [float(l.split("best_chrf ")[-1]) for l in data][-1]
 
-    BLEUS[langs][balance_ratio].append(bleu)
+    PERFORMANCES[langs][balance_ratio].append(perf)
 
 # sort according to the balance ratio
-BLEUS = {
+PERFORMANCES = {
     k: [x for x in sorted(d.items(), key=lambda x: x[0])]
-    for k, d in BLEUS.items()
+    for k, d in PERFORMANCES.items()
 }
 
 BALANCES = [
@@ -51,36 +51,30 @@ fig = plt.figure(figsize=(4, 3))
 ax = plt.gca()
 
 for key_i, key in enumerate(["en-de", "de-en"]):
-    bleus = BLEUS[key]
+    perfs = PERFORMANCES[key]
     # average across seeds
-    bleus = [
+    perfs = [
         (ratio, np.average(l), confidence_interval(l, conf=0.95))
-        for ratio, l in bleus
+        for ratio, l in perfs
     ]
-    ratios = [x[0] for x in bleus]
-    bleu_cis = [x[2] for x in bleus]
-    bleus = [x[1] for x in bleus]
+    ratios = [x[0] for x in perfs]
+    perf_cis = [x[2] for x in perfs]
+    perfs = [x[1] for x in perfs]
 
     ax.plot(
-        ratios, bleus,
+        ratios, perfs,
         marker=fig_utils.MARKERS[0],
         label=key.upper().replace("-", r"$\rightarrow$")
     )
     ax.fill_between(
         ratios,
-        [x[0] for x in bleu_cis],
-        [x[1] for x in bleu_cis],
+        [x[0] for x in perf_cis],
+        [x[1] for x in perf_cis],
         color="gray",
         alpha=0.2,
     )
 
-    # ax.text(
-    #     x=0.5, y=min(bleus)+(max(bleus)-min(bleus))*0.1,
-    #     s=,
-    #     ha="center", va="center",
-    # )
-
-ax.set_ylabel("BLEU")
+ax.set_ylabel("ChrF")
 ax.set_xlim(-0.1, 1.1)
 ax.set_xlabel("Priority", labelpad=-15)
 ax.set_xticks(
