@@ -21,5 +21,9 @@ Repository = "https://github.com/zouharvi/tokenization-principle"
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tokenization_principle*"]
+
 [tool.ruff.lint]
 ignore = ["BLE001", "TRY002", "ASYNC230"]

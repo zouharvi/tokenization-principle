@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.ticker as mtick
+
+from tokenization_principle import figures
+
+args = argparse.ArgumentParser()
+args.add_argument("-i", "--input", default="computed/renyi_vals_sub.jsonl")
+args = args.parse_args()
+
+with open(args.input, "r") as f:
+    data = [json.loads(x) for x in f]
+
+line_entropy = next(
+    line for line in data if line["args"]
+    ["predictor"] == "entropy_eff"
+)
+line_entropy["args"]["power"] = 1
+line_entropy["vals"] = [x for x in line_entropy["vals"]]
+line_entropy["spearman"] = line_entropy["spearman"]
+line_entropy["pearson"] = line_entropy["pearson"]
+
+print(line_entropy["spearman"])
+print(np.average(line_entropy["vals"]))
+data = [
+    line if line["args"]["power"] != 1 else line_entropy
+    for line in data
+    if line["args"]["predictor"] == "renyi_eff"
+]
+
+best_pearson = max(data, key=lambda x: x["pearson"])
+best_spearman = max(data, key=lambda x: x["spearman"])
+
+print("PEARSON", best_pearson)
+print("SPEARMAN", best_spearman)
+
+plt.figure(figsize=(4.1, 2.3))
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+
+ax1.plot(
+    [line["args"]["power"] for line in data],
+    [(line["pearson"]) for line in data],
+    label="Pearson",
+    color=figures.fig_utils.COLORS[0],
+)
+ax1.plot(
+    [line["args"]["power"] for line in data],
+    [(line["spearman"]) for line in data],
+    label="Spearman",
+    color=figures.fig_utils.COLORS[1],
+)
+# markeredgewidth
+STAR_KWARGS = {
+    "marker": "*",
+    "edgecolor": "black",
+    "zorder": 10,
+    "s": [50, 100],
+}
+ax1.scatter(
+    2*[best_pearson["args"]["power"]],
+    [0.37, best_pearson["pearson"]],
+    color=figures.fig_utils.COLORS[0],
+    **STAR_KWARGS
+)
+ax1.scatter(
+    2*[best_spearman["args"]["power"]],
+    [0.37, best_spearman["spearman"]],
+    color=figures.fig_utils.COLORS[1],
+    **STAR_KWARGS
+)
+
+ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
+ax2.plot(
+    [line["args"]["power"] for line in data],
+    [np.average(line["vals"])*100 for line in data],
+    label=r"H$_\alpha\,$/\,H$_0$",
+    color=figures.fig_utils.COLORS[2],
+    linestyle="-.",
+)
+
+
+lh2, l2 = ax2.get_legend_handles_labels()
+
+lh1, l1 = ax1.get_legend_handles_labels()
+
+ax1.legend(
+    lh1  + lh2,
+    l1 + l2,
+    loc="lower right",
+    bbox_to_anchor=(1, 0.15)
+)
+
+ax1.set_ylabel(r"H$_\alpha$/H$_0$ correlation with BLEU")
+ax1.set_xlabel(r"$\alpha$")
+ax2.set_ylabel(r"H$_\alpha$/H$_0$ value")
+plt.tight_layout(pad=0.2)
+plt.savefig("computed/figures/corr_renyi_alpha.pdf")
+plt.show()
