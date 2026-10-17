@@ -7,9 +7,6 @@
 LANGS_LIST=("de-en" "cs-en" "zh-en")
 VOCAB_SIZES=("4000" "8000" "16000" "32000")
 
-LANGS_LIST=("de-en")
-VOCAB_SIZES=("4000")
-
 mkdir -p logs
 
 for LANGS in "${LANGS_LIST[@]}"; do
@@ -24,7 +21,7 @@ for LANGS in "${LANGS_LIST[@]}"; do
             mkdir -p "${OUT_DIR}"
 
             echo "Submitting ${LANGS} ${SIGNATURE}"
-            sbatch --time=04:00:00 --ntasks=10 --mem-per-cpu=2G \
+            sbatch --time=24:00:00 --ntasks=10 --mem-per-cpu=8G \
                 -J "prep_${LANGS}_${SIGNATURE}" \
                 --output="logs/prep_${LANGS}_${SIGNATURE}.log" \
                 --wrap="python3 -m tokenization_principle.prepare_data \
@@ -37,26 +34,26 @@ for LANGS in "${LANGS_LIST[@]}"; do
                 "
         done
 
-        # # 2. Randomized BPE across temperatures
-        # for TEMP in "0.05" "0.4" "100" "-0.9" "-0.2"; do
-        #     T_NAME=$(sed 's/^-/m/; s/^0./0/; s/m0./m0/' <<< "$TEMP")
-        #     SIGNATURE="random_bpe_t${T_NAME}_v${VOCAB_SIZE}"
-        #     OUT_DIR="data/prepared/${LANGS}/${SIGNATURE}"
-        #     mkdir -p "${OUT_DIR}"
+        # 2. Randomized BPE across temperatures
+        for TEMP in "0.05" "0.4" "100" "-0.9" "-0.2"; do
+            T_NAME=$(sed 's/^-/m/; s/^0./0/; s/m0./m0/' <<< "$TEMP")
+            SIGNATURE="random_bpe_t${T_NAME}_v${VOCAB_SIZE}"
+            OUT_DIR="data/prepared/${LANGS}/${SIGNATURE}"
+            mkdir -p "${OUT_DIR}"
 
-        #     echo "Submitting ${LANGS} ${SIGNATURE}"
-        #     sbatch --time=04:00:00 --ntasks=10 --mem-per-cpu=2G \
-        #         -J "prep_${LANGS}_${SIGNATURE}" \
-        #         --output="logs/prep_${LANGS}_${SIGNATURE}.log" \
-        #         --wrap="python3 -m tokenization_principle.prepare_data \
-        #             --tokenizer random_bpe \
-        #             --temperature ${TEMP} \
-        #             --vocab-size ${VOCAB_SIZE} \
-        #             --lang-pair ${LANGS} \
-        #             --input-dir ${DATA_DIR} \
-        #             --output-dir ${OUT_DIR} \
-        #         "
-        # done
+            echo "Submitting ${LANGS} ${SIGNATURE}"
+            sbatch --time=24:00:00 --ntasks=10 --mem-per-cpu=8G \
+                -J "prep_${LANGS}_${SIGNATURE}" \
+                --output="logs/prep_${LANGS}_${SIGNATURE}.log" \
+                --wrap="python3 -m tokenization_principle.prepare_data \
+                    --tokenizer random_bpe \
+                    --temperature ${TEMP} \
+                    --vocab-size ${VOCAB_SIZE} \
+                    --lang-pair ${LANGS} \
+                    --input-dir ${DATA_DIR} \
+                    --output-dir ${OUT_DIR} \
+                "
+        done
     done
 done
 
