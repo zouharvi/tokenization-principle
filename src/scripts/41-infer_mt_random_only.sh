@@ -18,7 +18,6 @@ function launch_mt_infer() {
         --model-path ${MODEL_PATH} \
         --input ${3}.small \
         --output ${DATAOUT_PATH} \
-        --format fairseq \
         --batch-size 256 \
     "
 }

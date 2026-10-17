@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Modern, lightweight PyTorch implementation of an NMT Transformer (equivalent to transformer_iwslt_de_en).
-Optimized for modern NVIDIA GPUs (RTX 4090, A100, H100) using:
-  - PyTorch 2.x Scaled Dot-Product Attention (FlashAttention-2 / cuDNN fused kernels)
+Modern, lightweight PyTorch NMT training script using built-in torch.nn.Transformer.
+Equivalent in size and parameters to transformer_iwslt_de_en (Pre-LN).
+Optimized for modern GPUs (RTX 4090, A100, H100) using:
+  - Built-in torch.nn.Transformer with PyTorch 2.x SDPA (FlashAttention-2 / cuDNN)
   - Native bfloat16 mixed precision
-  - Pre-LN Transformer architecture for fast, stable convergence
-  - Length-bucketed dynamic token batching (max-tokens)
+  - Dynamic token batching (max-tokens)
   - Inverse sqrt learning rate schedule with linear warmup
   - Fast validation loss / perplexity early stopping
-  - Fast inference & BLEU evaluation
 """
 
 import argparse
@@ -17,11 +16,11 @@ import math
 import os
 import random
 import time
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-import torch.nn.functional as F
-from torch import nn
+import torch.nn as nn
 
 PAD_TOKEN = "<pad>"
 UNK_TOKEN = "<unk>"
@@ -39,13 +38,13 @@ EOS_ID = 3
 # -----------------------------------------------------------------------------
 class Vocabulary:
     def __init__(self):
-        self.token2id: dict[str, int] = {
+        self.token2id: Dict[str, int] = {
             PAD_TOKEN: PAD_ID,
             UNK_TOKEN: UNK_ID,
             BOS_TOKEN: BOS_ID,
             EOS_TOKEN: EOS_ID,
         }
-        self.id2token: list[str] = [PAD_TOKEN, UNK_TOKEN, BOS_TOKEN, EOS_TOKEN]
+        self.id2token: List[str] = [PAD_TOKEN, UNK_TOKEN, BOS_TOKEN, EOS_TOKEN]
 
     def add_token(self, token: str) -> int:
         if token not in self.token2id:
@@ -55,11 +54,11 @@ class Vocabulary:
             return idx
         return self.token2id[token]
 
-    def encode(self, line: str) -> list[int]:
+    def encode(self, line: str) -> List[int]:
         tokens = line.strip().split()
         return [self.token2id.get(t, UNK_ID) for t in tokens]
 
-    def decode(self, ids: list[int], remove_special: bool = True) -> str:
+    def decode(self, ids: List[int], remove_special: bool = True) -> str:
         tokens = []
         for i in ids:
             if remove_special and i in (PAD_ID, BOS_ID, EOS_ID):
@@ -74,7 +73,8 @@ class Vocabulary:
 
     def save(self, path: str):
         with open(path, "w", encoding="utf-8") as f:
-            f.writelines(f"{token}\n" for token in self.id2token)
+            for token in self.id2token:
+                f.write(f"{token}\n")
 
     @classmethod
     def load(cls, path: str) -> "Vocabulary":
@@ -92,7 +92,7 @@ class Vocabulary:
 def build_shared_vocab(
     src_file: str,
     tgt_file: str,
-    max_vocab_size: int | None = None,
+    max_vocab_size: Optional[int] = None,
     min_freq: int = 1,
 ) -> Vocabulary:
     counts = collections.Counter()
@@ -114,11 +114,11 @@ def build_shared_vocab(
 
 
 # -----------------------------------------------------------------------------
-# Dataset & Dynamic Length-Bucketed Batching
+# Dataset & Dynamic Token Batching
 # -----------------------------------------------------------------------------
 class ParallelDataset:
     def __init__(self, src_file: str, tgt_file: str, vocab: Vocabulary, max_seq_len: int = 256):
-        self.examples: list[tuple[list[int], list[int]]] = []
+        self.examples: List[Tuple[List[int], List[int]]] = []
         with open(src_file, "r", encoding="utf-8") as f_src, open(tgt_file, "r", encoding="utf-8") as f_tgt:
             for line_src, line_tgt in zip(f_src, f_tgt):
                 s_ids = vocab.encode(line_src)
@@ -132,11 +132,11 @@ class ParallelDataset:
 
 def make_batches(
     dataset: ParallelDataset,
-    max_tokens: int = 8192,
+    max_tokens: int = 12288,
     shuffle: bool = True,
     seed: int = 42,
-) -> list[list[tuple[list[int], list[int]]]]:
-    # Sort indices by approximate sequence length to minimize padding waste
+) -> List[List[Tuple[List[int], List[int]]]]:
+    # Sort indices by maximum sequence length to minimize padding
     indices = list(range(len(dataset)))
     indices.sort(key=lambda idx: max(len(dataset.examples[idx][0]), len(dataset.examples[idx][1])))
 
@@ -145,10 +145,7 @@ def make_batches(
     current_max_len = 0
 
     for idx in indices:
-        s_len = len(dataset.examples[idx][0])
-        t_len = len(dataset.examples[idx][1])
-        item_max_len = max(s_len, t_len)
-
+        item_max_len = max(len(dataset.examples[idx][0]), len(dataset.examples[idx][1]))
         projected_max_len = max(current_max_len, item_max_len)
         projected_tokens = (len(current_batch) + 1) * projected_max_len
 
@@ -167,16 +164,12 @@ def make_batches(
         rng = random.Random(seed)
         rng.shuffle(batches)
 
-    # Convert indices back to items
     return [[dataset.examples[i] for i in b] for b in batches]
 
 
-def collate_batch(batch_items: list[tuple[list[int], list[int]]], device: torch.device):
-    src_lens = [len(x[0]) for x in batch_items]
-    tgt_lens = [len(x[1]) for x in batch_items]
-
-    max_src = max(src_lens)
-    max_tgt = max(tgt_lens)
+def collate_batch(batch_items: List[Tuple[List[int], List[int]]], device: torch.device):
+    max_src = max(len(x[0]) for x in batch_items)
+    max_tgt = max(len(x[1]) for x in batch_items)
     B = len(batch_items)
 
     src_tokens = torch.full((B, max_src), PAD_ID, dtype=torch.long)
@@ -185,29 +178,27 @@ def collate_batch(batch_items: list[tuple[list[int], list[int]]], device: torch.
 
     for i, (s, t) in enumerate(batch_items):
         src_tokens[i, :len(s)] = torch.tensor(s, dtype=torch.long)
-        # Teacher forcing: tgt_in begins with <s>, tgt_out ends with </s>
         tgt_in[i, 0] = BOS_ID
         tgt_in[i, 1:len(t) + 1] = torch.tensor(t, dtype=torch.long)
-
         tgt_out[i, :len(t)] = torch.tensor(t, dtype=torch.long)
         tgt_out[i, len(t)] = EOS_ID
 
-    src_tokens = src_tokens.to(device, non_blocking=True)
-    tgt_in = tgt_in.to(device, non_blocking=True)
-    tgt_out = tgt_out.to(device, non_blocking=True)
-
-    return src_tokens, tgt_in, tgt_out
+    return (
+        src_tokens.to(device, non_blocking=True),
+        tgt_in.to(device, non_blocking=True),
+        tgt_out.to(device, non_blocking=True),
+    )
 
 
 # -----------------------------------------------------------------------------
-# Transformer Architecture (Pre-LN with PyTorch SDPA)
+# Built-in PyTorch Transformer Model Wrapper
 # -----------------------------------------------------------------------------
-class SinusoidalPositionalEmbedding(nn.Module):
-    def __init__(self, embed_dim: int, max_len: int = 4096):
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model: int, max_len: int = 4096):
         super().__init__()
-        pe = torch.zeros(max_len, embed_dim)
+        pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, embed_dim, 2).float() * (-math.log(10000.0) / embed_dim))
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         self.register_buffer("pe", pe.unsqueeze(0))
@@ -216,180 +207,43 @@ class SinusoidalPositionalEmbedding(nn.Module):
         return x + self.pe[:, :x.size(1)]
 
 
-class MultiHeadAttention(nn.Module):
-    def __init__(self, embed_dim: int = 512, num_heads: int = 4, dropout: float = 0.3):
-        super().__init__()
-        self.embed_dim = embed_dim
-        self.num_heads = num_heads
-        self.head_dim = embed_dim // num_heads
-        assert self.head_dim * num_heads == embed_dim, "embed_dim must be divisible by num_heads"
+class Seq2SeqTransformer(nn.Module):
+    """
+    Wraps built-in torch.nn.Transformer with token embeddings, positional encodings,
+    and a weight-tied language model head.
+    """
 
-        self.q_proj = nn.Linear(embed_dim, embed_dim)
-        self.k_proj = nn.Linear(embed_dim, embed_dim)
-        self.v_proj = nn.Linear(embed_dim, embed_dim)
-        self.out_proj = nn.Linear(embed_dim, embed_dim)
-        self.dropout = dropout
-
-    def forward(
-        self,
-        query: torch.Tensor,
-        key: torch.Tensor,
-        value: torch.Tensor,
-        attn_mask: torch.Tensor | None = None,
-        key_padding_mask: torch.Tensor | None = None,
-        is_causal: bool = False,
-        kv_cache: dict[str, torch.Tensor] | None = None,
-    ) -> torch.Tensor:
-        B, Sq, _ = query.shape
-        q = self.q_proj(query).view(B, Sq, self.num_heads, self.head_dim).transpose(1, 2)
-
-        if kv_cache is not None:
-            # Incremental KV-caching during auto-regressive decoding
-            k_new = self.k_proj(key).view(B, -1, self.num_heads, self.head_dim).transpose(1, 2)
-            v_new = self.v_proj(value).view(B, -1, self.num_heads, self.head_dim).transpose(1, 2)
-            if "k" in kv_cache:
-                k = torch.cat([kv_cache["k"], k_new], dim=2)
-                v = torch.cat([kv_cache["v"], v_new], dim=2)
-            else:
-                k, v = k_new, v_new
-            kv_cache["k"] = k
-            kv_cache["v"] = v
-        else:
-            Sk = key.size(1)
-            k = self.k_proj(key).view(B, Sk, self.num_heads, self.head_dim).transpose(1, 2)
-            v = self.v_proj(value).view(B, Sk, self.num_heads, self.head_dim).transpose(1, 2)
-
-        combined_mask = attn_mask
-        if key_padding_mask is not None:
-            # key_padding_mask: [B, Sk] where True indicates padding
-            pad_mask = key_padding_mask.unsqueeze(1).unsqueeze(2)  # [B, 1, 1, Sk]
-            float_pad_mask = torch.zeros_like(pad_mask, dtype=query.dtype).masked_fill(pad_mask, float("-inf"))
-            if combined_mask is None:
-                combined_mask = float_pad_mask
-            else:
-                combined_mask = combined_mask + float_pad_mask
-
-        dropout_p = self.dropout if self.training else 0.0
-
-        out = F.scaled_dot_product_attention(
-            q,
-            k,
-            v,
-            attn_mask=combined_mask,
-            dropout_p=dropout_p,
-            is_causal=is_causal and (combined_mask is None),
-        )
-
-        out = out.transpose(1, 2).contiguous().view(B, Sq, self.embed_dim)
-        return self.out_proj(out)
-
-
-class TransformerEncoderLayer(nn.Module):
-    def __init__(self, embed_dim: int = 512, num_heads: int = 4, ffn_dim: int = 1024, dropout: float = 0.3):
-        super().__init__()
-        self.norm1 = nn.LayerNorm(embed_dim)
-        self.self_attn = MultiHeadAttention(embed_dim, num_heads, dropout)
-        self.dropout1 = nn.Dropout(dropout)
-
-        self.norm2 = nn.LayerNorm(embed_dim)
-        self.fc1 = nn.Linear(embed_dim, ffn_dim)
-        self.act = nn.ReLU()
-        self.fc2 = nn.Linear(ffn_dim, embed_dim)
-        self.dropout2 = nn.Dropout(dropout)
-
-    def forward(self, x: torch.Tensor, key_padding_mask: torch.Tensor | None = None) -> torch.Tensor:
-        # Pre-LN Self-Attention
-        normed = self.norm1(x)
-        attn_out = self.self_attn(normed, normed, normed, key_padding_mask=key_padding_mask)
-        x = x + self.dropout1(attn_out)
-
-        # Pre-LN Feed-Forward
-        normed = self.norm2(x)
-        ffn_out = self.fc2(self.dropout1(self.act(self.fc1(normed))))
-        x = x + self.dropout2(ffn_out)
-        return x
-
-
-class TransformerDecoderLayer(nn.Module):
-    def __init__(self, embed_dim: int = 512, num_heads: int = 4, ffn_dim: int = 1024, dropout: float = 0.3):
-        super().__init__()
-        self.norm1 = nn.LayerNorm(embed_dim)
-        self.self_attn = MultiHeadAttention(embed_dim, num_heads, dropout)
-        self.dropout1 = nn.Dropout(dropout)
-
-        self.norm2 = nn.LayerNorm(embed_dim)
-        self.cross_attn = MultiHeadAttention(embed_dim, num_heads, dropout)
-        self.dropout2 = nn.Dropout(dropout)
-
-        self.norm3 = nn.LayerNorm(embed_dim)
-        self.fc1 = nn.Linear(embed_dim, ffn_dim)
-        self.act = nn.ReLU()
-        self.fc2 = nn.Linear(ffn_dim, embed_dim)
-        self.dropout3 = nn.Dropout(dropout)
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        enc_out: torch.Tensor,
-        tgt_mask: torch.Tensor | None = None,
-        enc_padding_mask: torch.Tensor | None = None,
-        self_kv_cache: dict[str, torch.Tensor] | None = None,
-        cross_kv_cache: dict[str, torch.Tensor] | None = None,
-    ) -> torch.Tensor:
-        # Pre-LN Causal Self-Attention
-        normed = self.norm1(x)
-        self_attn_out = self.self_attn(normed, normed, normed, attn_mask=tgt_mask, kv_cache=self_kv_cache)
-        x = x + self.dropout1(self_attn_out)
-
-        # Pre-LN Cross-Attention
-        normed = self.norm2(x)
-        cross_attn_out = self.cross_attn(
-            normed, enc_out, enc_out, key_padding_mask=enc_padding_mask, kv_cache=cross_kv_cache
-        )
-        x = x + self.dropout2(cross_attn_out)
-
-        # Pre-LN Feed-Forward
-        normed = self.norm3(x)
-        ffn_out = self.fc2(self.dropout1(self.act(self.fc1(normed))))
-        x = x + self.dropout3(ffn_out)
-        return x
-
-
-class TransformerSeq2Seq(nn.Module):
     def __init__(
         self,
         vocab_size: int,
-        embed_dim: int = 512,
-        ffn_dim: int = 1024,
+        d_model: int = 512,
+        nhead: int = 4,
         num_encoder_layers: int = 6,
         num_decoder_layers: int = 6,
-        num_heads: int = 4,
+        dim_feedforward: int = 1024,
         dropout: float = 0.3,
     ):
         super().__init__()
-        self.embed_dim = embed_dim
-        self.scale = math.sqrt(embed_dim)
-
-        # Shared token embeddings across encoder, decoder, and output projection
-        self.shared_embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=PAD_ID)
-        self.pos_emb = SinusoidalPositionalEmbedding(embed_dim)
+        self.d_model = d_model
+        self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=PAD_ID)
+        self.pos_encoder = PositionalEncoding(d_model)
         self.emb_dropout = nn.Dropout(dropout)
 
-        self.encoder_layers = nn.ModuleList([
-            TransformerEncoderLayer(embed_dim, num_heads, ffn_dim, dropout)
-            for _ in range(num_encoder_layers)
-        ])
-        self.encoder_norm = nn.LayerNorm(embed_dim)
+        # Built-in torch.nn.Transformer (Pre-LN: norm_first=True)
+        self.transformer = nn.Transformer(
+            d_model=d_model,
+            nhead=nhead,
+            num_encoder_layers=num_encoder_layers,
+            num_decoder_layers=num_decoder_layers,
+            dim_feedforward=dim_feedforward,
+            dropout=dropout,
+            batch_first=True,
+            norm_first=True,
+        )
 
-        self.decoder_layers = nn.ModuleList([
-            TransformerDecoderLayer(embed_dim, num_heads, ffn_dim, dropout)
-            for _ in range(num_decoder_layers)
-        ])
-        self.decoder_norm = nn.LayerNorm(embed_dim)
-
-        self.output_projection = nn.Linear(embed_dim, vocab_size, bias=False)
+        self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         # Weight tying (share decoder input and output embeddings)
-        self.output_projection.weight = self.shared_embedding.weight
+        self.lm_head.weight = self.embedding.weight
 
         self._init_weights()
 
@@ -398,65 +252,48 @@ class TransformerSeq2Seq(nn.Module):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
-    def encode(self, src_tokens: torch.Tensor, src_padding_mask: torch.Tensor | None = None) -> torch.Tensor:
-        x = self.shared_embedding(src_tokens) * self.scale
-        x = self.pos_emb(x)
-        x = self.emb_dropout(x)
-
-        for layer in self.encoder_layers:
-            x = layer(x, key_padding_mask=src_padding_mask)
-        return self.encoder_norm(x)
+    def encode(self, src: torch.Tensor, src_key_padding_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+        src_emb = self.emb_dropout(self.pos_encoder(self.embedding(src) * math.sqrt(self.d_model)))
+        return self.transformer.encoder(src_emb, src_key_padding_mask=src_key_padding_mask)
 
     def decode(
         self,
-        tgt_tokens: torch.Tensor,
-        enc_out: torch.Tensor,
-        tgt_mask: torch.Tensor | None = None,
-        enc_padding_mask: torch.Tensor | None = None,
-        self_kv_caches: list[dict[str, torch.Tensor]] | None = None,
-        cross_kv_caches: list[dict[str, torch.Tensor]] | None = None,
+        tgt: torch.Tensor,
+        memory: torch.Tensor,
+        tgt_mask: Optional[torch.Tensor] = None,
+        tgt_key_padding_mask: Optional[torch.Tensor] = None,
+        memory_key_padding_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        x = self.shared_embedding(tgt_tokens) * self.scale
-        x = self.pos_emb(x)
-        x = self.emb_dropout(x)
-
-        for i, layer in enumerate(self.decoder_layers):
-            s_cache = self_kv_caches[i] if self_kv_caches else None
-            c_cache = cross_kv_caches[i] if cross_kv_caches else None
-            x = layer(
-                x,
-                enc_out,
-                tgt_mask=tgt_mask,
-                enc_padding_mask=enc_padding_mask,
-                self_kv_cache=s_cache,
-                cross_kv_cache=c_cache,
-            )
-
-        x = self.decoder_norm(x)
-        return self.output_projection(x)
-
-    def forward(self, src_tokens: torch.Tensor, tgt_tokens: torch.Tensor) -> torch.Tensor:
-        src_padding_mask = src_tokens == PAD_ID
-        enc_out = self.encode(src_tokens, src_padding_mask=src_padding_mask)
-
-        # Causal mask for teacher-forced decoder
-        St = tgt_tokens.size(1)
-        causal_mask = torch.triu(
-            torch.full((St, St), float("-inf"), device=tgt_tokens.device, dtype=torch.float32),
-            diagonal=1,
-        ).unsqueeze(0).unsqueeze(1)  # [1, 1, St, St]
-
-        # Target padding mask
-        tgt_pad_mask = (tgt_tokens == PAD_ID).unsqueeze(1).unsqueeze(2)  # [B, 1, 1, St]
-        combined_tgt_mask = causal_mask.masked_fill(tgt_pad_mask, float("-inf"))
-
-        logits = self.decode(
-            tgt_tokens,
-            enc_out,
-            tgt_mask=combined_tgt_mask,
-            enc_padding_mask=src_padding_mask,
+        tgt_emb = self.emb_dropout(self.pos_encoder(self.embedding(tgt) * math.sqrt(self.d_model)))
+        out = self.transformer.decoder(
+            tgt_emb,
+            memory,
+            tgt_mask=tgt_mask,
+            tgt_key_padding_mask=tgt_key_padding_mask,
+            memory_key_padding_mask=memory_key_padding_mask,
         )
-        return logits
+        return self.lm_head(out)
+
+    def forward(self, src: torch.Tensor, tgt: torch.Tensor) -> torch.Tensor:
+        src_key_padding_mask = src == PAD_ID
+        tgt_key_padding_mask = tgt == PAD_ID
+
+        tgt_seq_len = tgt.size(1)
+        # Built-in subsequent causal mask
+        tgt_mask = nn.Transformer.generate_square_subsequent_mask(tgt_seq_len, device=tgt.device)
+
+        src_emb = self.emb_dropout(self.pos_encoder(self.embedding(src) * math.sqrt(self.d_model)))
+        tgt_emb = self.emb_dropout(self.pos_encoder(self.embedding(tgt) * math.sqrt(self.d_model)))
+
+        out = self.transformer(
+            src_emb,
+            tgt_emb,
+            tgt_mask=tgt_mask,
+            src_key_padding_mask=src_key_padding_mask,
+            tgt_key_padding_mask=tgt_key_padding_mask,
+            memory_key_padding_mask=src_key_padding_mask,
+        )
+        return self.lm_head(out)
 
 
 # -----------------------------------------------------------------------------
@@ -471,12 +308,12 @@ def get_inverse_sqrt_lr(step: int, warmup_updates: int, base_lr: float) -> float
 
 
 # -----------------------------------------------------------------------------
-# Evaluation & Fast Generation
+# Evaluation & Inference
 # -----------------------------------------------------------------------------
 @torch.no_grad()
 def evaluate_loss(
     model: nn.Module,
-    batches: list[list[tuple[list[int], list[int]]]],
+    batches: List[List[Tuple[List[int], List[int]]]],
     criterion: nn.Module,
     device: torch.device,
     amp_dtype: torch.dtype,
@@ -500,13 +337,13 @@ def evaluate_loss(
 
 @torch.no_grad()
 def greedy_translate(
-    model: TransformerSeq2Seq,
-    src_sentences: list[str],
+    model: Seq2SeqTransformer,
+    src_sentences: List[str],
     vocab: Vocabulary,
     device: torch.device,
     max_len: int = 120,
     batch_size: int = 128,
-) -> list[str]:
+) -> List[str]:
     model.eval()
     translations = []
 
@@ -519,29 +356,21 @@ def greedy_translate(
             src_tokens[row, :len(s)] = torch.tensor(s, dtype=torch.long, device=device)
 
         src_padding_mask = src_tokens == PAD_ID
-        enc_out = model.encode(src_tokens, src_padding_mask=src_padding_mask)
+        memory = model.encode(src_tokens, src_key_padding_mask=src_padding_mask)
 
-        # Autoregressive decoding
         B = len(chunk)
         generated = torch.full((B, 1), BOS_ID, dtype=torch.long, device=device)
         finished = torch.zeros(B, dtype=torch.bool, device=device)
 
         for _ in range(max_len):
-            St = generated.size(1)
-            causal_mask = torch.triu(
-                torch.full((St, St), float("-inf"), device=device, dtype=torch.float32),
-                diagonal=1,
-            ).unsqueeze(0).unsqueeze(1)
-
+            tgt_mask = nn.Transformer.generate_square_subsequent_mask(generated.size(1), device=device)
             logits = model.decode(
                 generated,
-                enc_out,
-                tgt_mask=causal_mask,
-                enc_padding_mask=src_padding_mask,
+                memory,
+                tgt_mask=tgt_mask,
+                memory_key_padding_mask=src_padding_mask,
             )
-            next_tokens = logits[:, -1, :].argmax(dim=-1, keepdim=True)  # [B, 1]
-
-            # Stop generating after EOS
+            next_tokens = logits[:, -1, :].argmax(dim=-1, keepdim=True)
             next_tokens = torch.where(finished.unsqueeze(1), torch.full_like(next_tokens, PAD_ID), next_tokens)
             generated = torch.cat([generated, next_tokens], dim=1)
 
@@ -556,13 +385,12 @@ def greedy_translate(
     return translations
 
 
-def compute_simple_bleu(hypotheses: list[str], references: list[str]) -> float:
+def compute_simple_bleu(hypotheses: List[str], references: List[str]) -> float:
     try:
         import sacrebleu
         res = sacrebleu.corpus_bleu(hypotheses, [[r] for r in references])
         return float(res.score)
     except ImportError:
-        # Fallback approximation: unigram/bigram BLEU if sacrebleu is not installed
         from collections import Counter
         clipped_1, total_1 = 0, 0
         clipped_2, total_2 = 0, 0
@@ -574,14 +402,12 @@ def compute_simple_bleu(hypotheses: list[str], references: list[str]) -> float:
             hyp_len_total += len(h_toks)
             ref_len_total += len(r_toks)
 
-            # 1-gram
             h_c1 = Counter(h_toks)
             r_c1 = Counter(r_toks)
             for w, c in h_c1.items():
                 clipped_1 += min(c, r_c1.get(w, 0))
             total_1 += len(h_toks)
 
-            # 2-gram
             h_2 = [f"{h_toks[i]}_{h_toks[i+1]}" for i in range(len(h_toks) - 1)]
             r_2 = [f"{r_toks[i]}_{r_toks[i+1]}" for i in range(len(r_toks) - 1)]
             h_c2 = Counter(h_2)
@@ -600,22 +426,22 @@ def compute_simple_bleu(hypotheses: list[str], references: list[str]) -> float:
 
 
 # -----------------------------------------------------------------------------
-# Main Training Function
+# Training Entry Point
 # -----------------------------------------------------------------------------
 def parse_args():
-    parser = argparse.ArgumentParser(description="Modern PyTorch Transformer NMT Training")
-    parser.add_argument("--train-src", required=True, help="Path to tokenized training source text")
-    parser.add_argument("--train-tgt", required=True, help="Path to tokenized training target text")
-    parser.add_argument("--valid-src", required=True, help="Path to tokenized validation source text")
-    parser.add_argument("--valid-tgt", required=True, help="Path to tokenized validation target text")
-    parser.add_argument("--test-src", default=None, help="Optional path to test source text for final BLEU")
-    parser.add_argument("--test-tgt", default=None, help="Optional path to test target text for final BLEU")
+    parser = argparse.ArgumentParser(description="PyTorch NMT Training with built-in torch.nn.Transformer")
+    parser.add_argument("--train-src", required=True, help="Tokenized train source file")
+    parser.add_argument("--train-tgt", required=True, help="Tokenized train target file")
+    parser.add_argument("--valid-src", required=True, help="Tokenized valid source file")
+    parser.add_argument("--valid-tgt", required=True, help="Tokenized valid target file")
+    parser.add_argument("--test-src", default=None, help="Optional test source file")
+    parser.add_argument("--test-tgt", default=None, help="Optional test target file")
 
-    parser.add_argument("--save-dir", default="checkpoints", help="Directory to save checkpoints and vocab")
-    parser.add_argument("--vocab-file", default=None, help="Pre-built vocab file; if None, built from train data")
-    parser.add_argument("--max-vocab-size", type=int, default=32768, help="Max shared vocabulary size")
+    parser.add_argument("--save-dir", default="checkpoints")
+    parser.add_argument("--vocab-file", default=None)
+    parser.add_argument("--max-vocab-size", type=int, default=32768)
 
-    # Architecture (defaults mirror transformer_iwslt_de_en)
+    # Architecture (mirrors transformer_iwslt_de_en)
     parser.add_argument("--embed-dim", type=int, default=512)
     parser.add_argument("--ffn-dim", type=int, default=1024)
     parser.add_argument("--encoder-layers", type=int, default=6)
@@ -631,12 +457,12 @@ def parse_args():
     parser.add_argument("--label-smoothing", type=float, default=0.1)
 
     # Training loop
-    parser.add_argument("--max-tokens", type=int, default=8192, help="Max tokens per batch (push higher on RTX 4090)")
+    parser.add_argument("--max-tokens", type=int, default=12288)
     parser.add_argument("--max-epochs", type=int, default=50)
-    parser.add_argument("--patience", type=int, default=5, help="Early stopping patience on validation loss")
-    parser.add_argument("--log-interval", type=int, default=500, help="Print training stats every N updates")
+    parser.add_argument("--patience", type=int, default=5)
+    parser.add_argument("--log-interval", type=int, default=500)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--compile", action="store_true", help="Use torch.compile() for extra speedup")
+    parser.add_argument("--compile", action="store_true")
 
     return parser.parse_args()
 
@@ -645,7 +471,6 @@ def main():
     args = parse_args()
     os.makedirs(args.save_dir, exist_ok=True)
 
-    # Reproducibility
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -655,11 +480,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # Use bfloat16 on Ampere/Ada/Hopper (RTX 4090, A100, etc.)
     amp_dtype = torch.bfloat16 if (torch.cuda.is_available() and torch.cuda.is_bf16_supported()) else torch.float16
     print(f"Using mixed precision: {amp_dtype}")
 
-    # 1. Build or Load Vocabulary
+    # Vocabulary
     vocab_path = args.vocab_file or os.path.join(args.save_dir, "vocab.txt")
     if os.path.exists(vocab_path):
         print(f"Loading vocabulary from {vocab_path}...")
@@ -670,7 +494,7 @@ def main():
         vocab.save(vocab_path)
     print(f"Vocabulary size: {len(vocab)}")
 
-    # 2. Load Datasets
+    # Datasets
     print("Loading train dataset...")
     train_dataset = ParallelDataset(args.train_src, args.train_tgt, vocab)
     print(f"Train sentences: {len(train_dataset)}")
@@ -681,25 +505,25 @@ def main():
 
     valid_batches = make_batches(valid_dataset, max_tokens=args.max_tokens * 2, shuffle=False)
 
-    # 3. Model
-    model = TransformerSeq2Seq(
+    # Built-in PyTorch Transformer Model
+    model = Seq2SeqTransformer(
         vocab_size=len(vocab),
-        embed_dim=args.embed_dim,
-        ffn_dim=args.ffn_dim,
+        d_model=args.embed_dim,
+        nhead=args.num_heads,
         num_encoder_layers=args.encoder_layers,
         num_decoder_layers=args.decoder_layers,
-        num_heads=args.num_heads,
+        dim_feedforward=args.ffn_dim,
         dropout=args.dropout,
     ).to(device)
 
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Model created. Total trainable parameters: {total_params / 1e6:.2f}M")
+    print(f"Model created using torch.nn.Transformer. Trainable parameters: {total_params / 1e6:.2f}M")
 
     if args.compile and hasattr(torch, "compile"):
         print("Compiling model with torch.compile()...")
         model = torch.compile(model)
 
-    # 4. Optimizer & Loss
+    # Optimizer & Loss
     fused_adam = torch.cuda.is_available() and hasattr(torch.optim.AdamW, "_fused")
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -730,8 +554,6 @@ def main():
             seed=args.seed + epoch,
         )
 
-        total_epoch_loss = 0.0
-        total_epoch_tokens = 0
         running_loss = 0.0
         running_tokens = 0
         step_timer = time.time()
@@ -739,7 +561,6 @@ def main():
         for batch_idx, batch_items in enumerate(train_batches):
             global_step += 1
 
-            # Update learning rate
             lr = get_inverse_sqrt_lr(global_step, args.warmup_updates, args.lr)
             for param_group in optimizer.param_groups:
                 param_group["lr"] = lr
@@ -758,8 +579,6 @@ def main():
             non_pad_count = (tgt_out != PAD_ID).sum().item()
             running_loss += loss.item() * non_pad_count
             running_tokens += non_pad_count
-            total_epoch_loss += loss.item() * non_pad_count
-            total_epoch_tokens += non_pad_count
 
             if global_step % args.log_interval == 0:
                 elapsed = time.time() - step_timer
@@ -774,7 +593,7 @@ def main():
                 running_tokens = 0
                 step_timer = time.time()
 
-        # Epoch Validation (Fast Parallel Forward Pass)
+        # Validation Loss
         val_loss = evaluate_loss(model, valid_batches, criterion, device, amp_dtype)
         val_ppl = math.exp(min(20, val_loss))
         epoch_time = time.time() - epoch_start
@@ -784,9 +603,8 @@ def main():
             f"Val Loss: {val_loss:.4f} | Val PPL: {val_ppl:.2f} ==="
         )
 
-        # Checkpoint selection based on validation loss
-        is_best = val_loss < best_val_loss
-        if is_best:
+        # Checkpoint selection
+        if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_epoch = epoch
             patience_counter = 0
@@ -805,7 +623,6 @@ def main():
             patience_counter += 1
             print(f"[!] No improvement. Patience: {patience_counter}/{args.patience}")
 
-        # Always save last checkpoint
         torch.save(
             {
                 "epoch": epoch,
@@ -823,7 +640,7 @@ def main():
     total_training_time = time.time() - start_time
     print(f"Training completed in {total_training_time / 60:.2f} minutes.")
 
-    # 5. Final Evaluation on Best Checkpoint
+    # Final Evaluation on Best Checkpoint
     best_ckpt_path = os.path.join(args.save_dir, "checkpoint_best.pt")
     if os.path.exists(best_ckpt_path):
         print(f"Loading best checkpoint from epoch {best_epoch} for final evaluation...")
@@ -837,21 +654,19 @@ def main():
         eval_srcs = [l.strip() for l in f_src]
         eval_refs = [l.strip() for l in f_tgt]
 
-    # Quick evaluation (first 2,000 sentences if dataset is large, for fast turnaround)
     eval_subset_size = min(len(eval_srcs), 5000)
     print(f"Generating translations for {eval_subset_size} sentences...")
     hypotheses = greedy_translate(model, eval_srcs[:eval_subset_size], vocab, device)
 
-    # Save translations
     out_path = os.path.join(args.save_dir, "eval_hypotheses.txt")
     with open(out_path, "w", encoding="utf-8") as f_out:
-        f_out.writelines(f"{hyp}\n" for hyp in hypotheses)
+        for hyp in hypotheses:
+            f_out.write(f"{hyp}\n")
 
     bleu = compute_simple_bleu(hypotheses, eval_refs[:eval_subset_size])
     print(f"Final Evaluation BLEU: {bleu:.2f}")
 
     # Output log line compatible with 08-get_mt_bleu.py regex scraper:
-    # "epoch (\d+)" ... "best_bleu (\d+\.?\d*)" ... "bleu (\d+\.?\d*)"
     print(f"epoch {best_epoch} | val_loss {best_val_loss:.4f} | bleu {bleu:.2f} | best_bleu {bleu:.2f}")
 
 

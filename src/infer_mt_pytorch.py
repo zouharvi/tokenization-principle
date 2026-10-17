@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Fast PyTorch NMT Inference script replacing fairseq-interactive / fairseq-generate.
-Generates translations from a trained checkpoint and outputs in plain or fairseq-compatible format.
+Fast PyTorch NMT Inference script.
+Generates translations from a trained checkpoint and outputs plain translated text.
 """
 
 import argparse
@@ -10,7 +10,7 @@ import os
 import torch
 
 from train_mt_pytorch import (
-    TransformerSeq2Seq,
+    Seq2SeqTransformer,
     Vocabulary,
     greedy_translate,
 )
@@ -24,12 +24,6 @@ def parse_args():
     parser.add_argument("--output", default=None, help="Path to output file (if None, prints to stdout)")
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--max-len", type=int, default=120)
-    parser.add_argument(
-        "--format",
-        choices=["fairseq", "plain"],
-        default="fairseq",
-        help="fairseq format (S-i, H-i lines) for downstream evaluation scripts, or plain text",
-    )
     return parser.parse_args()
 
 
@@ -45,7 +39,6 @@ def main():
         if os.path.exists(candidate):
             vocab_path = candidate
         else:
-            # Check parent directory (e.g. if saved in checkpoints/checkpoint_best.pt)
             candidate_parent = os.path.join(os.path.dirname(ckpt_dir), "vocab.txt")
             if os.path.exists(candidate_parent):
                 vocab_path = candidate_parent
@@ -58,13 +51,13 @@ def main():
     ckpt = torch.load(args.model_path, map_location=device)
     train_args = ckpt.get("args", {})
 
-    model = TransformerSeq2Seq(
+    model = Seq2SeqTransformer(
         vocab_size=len(vocab),
-        embed_dim=train_args.get("embed_dim", 512),
-        ffn_dim=train_args.get("ffn_dim", 1024),
+        d_model=train_args.get("embed_dim", 512),
+        nhead=train_args.get("num_heads", 4),
         num_encoder_layers=train_args.get("encoder_layers", 6),
         num_decoder_layers=train_args.get("decoder_layers", 6),
-        num_heads=train_args.get("num_heads", 4),
+        dim_feedforward=train_args.get("ffn_dim", 1024),
         dropout=train_args.get("dropout", 0.3),
     ).to(device)
 
@@ -87,22 +80,14 @@ def main():
             batch_size=args.batch_size,
         )
 
-    # Output formatting
-    out_lines = []
-    for idx, (src, hyp) in enumerate(zip(src_lines, hypotheses)):
-        if args.format == "fairseq":
-            out_lines.append(f"S-{idx}\t{src}")
-            out_lines.append(f"H-{idx}\t0.0\t{hyp}")
-        else:
-            out_lines.append(hyp)
-
     if args.output:
         os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
         with open(args.output, "w", encoding="utf-8") as f_out:
-            f_out.writelines(f"{l}\n" for l in out_lines)
+            for hyp in hypotheses:
+                f_out.write(f"{hyp}\n")
     else:
-        for l in out_lines:
-            print(l)
+        for hyp in hypotheses:
+            print(hyp)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,11 @@ First, install the local dependencies:
 pip install -e .
 ```
 
+Then, run the following sequence:
+```bash
+bash src/scripts/01-download_datasets.sh
+```
+
 Cite as:
 ```
 @inproceedings{tokenization_noiseless, 
