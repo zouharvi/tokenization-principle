@@ -27,6 +27,7 @@ pip install -e .
 Then, run the following sequence:
 ```bash
 bash src/scripts/01-download_datasets.sh
+bash src/scripts/02-pretokenize_data.sh
 ```
 
 Cite as:
