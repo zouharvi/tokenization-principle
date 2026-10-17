@@ -83,8 +83,7 @@ def main():
     if args.output:
         os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
         with open(args.output, "w", encoding="utf-8") as f_out:
-            for hyp in hypotheses:
-                f_out.write(f"{hyp}\n")
+            f_out.writelines(f"{hyp}\n" for hyp in hypotheses)
     else:
         for hyp in hypotheses:
             print(hyp)

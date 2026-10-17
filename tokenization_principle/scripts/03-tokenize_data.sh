@@ -4,14 +4,14 @@
 # Fits and applies all tokenizers (Unigram, WordPiece, LZW, Morfessor, BPE variants)
 # across specified language pairs and vocabulary sizes into data/prepared/<lang>/<signature>/
 
-LANGS_LIST=("de-en" "cs-en")
+LANGS_LIST=("de-en" "cs-en" "zh-en")
 VOCAB_SIZES=("4000" "8000" "16000" "32000")
 
 mkdir -p logs
 
 for LANGS in "${LANGS_LIST[@]}"; do
     IFS='-' read -r -a L <<< "${LANGS}"
-    DATA_DIR="data/CCrawl.${LANGS}"
+    DATA_DIR="data/${LANGS}"
 
     for VOCAB_SIZE in "${VOCAB_SIZES[@]}"; do
         # 1. Standard Tokenizers (Unigram, WordPiece, LZW, Morfessor, Greedy BPE)

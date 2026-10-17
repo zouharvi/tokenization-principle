@@ -32,7 +32,7 @@ MARKER_STYLE = {
 }
 
 def get_quantity(line):
-    return line["bleu"]
+    return line["perf"]
 
 for vocab_size, data_vocabsize_local in data_vocabsize.items():
     for model, line_train in data_vocabsize_local.items():

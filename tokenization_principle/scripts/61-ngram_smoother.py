@@ -8,8 +8,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-di", "--data-in", nargs="+",
     default=[
-        "data/CCrawl.de-en/dev.tok.de",
-        "data/CCrawl.de-en/dev.tok.en",
+        "data/de-en/dev.tok.de",
+        "data/de-en/dev.tok.en",
     ])
 parser.add_argument(
     "-do", "--data-out", nargs="+",

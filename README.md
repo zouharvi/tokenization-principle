@@ -28,6 +28,7 @@ Then, run the following sequence:
 ```bash
 bash src/scripts/01-download_datasets.sh
 bash src/scripts/02-pretokenize_data.sh
+bash src/scripts/03-tokenize_data.sh
 ```
 
 Cite as:

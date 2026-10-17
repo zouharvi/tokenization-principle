@@ -2,6 +2,7 @@
 
 import collections
 import json
+
 from scipy.stats import pearsonr
 
 from tokenization_principle.figures.performance_predictors import get_predictor

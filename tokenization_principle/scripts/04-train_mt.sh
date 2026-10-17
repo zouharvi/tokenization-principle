@@ -4,7 +4,7 @@
 # Trains Transformer models for all prepared tokenizations in data/prepared/
 
 SEED="5"
-LANGS_LIST=("de-en" "cs-en")
+LANGS_LIST=("de-en" "cs-en" "zh-en")
 
 mkdir -p logs
 

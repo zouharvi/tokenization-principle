@@ -8,8 +8,8 @@ args = argparse.ArgumentParser()
 args.add_argument(
     "-i", "--input", nargs="+",
     default=[
-        "data/CCrawl.de-en/train.tok.en",
-        "data/CCrawl.de-en/train.tok.de"
+        "data/de-en/train.tok.en",
+        "data/de-en/train.tok.de"
     ]
 )
 args.add_argument("-vo", "--vocab-output", default="data/model_lzw/model.vocab")

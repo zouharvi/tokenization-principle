@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 
-import os
-import pickle
-import sys
-
-import multiprocess
 import argparse
 import collections
 import glob
+import os
+import pickle
 
+import multiprocess
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from tokenization_principle.figures.performance_predictors import get_predictor
 from scipy.stats import pearsonr, spearmanr
+
+from tokenization_principle.figures.performance_predictors import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/performance_predict_multi_lmm.py --predictor seq_len --write-cache
@@ -44,7 +43,7 @@ predictor, predictor_title = get_predictor(args.predictor)
 
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
-def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""):
+def load_mt_perf_single(model_name, train_lines_name, vocab_size_name, suffix=""):
     filename = f"logs/train_mt_{model_name}{suffix}_l{train_lines_name}_v{vocab_size_name}.log"
     if not os.path.isfile(filename):
         return None
@@ -56,25 +55,25 @@ def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""
         ]
     if data:
         perf = float(data[-1])
-        return bleu
+        return perf
     else:
         return None
 
 
-def load_mt_bleu(model_name, train_lines_name, vocab_size_name):
-    bleus = [
-        load_mt_bleu_single(
+def load_mt_perf(model_name, train_lines_name, vocab_size_name):
+    perfs = [
+        load_mt_perf_single(
             model_name, train_lines_name,
             vocab_size_name, suffix
         )
         for suffix in ["_s1", "_s2"]
     ]
-    bleus = [x for x in bleus if x]
-    if len(bleus) < 1:
+    perfs = [x for x in perfs if x]
+    if len(perfs) < 1:
         return None
     else:
-        print(bleus)
-        return np.max(bleus)
+        print(perfs)
+        return np.max(perfs)
 
 
 def process_logfile(fname):
@@ -90,22 +89,22 @@ def process_logfile(fname):
 
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    perf = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
-    if not bleu:
+    perf = load_mt_perf(model_name, train_lines_name, vocab_size_name)
+    if not perf:
         return None
     model_name = model_name.removeprefix("tokenizer_")
-    return (model_name, vocab_size_name, train_lines_name), ((data_en + data_de, vocab_size), bleu)
+    return (model_name, vocab_size_name, train_lines_name), ((data_en + data_de, vocab_size), perf)
 
 
 if args.load_cache:
-    with open("computed/bleu_corr_cache_multi.pkl", "rb") as f:
+    with open("computed/perf_corr_cache_multi.pkl", "rb") as f:
         data_flat = pickle.load(f)
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
         data_flat = [x for x in data_flat if x is not None]
     if args.write_cache:
-        with open("computed/bleu_corr_cache_multi.pkl", "wb") as f:
+        with open("computed/perf_corr_cache_multi.pkl", "wb") as f:
             pickle.dump(data_flat, f)
 
 
@@ -116,7 +115,7 @@ with multiprocess.Pool() as pool:
             x[0], (
                 # data, vocab_size, args
                 predictor(x[1][0][0], x[1][0][1], args_kwargs),
-                # bleu
+                # perf
                 x[1][1]
             )
         ),
@@ -162,8 +161,8 @@ for signature_i, (model_name, values) in enumerate(data):
     min_xs = min(min_xs, min(xs))
     max_xs = max(max_xs, max(xs))
 
-df = pd.DataFrame(data_out, columns =["model", "pred", "bleu"])
-md = smf.mixedlm("bleu ~ pred + model", df, groups=df["model"])
+df = pd.DataFrame(data_out, columns =["model", "pred", "perf"])
+md = smf.mixedlm("perf ~ pred + model", df, groups=df["model"])
 mdf = md.fit()
 print(mdf.summary())
 print("pred (pval)", mdf.pvalues["pred"])
@@ -172,12 +171,12 @@ print(mdf.normalized_cov_params)
 
 # https://www.statsmodels.org/stable/generated/statsmodels.regression.mixed_linear_model.MixedLMResults.html
 y_pred = mdf.predict()
-print("Pearson  (corr, p)", *pearsonr(y_pred, df["bleu"]))
-print("Spearman (corr, p)", *spearmanr(y_pred, df["bleu"]))
+print("Pearson  (corr, p)", *pearsonr(y_pred, df["perf"]))
+print("Spearman (corr, p)", *spearmanr(y_pred, df["perf"]))
 
 
-corr_pearson_mixed_rho, corr_pearson_mixed_pval = spearmanr(y_pred, df["bleu"])
-corr_pearson_all_rho, corr_pearson_all_pval = spearmanr(df["pred"], df["bleu"])
+corr_pearson_mixed_rho, corr_pearson_mixed_pval = spearmanr(y_pred, df["perf"])
+corr_pearson_all_rho, corr_pearson_all_pval = spearmanr(df["pred"], df["perf"])
 TEXT_LATEX=\
     f"{corr_pearson_mixed_rho:.1%}" + r" {\small(=" + f"{corr_pearson_mixed_pval:.3f}" + r")} & " \
     f"{corr_pearson_all_rho:.1%}" + r" {\small(=" + f"{corr_pearson_all_pval:.3f}" + r")}"

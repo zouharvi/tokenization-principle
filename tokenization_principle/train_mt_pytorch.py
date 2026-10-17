@@ -12,7 +12,7 @@ import time
 
 import sacrebleu
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.optim.lr_scheduler import LambdaLR
 
 PAD_ID, UNK_ID, BOS_ID, EOS_ID = 0, 1, 2, 3

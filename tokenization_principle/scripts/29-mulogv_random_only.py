@@ -4,7 +4,6 @@ import argparse
 import collections
 import json
 import os
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -2,13 +2,14 @@
 
 import argparse
 
-import fig_utils
 import matplotlib.pyplot as plt
 import numpy as np
 
+from tokenization_principle.figures import fig_utils
+
 args = argparse.ArgumentParser()
 args.add_argument("-f", type=int, default=0)
-args.add_argument("-d", "--data", default="data/CCrawl.de-en/dev.en")
+args.add_argument("-d", "--data", default="data/de-en/dev.en")
 args = args.parse_args()
 
 plt.figure(figsize=(2, 1.2))

@@ -4,10 +4,11 @@ import argparse
 import collections
 import glob
 
-import tokenization_principle.joint_imbalance.figures.fig_utils as fig_utils
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
+
+from tokenization_principle.joint_imbalance.figures import fig_utils
 
 
 # returns confidence interval of mean

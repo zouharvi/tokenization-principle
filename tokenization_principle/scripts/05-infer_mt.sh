@@ -3,7 +3,7 @@
 # Unified MT Inference Submission Script
 # Generates translations on the dev set for all trained models in data/prepared/
 
-LANGS_LIST=("de-en" "cs-en")
+LANGS_LIST=("de-en" "cs-en" "zh-en")
 
 mkdir -p logs
 

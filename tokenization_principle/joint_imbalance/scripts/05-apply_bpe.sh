@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-# python3 -m tokenization_principle.joint_imbalance.apply_bpe --vocab-input data/greedy_pmi/1000/model.bpe --input data/CCrawl.de-en/dev.tok.en --output data/greedy_pmi/1000/dev.en --number-of-lines 50000 --logfile computed/neophone_tmp.jsonl
+# python3 -m tokenization_principle.joint_imbalance.apply_bpe --vocab-input data/greedy_pmi/1000/model.bpe --input data/de-en/dev.tok.en --output data/greedy_pmi/1000/dev.en --number-of-lines 50000 --logfile computed/neophone_tmp.jsonl
 
 split_to_nol() {
     case $1 in
@@ -24,7 +24,7 @@ for VOCAB_SIZE in "2000" "4000"; do
             for LANG in "en" "de"; do
                 SIGNATURE="${SPLIT}_${LANG}_${BPE_MODEL}_${VOCAB_SIZE}"
                 BPE_PATH="data/${BPE_MODEL}/${VOCAB_SIZE}/model.bpe"
-                SRC_DATA_PATH="data/CCrawl.de-en/${SPLIT}.tok.${LANG}"
+                SRC_DATA_PATH="data/de-en/${SPLIT}.tok.${LANG}"
                 TGT_DATA_PATH="data/${BPE_MODEL}/${VOCAB_SIZE}/${SPLIT}.${LANG}"
 
                 echo "Submitting ${SIGNATURE}";

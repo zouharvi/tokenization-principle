@@ -7,7 +7,7 @@ from tokenization_principle.lempel_ziv_welsch.lzw import BaseLZW
 
 args = argparse.ArgumentParser()
 args.add_argument(
-    "-i", "--input", default="data/CCrawl.de-en/train.tok.en",
+    "-i", "--input", default="data/de-en/train.tok.en",
 )
 args.add_argument(
     "-o", "--output",

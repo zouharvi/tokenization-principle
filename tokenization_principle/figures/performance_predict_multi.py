@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
+import argparse
+import collections
+import glob
 import json
 import os
 import pickle
 import sys
 
-import multiprocess
-import argparse
-import collections
-import glob
-
 import matplotlib.pyplot as plt
+import multiprocess
 import numpy as np
 import scipy
+
 from tokenization_principle.figures.performance_predictors import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
@@ -44,7 +44,7 @@ TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
 
-def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""):
+def load_mt_perf_single(model_name, train_lines_name, vocab_size_name, suffix=""):
     filename = f"logs/train_mt_{model_name}{suffix}_l{train_lines_name}_v{vocab_size_name}.log"
     if not os.path.isfile(filename):
         # print("skipped", filename)
@@ -57,26 +57,26 @@ def load_mt_bleu_single(model_name, train_lines_name, vocab_size_name, suffix=""
         ]
     if data:
         perf = float(data[-1])
-        return bleu
+        return perf
     else:
         # print("skipped", filename)
         return None
 
 
-def load_mt_bleu(model_name, train_lines_name, vocab_size_name):
-    bleus = [
-        load_mt_bleu_single(
+def load_mt_perf(model_name, train_lines_name, vocab_size_name):
+    perfs = [
+        load_mt_perf_single(
             model_name, train_lines_name,
             vocab_size_name, suffix
         )
         for suffix in ["_s1", "_s2", "_s3", "_s4", "_s5"]
     ]
-    bleus = [x for x in bleus if x]
-    if len(bleus) < 1:
+    perfs = [x for x in perfs if x]
+    if len(perfs) < 1:
         return None
     else:
-        print(bleus)
-        return np.max(bleus)
+        print(perfs)
+        return np.max(perfs)
 
 
 def process_logfile(fname):
@@ -92,22 +92,22 @@ def process_logfile(fname):
 
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    perf = load_mt_bleu(model_name, train_lines_name, vocab_size_name)
-    if not bleu:
+    perf = load_mt_perf(model_name, train_lines_name, vocab_size_name)
+    if not perf:
         return None
     model_name = model_name.removeprefix("tokenizer_")
-    return (model_name, vocab_size_name, train_lines_name), ((data_en + data_de, vocab_size), bleu)
+    return (model_name, vocab_size_name, train_lines_name), ((data_en + data_de, vocab_size), perf)
 
 
 if args.load_cache:
-    with open("computed/bleu_corr_cache_multi.pkl", "rb") as f:
+    with open("computed/perf_corr_cache_multi.pkl", "rb") as f:
         data_flat = pickle.load(f)
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
         data_flat = [x for x in data_flat if x is not None]
     if args.write_cache:
-        with open("computed/bleu_corr_cache_multi.pkl", "wb") as f:
+        with open("computed/perf_corr_cache_multi.pkl", "wb") as f:
             pickle.dump(data_flat, f)
 
 
@@ -118,7 +118,7 @@ with multiprocess.Pool() as pool:
             x[0], (
                 # data, vocab_size, args
                 predictor(x[1][0][0], x[1][0][1], args_kwargs),
-                # bleu
+                # perf
                 x[1][1]
             )
         ),
@@ -243,7 +243,7 @@ print(
         "pearson": corr_pearson_rho, "spearman": corr_spearman_rho,
         "pearson_p": corr_pearson_pval, "spearman_p": corr_spearman_pval,
         "args": args_kwargs,
-        "bleus": data_all_y,
+        "perfs": data_all_y,
         "vals": data_all_x
     }),
     sep="",
@@ -272,7 +272,7 @@ plt.xlabel(predictor_title)
 plt.tight_layout(pad=0)
 
 plt.savefig(
-    "computed/figures/bleu_corr_" +
+    "computed/figures/perf_corr_" +
     args.predictor.replace(" ", "_") + ".pdf"
 )
 plt.show()

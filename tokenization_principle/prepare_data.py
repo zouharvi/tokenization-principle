@@ -9,9 +9,9 @@ import argparse
 import os
 import random
 import subprocess
-import sys
 import tempfile
 import time
+
 from tokenization_principle.lempel_ziv_welsch.lzw import BaseLZW
 from tokenization_principle.utils import get_model
 
@@ -143,8 +143,7 @@ def fit_and_apply_bpe(bpe_kind, vocab_size, train_fit_lines, splits_to_process, 
 
         encoded = model.encode(lines, method="greedy_naive")
         with open(out_path, "w", encoding="utf-8") as f_out:
-            for l in encoded:
-                f_out.write(l + "\n")
+            f_out.writelines(l + "\n" for l in encoded)
 
 
 # ---------------------------------------------------------------------------
@@ -169,8 +168,7 @@ def fit_and_apply_lzw(vocab_size, train_fit_lines, splits_to_process, out_dir):
 
         encoded = model.encode(lines)
         with open(out_path, "w", encoding="utf-8") as f_out:
-            for l in encoded:
-                f_out.write(l + "\n")
+            f_out.writelines(l + "\n" for l in encoded)
 
 
 # ---------------------------------------------------------------------------

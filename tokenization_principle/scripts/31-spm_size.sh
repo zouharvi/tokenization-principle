@@ -20,7 +20,7 @@ python3 -m tokenization_principle.wrappers.tokenizers_wrap \
     --number-of-lines 10000 \
     --process-number-of-lines 10000 \
     --logfile /dev/null \
-    --input data/CCrawl.de-en/dev.tok.en \
-    --process-input data/CCrawl.de-en/dev.tok.en \
+    --input data/de-en/dev.tok.en \
+    --process-input data/de-en/dev.tok.en \
     --process-output /dev/null \
 ;

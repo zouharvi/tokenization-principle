@@ -4,7 +4,7 @@ import argparse
 import collections
 
 args = argparse.ArgumentParser()
-args.add_argument("-d", "--data", default="data/CCrawl.de-en/train.tok.en")
+args.add_argument("-d", "--data", default="data/de-en/train.tok.en")
 args = args.parse_args()
 
 print("Loading data")

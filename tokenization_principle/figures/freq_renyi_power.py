@@ -2,11 +2,10 @@
 
 import argparse
 import json
-import sys
 
 import matplotlib.pyplot as plt
-import numpy as np
 import matplotlib.ticker as mtick
+import numpy as np
 
 from tokenization_principle import figures
 

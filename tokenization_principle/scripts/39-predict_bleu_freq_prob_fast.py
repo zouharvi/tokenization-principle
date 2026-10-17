@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import pickle
-import sys
-
-import multiprocess
-import tqdm
-import argparse
 from itertools import product
 
+import multiprocess
 import numpy as np
+import tqdm
 from scipy.stats import pearsonr, spearmanr
 from sklearn.model_selection import train_test_split
 
@@ -33,17 +31,17 @@ args_kwargs = vars(args)
 freq_alphas = np.arange(0, 1000, 1)/1000
 freq_alphas = product(freq_alphas, freq_alphas)
 
-with open("computed/bleu_corr_cache.pkl", "rb") as f:
+with open("computed/perf_corr_cache.pkl", "rb") as f:
     data_flat = pickle.load(f)
 data_flat_new = []
-data_flat_bleus = []
+data_flat_perfs = []
 for line in tqdm.tqdm(data_flat):
-    (vocab_size_name, temperature), ((data, vocab_size), bleu) = line
+    (vocab_size_name, temperature), ((data, vocab_size), perf) = line
     words_freqs, probs = get_prob_distribution(data)
     data_flat_new.append(
         (vocab_size_name, temperature, words_freqs, probs, vocab_size)
     )
-    data_flat_bleus.append(bleu)
+    data_flat_perfs.append(perf)
 
 data_flat = data_flat_new
 
@@ -87,7 +85,7 @@ def tasker(freq_alphas):
     ]
 
     data_train_x, _data_dev_x, data_train_y, _data_dev_y = train_test_split(
-        data_flat_bleus, data_local, test_size=0.5,
+        data_flat_perfs, data_local, test_size=0.5,
         random_state=0
     )
     pearson_rho, pearson_pval = pearsonr(data_train_x, data_train_y)

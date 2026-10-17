@@ -22,21 +22,27 @@ metric_chrf = evaluate.load("chrf")
 metric_scores = {
     "cs-en": collections.defaultdict(list),
     "de-en": collections.defaultdict(list),
+    "zh-en": collections.defaultdict(list),
 }
 
 lines_src_all: dict[str, set[str] | None] = {
     "cs-en": None,
     "de-en": None,
+    "zh-en": None,
 }
 
 ref_files = {
     "cs-en": {
-        "ref": "data/CCrawl.cs-en/dev.en",
-        "src": "data/CCrawl.cs-en/dev.cs",
+        "ref": "data/cs-en/dev.en",
+        "src": "data/cs-en/dev.cs",
     },
     "de-en": {
-        "ref": "data/CCrawl.de-en/dev.en",
-        "src": "data/CCrawl.de-en/dev.de",
+        "ref": "data/de-en/dev.en",
+        "src": "data/de-en/dev.de",
+    },
+    "zh-en": {
+        "ref": "data/zh-en/dev.en",
+        "src": "data/zh-en/dev.zh",
     },
 }
 
@@ -55,7 +61,7 @@ for f in tqdm.tqdm(dev_files):
     print(lang, signature)
     with open(f, "r") as file_in:
         lines_f = [l.rstrip() for l in file_in]
-    if any(l.startswith("S\t") or l.startswith("S-") for l in lines_f):
+    if any(l.startswith(("S\t", "S-")) for l in lines_f):
         text_src = [
             l.split("\t")[-1]
             for l in lines_f if l.startswith("S")
@@ -77,7 +83,7 @@ for f in tqdm.tqdm(dev_files):
 
     with open(f, "r") as file_in:
         lines_f = [l.rstrip() for l in file_in]
-    if any(l.startswith("H\t") or l.startswith("H-") for l in lines_f):
+    if any(l.startswith(("H\t", "H-")) for l in lines_f):
         text_src = [
             l.split("\t")[-1]
             for l in lines_f if l.startswith("S")

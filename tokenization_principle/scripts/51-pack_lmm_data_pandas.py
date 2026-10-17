@@ -6,19 +6,19 @@ import pickle
 import pandas as pd
 
 data_all = []
-for fname in glob.glob("computed/bleu_corr_cache_multi_processed_*.pkl"):
-    power = float(fname.split("/")[-1].removeprefix("bleu_corr_cache_multi_processed_").removesuffix(".pkl"))
+for fname in glob.glob("computed/perf_corr_cache_multi_processed_*.pkl"):
+    power = float(fname.split("/")[-1].removeprefix("perf_corr_cache_multi_processed_").removesuffix(".pkl"))
     with open(fname, "rb") as f:
         data_local = pickle.load(f)
     
     for tokenizer_name, tokenizer_data in data_local:
-        for (val_pred, val_bleu) in tokenizer_data.values():
+        for (val_pred, val_perf) in tokenizer_data.values():
             data_all.append((
-                power, tokenizer_name, val_pred, val_bleu
+                power, tokenizer_name, val_pred, val_perf
             ))
-            print(power, tokenizer_name, val_pred, val_bleu)
+            print(power, tokenizer_name, val_pred, val_perf)
 
-data_all = pd.DataFrame(data_all, columns=["alpha", "tokenizer", "pred", "bleu"])
+data_all = pd.DataFrame(data_all, columns=["alpha", "tokenizer", "pred", "perf"])
 data_all.to_csv("computed/experiment2.csv", index=False)
 
 data_all = pd.read_csv("computed/experiment2.csv")

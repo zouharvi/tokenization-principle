@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import sys
 
 import matplotlib.patches as mplp
 import matplotlib.pyplot as plt

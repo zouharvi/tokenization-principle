@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import pickle
-import sys
-
-import multiprocess
-import tqdm
-import argparse
 from itertools import product
 
+import multiprocess
 import numpy as np
+import tqdm
 from scipy.stats import pearsonr, spearmanr
 
 from tokenization_principle.figures.performance_predictors import get_prob_distribution
@@ -44,7 +42,7 @@ def predictor_renyi_eff(probs, vocab_size, power):
     ]))/np.log2(vocab_size)
     return freqs
 
-with open("computed/bleu_corr_cache.pkl", "rb") as f:
+with open("computed/perf_corr_cache.pkl", "rb") as f:
     data_flat = pickle.load(f)
 data_flat_new = []
 data_flat_renyis = []

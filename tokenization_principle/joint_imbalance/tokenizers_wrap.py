@@ -15,8 +15,8 @@ args = argparse.ArgumentParser()
 args.add_argument(
     "-i", "--input", nargs="+",
     default=[
-        "data/CCrawl.de-en/train.tok.en",
-        "data/CCrawl.de-en/train.tok.de"
+        "data/de-en/train.tok.en",
+        "data/de-en/train.tok.de"
     ]
 )
 args.add_argument(
@@ -26,12 +26,12 @@ args.add_argument(
 args.add_argument(
     "-pi", "--process-input", nargs="+",
     default=[
-        "data/CCrawl.de-en/dev.tok.en",
-        "data/CCrawl.de-en/dev.tok.de",
-        "data/CCrawl.de-en/test.tok.en",
-        "data/CCrawl.de-en/test.tok.de",
-        "data/CCrawl.de-en/train.tok.en",
-        "data/CCrawl.de-en/train.tok.de",
+        "data/de-en/dev.tok.en",
+        "data/de-en/dev.tok.de",
+        "data/de-en/test.tok.en",
+        "data/de-en/test.tok.de",
+        "data/de-en/train.tok.en",
+        "data/de-en/train.tok.de",
     ])
 args.add_argument(
     "-po", "--process-output", nargs="+",

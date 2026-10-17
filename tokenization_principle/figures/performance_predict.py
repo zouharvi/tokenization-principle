@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
+import argparse
+import collections
+import glob
 import json
 import os
 import pickle
 import sys
 
-import multiprocess
-import argparse
-import collections
-import glob
-
 import matplotlib.pyplot as plt
+import multiprocess
 import numpy as np
 import scipy
-from tokenization_principle.figures.performance_predictors import get_predictor
 from sklearn.model_selection import train_test_split
+
+from tokenization_principle.figures.performance_predictors import get_predictor
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./src/figures/performance_predict.py --predictor entropy --load-cache
@@ -50,7 +50,7 @@ TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
 
 
-def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
+def load_mt_perf_single(temperature, vocab_size_name, suffix=""):
     # TODO: for `repl`, switched to sacrebleu
     filename = f"logs/train_mt{suffix}_t{temperature}_v{vocab_size_name}.log"
     if not os.path.isfile(filename):
@@ -64,23 +64,23 @@ def load_mt_bleu_single(temperature, vocab_size_name, suffix=""):
         ]
     if data:
         perf = float(data[-1])
-        return bleu
+        return perf
     else:
         print("skipped", filename)
         return None
 
 
-def load_mt_bleu(temperature, vocab_size_name):
-    bleus = [
-        load_mt_bleu_single(temperature, vocab_size_name, suffix)
+def load_mt_perf(temperature, vocab_size_name):
+    perfs = [
+        load_mt_perf_single(temperature, vocab_size_name, suffix)
         for suffix in ["_s1", "_s2", "_s3", "_s4", "_s5"]
     ]
-    bleus = [x for x in bleus if x]
-    print(bleus)
-    if len(bleus) < 1:
+    perfs = [x for x in perfs if x]
+    print(perfs)
+    if len(perfs) < 1:
         return None
     else:
-        return np.max(bleus)
+        return np.max(perfs)
 
 
 def process_logfile(fname):
@@ -97,18 +97,18 @@ def process_logfile(fname):
     temperature = float(temperature)
     vocab_size = int(vocab_size_name.replace("k", "000"))
 
-    perf = load_mt_bleu(temperature_name, vocab_size_name)
-    return (vocab_size_name, temperature), ((data_en + data_de, vocab_size), bleu)
+    perf = load_mt_perf(temperature_name, vocab_size_name)
+    return (vocab_size_name, temperature), ((data_en + data_de, vocab_size), perf)
 
 
 if args.load_cache:
-    with open("computed/bleu_corr_cache.pkl", "rb") as f:
+    with open("computed/perf_corr_cache.pkl", "rb") as f:
         data_flat = pickle.load(f)
 else:
     with multiprocess.Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
     if args.write_cache:
-        with open("computed/bleu_corr_cache.pkl", "wb") as f:
+        with open("computed/perf_corr_cache.pkl", "wb") as f:
             pickle.dump(data_flat, f)
 
 with multiprocess.Pool() as pool:
@@ -274,7 +274,7 @@ print(
         "pearson": float(corr_pearson_rho), "spearman": float(corr_spearman_rho),
         "pearson_p": float(corr_pearson_pval), "spearman_p": float(corr_spearman_pval),
         "args": args_kwargs,
-        "bleus": data_all_y,
+        "perfs": data_all_y,
         "vals": [float(x) for x in data_all_x]
     }),
     sep="",
