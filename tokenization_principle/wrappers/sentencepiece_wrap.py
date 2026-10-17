@@ -27,7 +27,7 @@ args.add_argument("-po", "--process-output", nargs="+",
     ])
 args.add_argument(
     "-pn", "--process-number-of-lines", type=int, nargs="+",
-    default=[50000, 50000, 50000, 50000, 1000000, 1000000]
+    default=[50000, 50000, 50000, 50000, 10000000, 10000000]
 )
 args.add_argument("-vo", "--vocab-output", default="data/model_spm/")
 args.add_argument("-vs", "--vocab-size", type=int, default=8192)

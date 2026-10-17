@@ -20,7 +20,7 @@ args.add_argument(
 )
 args.add_argument(
     "-n", "--number-of-lines",
-    type=int, default=1000000
+    type=int, default=10000000
 )
 args.add_argument(
     "--method", default="greedy_naive"

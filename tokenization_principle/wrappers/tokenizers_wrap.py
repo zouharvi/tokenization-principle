@@ -43,7 +43,7 @@ args.add_argument(
     ])
 args.add_argument(
     "-pn", "--process-number-of-lines", type=int, nargs="+",
-    default=[50000, 50000, 50000, 50000, 1000000, 1000000]
+    default=[50000, 50000, 50000, 50000, 10000000, 10000000]
 )
 args.add_argument("-vs", "--vocab-size", type=int, default=8000)
 args.add_argument("-n", "--number-of-lines", type=int, default=100000)

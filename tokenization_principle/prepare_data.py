@@ -40,7 +40,7 @@ def parse_args():
 
     # Line limits
     parser.add_argument("--fit-lines", type=int, default=100000, help="Number of training lines to fit tokenizer on")
-    parser.add_argument("--train-lines", type=int, default=1000000, help="Max lines to tokenize for train split")
+    parser.add_argument("--train-lines", type=int, default=10000000, help="Max lines to tokenize for train split")
     parser.add_argument("--dev-lines", type=int, default=50000, help="Max lines to tokenize for dev split")
     parser.add_argument("--test-lines", type=int, default=50000, help="Max lines to tokenize for test split")
 

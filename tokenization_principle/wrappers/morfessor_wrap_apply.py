@@ -16,7 +16,7 @@ args.add_argument(
     "-o", "--output",
     default="data/model_morfessor/train.en",
 )
-args.add_argument("-n", "--number-of-lines", type=int, default=100000)
+args.add_argument("-n", "--number-of-lines", type=int, default=10000000)
 args.add_argument("-m", "--model", default="data/model_morfessor/model.pkl")
 # morfessor, flatcat
 args.add_argument("--morfessor", default="morfessor")

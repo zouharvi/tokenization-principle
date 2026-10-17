@@ -19,7 +19,7 @@ args.add_argument(
 )
 args.add_argument(
     "-n", "--number-of-lines",
-    type=int, default=1000000
+    type=int, default=10000000
 )
 args.add_argument("--logfile", default=None)
 args = args.parse_args()
