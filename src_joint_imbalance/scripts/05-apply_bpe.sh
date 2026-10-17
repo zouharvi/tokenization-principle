@@ -29,8 +29,8 @@ for VOCAB_SIZE in "2000" "4000"; do
 
                 echo "Submitting ${SIGNATURE}";
                 sbatch --time=1-0 --ntasks=50 --mem-per-cpu=1G \
-                    --output="logs/apply_bpe_${SIGNATURE}.log" \
-                    --job-name="apply_bpe_${SIGNATURE}" \
+                    -J "apply_bpe_${SIGNATURE}" \
+                    --output=logs/%x.out --error=logs/%x.err \
                     --wrap="python3 ./src/apply_bpe.py \
                         --input ${SRC_DATA_PATH} \
                         --output ${TGT_DATA_PATH} \

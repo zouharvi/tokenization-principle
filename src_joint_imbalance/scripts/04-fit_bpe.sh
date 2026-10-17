@@ -14,8 +14,8 @@ for VOCAB_SIZE in "2000" "4000"; do
             ;
 
         # sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        # --output="logs/fit_bpe_${SIGNATURE}.log" \
-        # --job-name="fit_bpe_${SIGNATURE}" \
+        # -J "fit_bpe_${SIGNATURE}" \
+        # --output=logs/%x.out --error=logs/%x.err \
         # --wrap="python3 ./src/fit_bpe.py \
         #         --model $BPE_MODEL \
         #         --vocab-output data/${BPE_MODEL}/${VOCAB_SIZE}/model.bpe \

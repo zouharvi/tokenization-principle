@@ -6,8 +6,8 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
         SIGNATURE="greedy_beamsearch_n${BEAM_N}_e${BEAM_N_EXPAND}_v${VOCAB_SIZE}"
         echo "Submitting ${SIGNATURE}";
         sbatch --time=14-0 --ntasks=5 --mem-per-cpu=2G \
-            --output="logs/fit_bpe_${SIGNATURE}.log" \
-            --job-name="fit_bpe_${SIGNATURE}" \
+            -J "fit_bpe_${SIGNATURE}" \
+            --output=logs/%x.out --error=logs/%x.err \
             --wrap="time python3 ./src/fit_bpe.py \
                 --model greedy_beamsearch \
                 --vocab-output computed/small/greedy_beamsearch_n${BEAM_N}_e${BEAM_N_EXPAND}_v${VOCAB_SIZE}.bpe_merges \
@@ -23,8 +23,8 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
     SIGNATURE="greedy_small"
     echo "Submitting ${SIGNATURE}";
     sbatch --time=1-0 --ntasks=5 --mem-per-cpu=2G \
-        --output="logs/fit_bpe_${SIGNATURE}.log" \
-        --job-name="fit_bpe_${SIGNATURE}" \
+        -J "fit_bpe_${SIGNATURE}" \
+        --output=logs/%x.out --error=logs/%x.err \
         --wrap="time python3 ./src/fit_bpe.py \
             --model greedy \
             --vocab-output computed/small/greedy_v${VOCAB_SIZE}.bpe_merges \

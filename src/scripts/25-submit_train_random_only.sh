@@ -41,8 +41,8 @@ for FILES in \
 
             mkdir -p "data/model_bpe_random/${LANGS}/${SIGNATURE}"
             sbatch --time=1-0 --ntasks=10 --mem-per-cpu=3G \
-                --output="logs/fit_bpe_random_${LANGS}_${SIGNATURE}.log" \
-                --job-name="fit_bpe_random_${LANGS}_${SIGNATURE}" \
+                -J "fit_bpe_random_${LANGS}_${SIGNATURE}" \
+                --output=logs/%x.out --error=logs/%x.err \
                 --wrap="python3 ./src/fit_bpe.py \
                     --model random \
                     --randomness-dist softmax \

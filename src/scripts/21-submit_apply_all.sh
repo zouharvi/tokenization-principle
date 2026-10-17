@@ -31,8 +31,8 @@ for LANG in "en" "de"; do
 
         echo "Submitting LZW";
         sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-            --output="logs/apply_lzw_${LANG}_${SPLIT}_${SIGNATURE}.log" \
-            --job-name="apply_lzw_${LANG}_${SPLIT}_${SIGNATURE}" \
+            -J "apply_lzw_${LANG}_${SPLIT}_${SIGNATURE}" \
+            --output=logs/%x.out --error=logs/%x.err \
             --wrap="python3 ./src/lempel_ziv_welsch/apply_lzw.py \
                 --vocab-input data/model_lzw/${SIGNATURE}/model.vocab \
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
@@ -43,8 +43,8 @@ for LANG in "en" "de"; do
 
         echo "Submitting Morfessor";
         sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-            --output="logs/apply_morfessor_${LANG}_${SPLIT}_${SIGNATURE}.log" \
-            --job-name="apply_morfessor_${LANG}_${SPLIT}_${SIGNATURE}" \
+            -J "apply_morfessor_${LANG}_${SPLIT}_${SIGNATURE}" \
+            --output=logs/%x.out --error=logs/%x.err \
             --wrap="python3 ./src/wrappers/morfessor_wrap_apply.py \
                 --model data/model_morfessor/${SIGNATURE}/model.pkl \
                 --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \
@@ -57,8 +57,8 @@ for LANG in "en" "de"; do
     # for TEMPERATURE in "0.4" "1000"; do
     #     echo "Submitting BPE Random";
     #     sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-    #         --output="logs/apply_bpe_random_${SIGNATURE}.log" \
-    #         --job-name="apply_bpe_random_${SIGNATURE}" \
+    #         -J "apply_bpe_random_${SIGNATURE}" \
+    #         --output=logs/%x.out --error=logs/%x.err \
     #         --wrap="python3 ./src/apply_bpe.py \
     #             --vocab-input data/model_bpe_random/${TEMPERATURE}/model.bpe_merges \
     #             --input data/CCrawl.de-en/${SPLIT}.tok.${LANG} \

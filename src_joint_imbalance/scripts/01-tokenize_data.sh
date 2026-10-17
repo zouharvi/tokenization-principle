@@ -17,8 +17,8 @@ for BALANCE_NAME in "300k-300k" "500k-100k" "100k-500k" "600k-000k" "000k-600k";
     mkdir -p $DIR
     
     sbatch --time=0-1 --ntasks=40 --mem-per-cpu=1G \
-    --job-name="tokenize_${BALANCE_NAME}" \
-    --output="logs/tokenize_${BALANCE_NAME}.log" \
+    -J "tokenize_${BALANCE_NAME}" \
+    --output=logs/%x.out --error=logs/%x.err \
     --wrap="./src/tokenizers_wrap.py \
         --model bpe \
         --logfile computed/glossology.jsonl \

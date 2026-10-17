@@ -15,8 +15,8 @@ for TRAIN_LINES in "100000" "8000" "2000"; do
 
     echo "Submitting LZW";
     sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="/cluster/home/vzouhar/random-bpe/logs/fit_lzw_${SIGNATURE}.log" \
-        --job-name="fit_lzw_${SIGNATURE}" \
+        -J "fit_lzw_${SIGNATURE}" \
+        --output=logs/%x.out --error=logs/%x.err \
         --wrap="python3 ./src/lempel_ziv_welsch/fit_lzw.py \
             --vocab-output data/model_lzw/${SIGNATURE}/model.vocab \
             --vocab-size ${VOCAB_SIZE} \
@@ -25,8 +25,8 @@ for TRAIN_LINES in "100000" "8000" "2000"; do
 
     echo "Submitting Morfessor";
     sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-        --output="/cluster/home/vzouhar/random-bpe/logs/fit_morfessor_${SIGNATURE}.log" \
-        --job-name="fit_morfessor_${SIGNATURE}" \
+        -J "fit_morfessor_${SIGNATURE}" \
+        --output=logs/%x.out --error=logs/%x.err \
         --wrap="python3 ./src/wrappers/morfessor_wrap_train.py \
             --vocab-output data/model_morfessor/${SIGNATURE}/model.pkl \
             --vocab-size ${VOCAB_SIZE} \
@@ -38,8 +38,8 @@ for TRAIN_LINES in "100000" "8000" "2000"; do
 
         echo "Submitting tokenizer/${TOKENIZER_METHOD} (${TRAIN_LINES_NAME})";
         sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-            --output="/cluster/home/vzouhar/random-bpe/logs/fit_tokenizer_${TOKENIZER_METHOD}_${SIGNATURE}.log" \
-            --job-name="fit_tokenizer_${TOKENIZER_METHOD}_${SIGNATURE}" \
+            -J "fit_tokenizer_${TOKENIZER_METHOD}_${SIGNATURE}" \
+            --output=logs/%x.out --error=logs/%x.err \
             --wrap="python3 ./src/wrappers/tokenizers_wrap.py \
                 --vocab-output data/model_tokenizer_${TOKENIZER_METHOD}/${SIGNATURE}/model.json \
                 --model ${TOKENIZER_METHOD} \

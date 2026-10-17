@@ -62,8 +62,8 @@ for PREFIX in "PCrawl.zh-en" "CCrawl.de-en" "CCrawl.cs-en"; do
             mkdir -p "data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/"
 
             sbatch --time=0-4 --ntasks=50 --mem-per-cpu=500M \
-                --output="logs_repl/apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}.log" \
-                --job-name="apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}" \
+                -J "apply_bpe_random_${LANGSSTR}_${SIGNATURE}_${SPLIT}" \
+                --output=logs/%x.out --error=logs/%x.err \
                 --wrap="python3 ./src/apply_bpe.py \
                     --vocab-input data/model_bpe_random/${LANGSSTR}/${SIGNATURE}/model.bpe_merges \
                     --input data/${PREFIX}/${SPLIT}.tok.${LANG} \

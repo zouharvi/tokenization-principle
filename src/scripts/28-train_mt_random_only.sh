@@ -33,8 +33,8 @@ for TEMPERATURE in "0.05" "0.4" "100" "-0.9" "-0.2"; do
     mkdir -p "logs_repl"
 
     sbatch --time=07-00 --ntasks=3 --mem-per-cpu=10G --gpus=1 \
-        --job-name="train_mt_${SIGNATURE} (${LANG1}-${LANG2})" \
-        --output="logs_repl/train_mt_${SIGNATURE}_${LANG1}-${LANG2}.log" \
+        -J "train_mt_${SIGNATURE} (${LANG1}-${LANG2})" \
+        --output=logs/%x.out --error=logs/%x.err \
         --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/train_mt_pytorch.py \
             --train-src \"${DATA_DIR}/train.${LANG1}\" \
             --train-tgt \"${DATA_DIR}/train.${LANG2}\" \

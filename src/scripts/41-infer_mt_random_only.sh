@@ -12,8 +12,8 @@ function launch_mt_infer() {
     
     awk 'length >= 1 && length <= 100' "${3}" > "${3}.small"
     sbatch --time=00-01 --ntasks=4 --mem-per-cpu=4G --gpus=1 \
-    --job-name="infer_mt_${2}" \
-    --output="logs_repl/infer_mt_${2}.log" \
+    -J "infer_mt_${2}" \
+    --output=logs/%x.out --error=logs/%x.err \
     --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/infer_mt_pytorch.py \
         --model-path ${MODEL_PATH} \
         --input ${3}.small \

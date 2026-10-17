@@ -15,8 +15,8 @@ for VOCAB_SIZE in "4096" "8192" "16384"; do
                 if test -f "${BPE_PATH}" && ! test -f "${TGT_DATA_PATH}"; then
                     echo "Submitting ${SIGNATURE}";
                     sbatch --time=1-0 --ntasks=20 --mem-per-cpu=2G \
-                        --output="logs/apply_bpe_${SIGNATURE}.log" \
-                        --job-name="apply_bpe_${SIGNATURE}" \
+                        -J "apply_bpe_${SIGNATURE}" \
+                        --output=logs/%x.out --error=logs/%x.err \
                         --wrap="python3 ./src/apply_bpe.py \
                             --input ${SRC_DATA_PATH} \
                             --output ${TGT_DATA_PATH} \

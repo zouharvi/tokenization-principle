@@ -21,8 +21,8 @@ do
         mkdir -p "${CHECKPOINT_DIR}/checkpoints"
 
         sbatch --time=07-00 --ntasks=8 --mem-per-cpu=4G --gpus=1 \
-            --job-name="train_mt_${MODEL}_${SIGNATURE}" \
-            --output="logs/train_mt_${MODEL}_${SIGNATURE}.log" \
+            -J "train_mt_${MODEL}_${SIGNATURE}" \
+            --output=logs/%x.out --error=logs/%x.err \
             --wrap="CUDA_VISIBLE_DEVICES=0 python3 ./src/train_mt_pytorch.py \
                 --train-src \"${DATA_DIR}/train.${LANG1}\" \
                 --train-tgt \"${DATA_DIR}/train.${LANG2}\" \
