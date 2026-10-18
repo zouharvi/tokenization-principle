@@ -66,10 +66,11 @@ for f in tqdm.tqdm(dev_files):
         with open(ref_files[lang]["src"], "r") as file_src:
             text_src = [l.rstrip() for l in file_src if 1 <= len(l.rstrip()) <= 100][:len(lines_f)]
 
-    if lines_src_all[lang] is None:
+    cur_set = lines_src_all[lang]
+    if cur_set is None:
         lines_src_all[lang] = set(text_src)
     else:
-        lines_src_all[lang] &= set(text_src)
+        lines_src_all[lang] = cur_set & set(text_src)
 
 for f in tqdm.tqdm(dev_files):
     lang, signature = parse_lang_sig(f)

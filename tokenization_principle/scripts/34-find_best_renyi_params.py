@@ -4,20 +4,23 @@ import argparse
 import json
 import pickle
 
-import multiprocess
+from itertools import product
+from typing import Any
+
+from multiprocess.pool import Pool
 import numpy as np
 import tqdm
 from scipy.stats import pearsonr, spearmanr
 from sklearn.model_selection import train_test_split
-from tokenization_scorer.metrics import get_metric, get_prob_distribution
+from tokenization_scorer.metrics import get_metric
 
-args = argparse.ArgumentParser(description="Find optimal power/alpha parameter for Rényi efficiency.")
-args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
-args.add_argument("--cache", default="computed/perf_corr_cache.pkl")
-args.add_argument("--power-min", type=float, default=0.1)
-args.add_argument("--power-max", type=float, default=10.0)
-args.add_argument("--power-step", type=float, default=0.1)
-args = args.parse_args()
+parser = argparse.ArgumentParser(description="Find optimal power/alpha parameter for Rényi efficiency.")
+parser.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
+parser.add_argument("--cache", default="computed/perf_corr_cache.pkl")
+parser.add_argument("--power-min", type=float, default=0.1)
+parser.add_argument("--power-max", type=float, default=10.0)
+parser.add_argument("--power-step", type=float, default=0.1)
+args = parser.parse_args()
 
 powers = np.arange(args.power_min, args.power_max + args.power_step / 2, args.power_step)
 
@@ -44,20 +47,24 @@ def evaluate_power(power):
     data_train_x, _data_dev_x, data_train_y, _data_dev_y = train_test_split(
         data_flat_perfs, data_local, test_size=0.5, random_state=0
     )
-    p_rho, p_pval = pearsonr(data_train_x, data_train_y)
-    s_rho, s_pval = spearmanr(data_train_x, data_train_y)
+    p_res: Any = pearsonr(data_train_x, data_train_y)
+    s_res: Any = spearmanr(data_train_x, data_train_y)
+    p_rho = float(p_res[0])
+    p_pval = float(p_res[1])
+    s_rho = float(s_res[0])
+    s_pval = float(s_res[1])
 
     return {
         "power": float(power),
-        "pearson": float(p_rho),
-        "pearson_p": float(p_pval),
-        "spearman": float(s_rho),
-        "spearman_p": float(s_pval),
+        "pearson": p_rho,
+        "pearson_p": p_pval,
+        "spearman": s_rho,
+        "spearman_p": s_pval,
     }
 
 
 def main():
-    with multiprocess.Pool() as pool:
+    with Pool() as pool:
         results = list(pool.imap_unordered(evaluate_power, powers))
 
     valid_results = [r for r in results if not np.isnan(r["pearson"])]

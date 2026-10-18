@@ -10,9 +10,9 @@ from .base import BaseBPE
 COLLAPSE_WHITESPACE = re.compile(r"\s+")
 
 class Beam:
-    def __init__(self, merge_operations, corpus_freqs):
+    def __init__(self, merge_operations, corpus_freqs: dict[str, int]):
         self.merge_operations = copy.deepcopy(merge_operations)
-        self.corpus_freqs = copy.deepcopy(corpus_freqs)
+        self.corpus_freqs: dict[str, int] = copy.deepcopy(corpus_freqs)
         self.score = 0
 
     def add_pair(self, pair: tuple):
@@ -38,7 +38,7 @@ class GreedyBeamSearchOldBPE(BaseBPE):
         self.beam_n = beam_n
         self.beam_n_expand = beam_n_expand
 
-    def choose_pair_to_merge(self, pairs):
+    def choose_pair_to_merge(self, pairs) -> list[tuple[tuple[str, str], int]]:  # type: ignore[override]
         pairs = list(pairs.items())
         pairs.sort(key=lambda x: x[1], reverse=True)
         # TODO: there is no point in self.beam_n_expand > self.beam_n

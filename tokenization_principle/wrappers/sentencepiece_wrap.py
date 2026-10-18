@@ -2,12 +2,14 @@
 
 import argparse
 import json
+from typing import Any
 
-import sentencepiece as spm
+import sentencepiece as _spm
+spm: Any = _spm
 
-args = argparse.ArgumentParser()
-args.add_argument("-i", "--input", nargs="+", default=["data/de-en/train.tok.en", "data/de-en/train.tok.de"])
-args.add_argument("-pi", "--process-input", nargs="+",
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--input", nargs="+", default=["data/de-en/train.tok.en", "data/de-en/train.tok.de"])
+parser.add_argument("-pi", "--process-input", nargs="+",
     default=[
         "data/de-en/dev.tok.en",
         "data/de-en/dev.tok.de",
@@ -16,7 +18,7 @@ args.add_argument("-pi", "--process-input", nargs="+",
         "data/de-en/train.tok.en",
         "data/de-en/train.tok.de",
     ])
-args.add_argument("-po", "--process-output", nargs="+",
+parser.add_argument("-po", "--process-output", nargs="+",
     default=[
         "data/model_spm/dev.tok.en",
         "data/model_spm/dev.tok.de",
@@ -25,18 +27,18 @@ args.add_argument("-po", "--process-output", nargs="+",
         "data/model_spm/train.en",
         "data/model_spm/train.de",
     ])
-args.add_argument(
+parser.add_argument(
     "-pn", "--process-number-of-lines", type=int, nargs="+",
     default=[50000, 50000, 50000, 50000, 10000000, 10000000]
 )
-args.add_argument("-vo", "--vocab-output", default="data/model_spm/")
-args.add_argument("-vs", "--vocab-size", type=int, default=8192)
-args.add_argument("-n", "--number-of-lines", type=int, default=100000)
+parser.add_argument("-vo", "--vocab-output", default="data/model_spm/")
+parser.add_argument("-vs", "--vocab-size", type=int, default=8192)
+parser.add_argument("-n", "--number-of-lines", type=int, default=100000)
 # unigram, bpe
-args.add_argument("-m", "--model", default="unigram")
-args.add_argument("--logfile", default=None)
+parser.add_argument("-m", "--model", default="unigram")
+parser.add_argument("--logfile", default=None)
 
-args = args.parse_args()
+args = parser.parse_args()
 
 print("Fitting model")
 spm.SentencePieceTrainer.train(

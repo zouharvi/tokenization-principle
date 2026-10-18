@@ -11,6 +11,7 @@ import random
 import subprocess
 import tempfile
 import time
+from typing import Any
 
 from tokenization_principle.lempel_ziv_welsch.lzw import BaseLZW
 from tokenization_principle.utils import get_model
@@ -59,20 +60,21 @@ def fit_and_apply_hf(tokenizer_type, vocab_size, train_fit_lines, splits_to_proc
     import tokenizers.models
     import tokenizers.pre_tokenizers
     import tokenizers.trainers
+    tok_models: Any = tokenizers.models
 
     if tokenizer_type == "unigram":
-        tok_model = tokenizers.models.Unigram()
+        tok_model: Any = tok_models.Unigram()
         trainer = tokenizers.trainers.UnigramTrainer(
             vocab_size=vocab_size, special_tokens=["[UNK]"], unk_token="[UNK]"
         )
     elif tokenizer_type == "wordpiece":
-        tok_model = tokenizers.models.WordPiece()
+        tok_model: Any = tok_models.WordPiece()
         tok_model.unk_token = "[UNK]"
         trainer = tokenizers.trainers.WordPieceTrainer(
             vocab_size=vocab_size, special_tokens=["[UNK]"]
         )
     elif tokenizer_type == "hf_bpe":
-        tok_model = tokenizers.models.BPE()
+        tok_model: Any = tok_models.BPE()
         tok_model.unk_token = "[UNK]"
         trainer = tokenizers.trainers.BpeTrainer(
             vocab_size=vocab_size, special_tokens=["[UNK]"]
@@ -80,7 +82,7 @@ def fit_and_apply_hf(tokenizer_type, vocab_size, train_fit_lines, splits_to_proc
     else:
         raise ValueError(f"Unknown HF tokenizer: {tokenizer_type}")
 
-    tokenizer = tokenizers.Tokenizer(tok_model)
+    tokenizer: Any = tokenizers.Tokenizer(tok_model)
     tokenizer.pre_tokenizer = tokenizers.pre_tokenizers.WhitespaceSplit()
 
     # Write fit corpus to temporary file

@@ -8,4 +8,4 @@ class GreedyAlmostBPE(BaseBPE):
         print("Using n of", greedy_n)
 
     def choose_pair_to_merge(self, pairs):
-        return sorted({p: v for p, v in pairs.items()}, key=pairs.get, reverse=True)[self.n]
+        return sorted({p: v for p, v in pairs.items()}, key=lambda x: pairs[x], reverse=True)[self.n]

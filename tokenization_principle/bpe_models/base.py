@@ -156,6 +156,7 @@ class BaseBPE:
             # TODO: this is a greedy decoding approach which is not optimal
             # The "greediness" in here is different from the BPE building
             found = False
+            subword = ""
             for subword in subword_vocab:
                 if token.startswith(subword):
                     found = True
@@ -185,9 +186,9 @@ class BaseBPE:
         merge_operations = [
             " " + x + " " for x in self.merge_operations if " " in x]
 
-        import multiprocess
+        from multiprocess.pool import Pool
 
-        with multiprocess.Pool() as pool:
+        with Pool() as pool:
             out = pool.map(
                 lambda line: " ".join([
                     self.encode_token_merge_operations(
@@ -207,9 +208,9 @@ class BaseBPE:
         )
         subword_vocab.sort(key=lambda x: len(x), reverse=True)
 
-        import multiprocess
+        from multiprocess.pool import Pool
 
-        with multiprocess.Pool() as pool:
+        with Pool() as pool:
             out = pool.map(
                 lambda line: " ".join([
                     self.encode_token_greedy_naive(

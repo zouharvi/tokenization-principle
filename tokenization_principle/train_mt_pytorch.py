@@ -10,6 +10,8 @@ import os
 import random
 import time
 
+from typing import Optional
+
 import sacrebleu
 import torch
 from torch import nn
@@ -100,7 +102,7 @@ class Seq2SeqTransformer(nn.Module):
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         self.lm_head.weight = self.embedding.weight
 
-    def encode(self, src: torch.Tensor, src_key_padding_mask: torch.Tensor = None):
+    def encode(self, src: torch.Tensor, src_key_padding_mask: Optional[torch.Tensor] = None):
         pos = torch.arange(src.size(1), device=src.device)
         x = self.emb_dropout(self.embedding(src) * math.sqrt(self.d_model) + self.pos_emb(pos))
         return self.transformer.encoder(x, src_key_padding_mask=src_key_padding_mask)
@@ -109,8 +111,8 @@ class Seq2SeqTransformer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        tgt_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
+        tgt_mask: Optional[torch.Tensor] = None,
+        memory_key_padding_mask: Optional[torch.Tensor] = None,
     ):
         pos = torch.arange(tgt.size(1), device=tgt.device)
         x = self.emb_dropout(self.embedding(tgt) * math.sqrt(self.d_model) + self.pos_emb(pos))

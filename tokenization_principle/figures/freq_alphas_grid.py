@@ -39,7 +39,7 @@ for e_a in range(DIM):
             pass
 
 image = np.ma.masked_invalid(image)
-cmap = cm.YlGn.copy()
+cmap = plt.get_cmap("YlGn").copy()
 cmap.set_bad('gray', 0.05)
 mappable = ax1.imshow(image, cmap=cmap, aspect="auto", interpolation="none")
 

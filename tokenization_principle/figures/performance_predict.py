@@ -9,12 +9,11 @@ import pickle
 import sys
 
 import matplotlib.pyplot as plt
-import multiprocess
+from multiprocess.pool import Pool
 import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split
-
-from tokenization_scorer import score, METRIC_TITLES
+from tokenization_scorer import METRIC_TITLES, score
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./tokenization_principle/figures/performance_predict.py --predictor entropy --load-cache
@@ -25,24 +24,24 @@ from tokenization_scorer import score, METRIC_TITLES
 # ./tokenization_principle/figures/performance_predict.py --predictor gowda --freq-alpha-start 0.03 --freq-alpha-end 0.83 --load-cache
 
 
-args = argparse.ArgumentParser()
-args.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
-args.add_argument("-p", "--predictor", default="bits")
-args.add_argument("--load-cache", action="store_true")
-args.add_argument("--no-graphics", action="store_true")
-args.add_argument("--data-train", action="store_true")
-args.add_argument("--write-cache", action="store_true")
-args.add_argument("--ci", type=float, default=0.95)
-args.add_argument("--freq-alpha-start", type=float, default=0.0)
-args.add_argument("--freq-alpha-end", type=float, default=1.0)
-args.add_argument("--power", type=float, default=None)
-args.add_argument("--central-measure", default=None)
-args.add_argument("--base-vals", default=None)
-args.add_argument("--aggregator", default=None)
-args = args.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--data", default="data/model_bpe_random/*/dev.en")
+parser.add_argument("-p", "--predictor", default="bits")
+parser.add_argument("--load-cache", action="store_true")
+parser.add_argument("--no-graphics", action="store_true")
+parser.add_argument("--data-train", action="store_true")
+parser.add_argument("--write-cache", action="store_true")
+parser.add_argument("--ci", type=float, default=0.95)
+parser.add_argument("--freq-alpha-start", type=float, default=0.0)
+parser.add_argument("--freq-alpha-end", type=float, default=1.0)
+parser.add_argument("--power", type=float, default=None)
+parser.add_argument("--central-measure", default=None)
+parser.add_argument("--base-vals", default=None)
+parser.add_argument("--aggregator", default=None)
+args = parser.parse_args()
 args_kwargs = vars(args)
 
-predictor_title = METRIC_TITLES.get(args.predictor, args.predictor.replace("_", " ").capitalize())
+predictor_title: str = str(METRIC_TITLES.get(args.predictor) or args.predictor.replace("_", " ").capitalize())
 
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
@@ -103,7 +102,7 @@ if args.load_cache:
     with open("computed/perf_corr_cache.pkl", "rb") as f:
         data_flat = pickle.load(f)
 else:
-    with multiprocess.Pool() as pool:
+    with Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
     if args.write_cache:
         with open("computed/perf_corr_cache.pkl", "wb") as f:
@@ -131,7 +130,7 @@ def compute_metric(item):
     metric_val = score(text, metric=args.predictor, **score_kwargs)
     return (vocab_size_name, temp), (metric_val, perf)
 
-with multiprocess.Pool() as pool:
+with Pool() as pool:
     data_flat = pool.map(compute_metric, data_flat)
 
 

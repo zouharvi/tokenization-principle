@@ -2,10 +2,11 @@
 
 import collections
 import json
+from typing import Any
 
 from scipy.stats import pearsonr
-
-from tokenization_scorer import score as compute_score, METRIC_TITLES
+from tokenization_scorer import METRIC_TITLES
+from tokenization_scorer import score as compute_score
 
 with open("computed/metric_scores_repl.json", "r") as f:
     data_metrics_1 = json.load(f)
@@ -61,6 +62,7 @@ for predictor_key, predictor_args in PREDICTORS:
         for metric in ["chrf", "bleurt", "comet"]:
             metric_list = data_predictions[lang][metric]
             pred_list = data_predictions[lang][predictor_key]
-            score = float(pearsonr(metric_list, pred_list)[0])**2
+            p_res: Any = pearsonr(metric_list, pred_list)
+            score = float(p_res[0]) ** 2
             print(f"{score:.0%}".replace("%", "\\%"), end=" & ")
     print("\\\\")

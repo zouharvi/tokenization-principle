@@ -64,6 +64,7 @@ class BaseLZW:
 
             # TODO: this is a greedy decoding approach which is not optimal
             found = False
+            subword = ""
             for subword in subword_vocab:
                 if token.startswith(subword):
                     found = True
@@ -85,9 +86,9 @@ class BaseLZW:
         # make sure it's sorted from longest to shortest
         subword_vocab = sorted(self.vocab, key=lambda x: len(x), reverse=True)
 
-        import multiprocess
+        from multiprocess.pool import Pool
 
-        with multiprocess.Pool() as pool:
+        with Pool() as pool:
             out = pool.map(
                 lambda line: " ".join([
                     self.encode_token_greedy_naive(

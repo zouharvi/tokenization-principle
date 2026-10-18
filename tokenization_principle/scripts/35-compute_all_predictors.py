@@ -4,9 +4,9 @@ import argparse
 import glob
 import json
 import os
-import tomllib
 from pathlib import Path
 
+import tomllib
 from tokenization_scorer import score
 
 METRICS_TO_COMPUTE = [

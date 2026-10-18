@@ -1,5 +1,7 @@
+from typing import Any
 
-def get_model(name):
+
+def get_model(name: str) -> Any:
     if name == "greedy":
         from tokenization_principle.joint_imbalance.bpe_models.greedy import GreedyBPE
         return GreedyBPE

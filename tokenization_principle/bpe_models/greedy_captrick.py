@@ -3,7 +3,7 @@ from .base import COLLAPSE_WHITESPACE, BaseBPE, Counter
 
 class GreedyCaptrickBPE(BaseBPE):
     def choose_pair_to_merge(self, pairs):
-        return max(pairs, key=pairs.get)
+        return max(pairs, key=lambda x: pairs[x])
 
     def build_vocab_freq(self, corpus: list[str]):
         """Build vocab from text corpus"""

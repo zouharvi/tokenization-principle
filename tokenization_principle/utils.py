@@ -1,13 +1,21 @@
+from typing import Any
 
-def get_model(name):
+
+def get_model(name: str) -> Any:
     if name == "greedy_beamsearch":
-        from tokenization_principle.bpe_models.greedy_beamsearch import GreedyBeamSearchBPE
+        from tokenization_principle.bpe_models.greedy_beamsearch import (
+            GreedyBeamSearchBPE,
+        )
         return GreedyBeamSearchBPE
     elif name == "greedy_beamsearch_old":
-        from tokenization_principle.bpe_models.greedy_beamsearch_old import GreedyBeamSearchOldBPE
+        from tokenization_principle.bpe_models.greedy_beamsearch_old import (
+            GreedyBeamSearchOldBPE,
+        )
         return GreedyBeamSearchOldBPE
     elif name == "greedy_beamsearch_new":
-        from tokenization_principle.bpe_models.greedy_beamsearch_new import GreedyBeamSearchNewBPE
+        from tokenization_principle.bpe_models.greedy_beamsearch_new import (
+            GreedyBeamSearchNewBPE,
+        )
         return GreedyBeamSearchNewBPE
     elif name == "greedy":
         from tokenization_principle.bpe_models.greedy import GreedyBPE
@@ -22,7 +30,9 @@ def get_model(name):
         from tokenization_principle.bpe_models.antigreedy import AntiGreedyBPE
         return AntiGreedyBPE
     elif name == "antigreedyalmost":
-        from tokenization_principle.bpe_models.antigreedyalmost import AntiGreedyAlmostBPE
+        from tokenization_principle.bpe_models.antigreedyalmost import (
+            AntiGreedyAlmostBPE,
+        )
         return AntiGreedyAlmostBPE
     elif name == "random":
         from tokenization_principle.bpe_models.random import RandomBPE

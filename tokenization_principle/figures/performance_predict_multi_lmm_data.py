@@ -6,10 +6,9 @@ import glob
 import os
 import pickle
 
-import multiprocess
+from multiprocess.pool import Pool
 import numpy as np
-
-from tokenization_scorer import score, METRIC_TITLES
+from tokenization_scorer import METRIC_TITLES, score
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
 # ./tokenization_principle/figures/performance_predict_multi_lmm_data.py --predictor seq_len --write-cache
@@ -24,21 +23,21 @@ from tokenization_scorer import score, METRIC_TITLES
 #     ./tokenization_principle/figures/performance_predict_multi_lmm_data.py --predictor renyi_eff --freq-alpha-start 0.0 --freq-alpha-end 1.0 --power $POWER --write-cache --write-cache-name _$POWER
 # done;
 
-args = argparse.ArgumentParser()
-args.add_argument("-d", "--data", default="data/*/*/dev.en")
-args.add_argument("-p", "--predictor", default="bits")
-args.add_argument("--load-cache", action="store_true")
-args.add_argument("--write-cache", action="store_true")
-args.add_argument("--write-cache-name", default="")
-args.add_argument("--ci", type=float, default=0.95)
-args.add_argument("--freq-alpha-start", type=float, default=0.0)
-args.add_argument("--freq-alpha-end", type=float, default=1.0)
-args.add_argument("--power", type=float, default=None)
-args.add_argument("--central-measure", default=None)
-args.add_argument("--base-vals", default=None)
-args.add_argument("--aggregator", default=None)
-args.add_argument("--data-out", default=None)
-args = args.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--data", default="data/*/*/dev.en")
+parser.add_argument("-p", "--predictor", default="bits")
+parser.add_argument("--load-cache", action="store_true")
+parser.add_argument("--write-cache", action="store_true")
+parser.add_argument("--write-cache-name", default="")
+parser.add_argument("--ci", type=float, default=0.95)
+parser.add_argument("--freq-alpha-start", type=float, default=0.0)
+parser.add_argument("--freq-alpha-end", type=float, default=1.0)
+parser.add_argument("--power", type=float, default=None)
+parser.add_argument("--central-measure", default=None)
+parser.add_argument("--base-vals", default=None)
+parser.add_argument("--aggregator", default=None)
+parser.add_argument("--data-out", default=None)
+args = parser.parse_args()
 args_kwargs = vars(args)
 
 predictor_title = METRIC_TITLES.get(args.predictor, args.predictor.replace("_", " ").capitalize())
@@ -102,7 +101,7 @@ if args.load_cache:
     with open("computed/perf_corr_cache_multi.pkl", "rb") as f:
         data_flat = pickle.load(f)
 else:
-    with multiprocess.Pool() as pool:
+    with Pool() as pool:
         data_flat = pool.map(process_logfile, glob.glob(args.data))
         data_flat = [x for x in data_flat if x is not None]
     if args.write_cache:
@@ -132,7 +131,7 @@ def compute_metric(item):
     metric_val = score(text, metric=args.predictor, **score_kwargs)
     return (model_name, vocab_size_name, train_lines_name), (metric_val, perf)
 
-with multiprocess.Pool() as pool:
+with Pool() as pool:
     data_flat = pool.map(compute_metric, data_flat)
 
 for (model_name, vocab_size_name, train_lines_name), val in data_flat:

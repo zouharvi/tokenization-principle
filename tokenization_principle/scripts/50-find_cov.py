@@ -4,7 +4,7 @@ import collections
 from statistics import covariance
 
 import numpy as np
-from dahuffman import HuffmanCodec
+from dahuffman import HuffmanCodec  # type: ignore
 
 # load & split data
 with open("data/dev.bpe.en", "r") as f:

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
 
-from tokenization_principle import figures
+from tokenization_principle.figures import fig_utils
 
 args = argparse.ArgumentParser()
 args.add_argument("-i", "--input", default="computed/renyi_vals_sub.jsonl")
@@ -47,13 +47,13 @@ ax1.plot(
     [line["args"]["power"] for line in data],
     [(line["pearson"]) for line in data],
     label="Pearson",
-    color=figures.fig_utils.COLORS[0],
+    color=fig_utils.COLORS[0],
 )
 ax1.plot(
     [line["args"]["power"] for line in data],
     [(line["spearman"]) for line in data],
     label="Spearman",
-    color=figures.fig_utils.COLORS[1],
+    color=fig_utils.COLORS[1],
 )
 # markeredgewidth
 STAR_KWARGS = {
@@ -65,13 +65,13 @@ STAR_KWARGS = {
 ax1.scatter(
     2*[best_pearson["args"]["power"]],
     [0.37, best_pearson["pearson"]],
-    color=figures.fig_utils.COLORS[0],
+    color=fig_utils.COLORS[0],
     **STAR_KWARGS
 )
 ax1.scatter(
     2*[best_spearman["args"]["power"]],
     [0.37, best_spearman["spearman"]],
-    color=figures.fig_utils.COLORS[1],
+    color=fig_utils.COLORS[1],
     **STAR_KWARGS
 )
 
@@ -80,7 +80,7 @@ ax2.plot(
     [line["args"]["power"] for line in data],
     [np.average(line["vals"])*100 for line in data],
     label=r"H$_\alpha\,$/\,H$_0$",
-    color=figures.fig_utils.COLORS[2],
+    color=fig_utils.COLORS[2],
     linestyle="-.",
 )
 
