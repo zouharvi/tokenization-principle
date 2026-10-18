@@ -14,17 +14,15 @@ import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split
 
-from tokenization_principle.figures.performance_predictors import get_predictor
+from tokenization_scorer import score, METRIC_TITLES
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/performance_predict.py --predictor entropy --load-cache
-# ./src/figures/performance_predict.py --predictor entropy_eff --load-cache
-# ./src/figures/performance_predict.py --predictor seq_len --load-cache
-# ./src/figures/performance_predict.py --predictor renyi --power 3.0 --load-cache
-# ./src/figures/performance_predict.py --predictor renyi_eff --power 2.5 --load-cache
-# ./src/figures/performance_predict.py --predictor freq --freq-alpha-start 0.03 --freq-alpha-end 0.83 --power 1 --load-cache
-# ./src/figures/performance_predict.py --predictor freq_prob --freq-alpha-start 0.75 --freq-alpha-end 0.90 --power 1 --load-cache
-# ./src/figures/performance_predict.py --predictor freq_prob_square --freq-alpha-start 0.25 --freq-alpha-end 0.75 --load-cache
+# ./tokenization_principle/figures/performance_predict.py --predictor entropy --load-cache
+# ./tokenization_principle/figures/performance_predict.py --predictor entropy_eff --load-cache
+# ./tokenization_principle/figures/performance_predict.py --predictor seq_len --load-cache
+# ./tokenization_principle/figures/performance_predict.py --predictor renyi --power 3.0 --load-cache
+# ./tokenization_principle/figures/performance_predict.py --predictor renyi_eff --power 2.5 --load-cache
+# ./tokenization_principle/figures/performance_predict.py --predictor gowda --freq-alpha-start 0.03 --freq-alpha-end 0.83 --load-cache
 
 
 args = argparse.ArgumentParser()
@@ -44,7 +42,7 @@ args.add_argument("--aggregator", default=None)
 args = args.parse_args()
 args_kwargs = vars(args)
 
-predictor, predictor_title = get_predictor(args.predictor)
+predictor_title = METRIC_TITLES.get(args.predictor, args.predictor.replace("_", " ").capitalize())
 
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
@@ -111,15 +109,30 @@ else:
         with open("computed/perf_corr_cache.pkl", "wb") as f:
             pickle.dump(data_flat, f)
 
+def compute_metric(item):
+    (vocab_size_name, temp), ((text, vocab_size), perf) = item
+    score_kwargs = {
+        "vocab": vocab_size,
+        "verbose": False,
+    }
+    if args.power is not None:
+        score_kwargs["power"] = args.power
+    if args.freq_alpha_start is not None:
+        score_kwargs["perc_start"] = args.freq_alpha_start
+    if args.freq_alpha_end is not None:
+        score_kwargs["perc_end"] = args.freq_alpha_end
+    if args.central_measure is not None:
+        score_kwargs["central_measure"] = args.central_measure
+    if args.aggregator is not None:
+        score_kwargs["aggregator"] = args.aggregator
+    if args.base_vals is not None:
+        score_kwargs["base_vals"] = args.base_vals
+
+    metric_val = score(text, metric=args.predictor, **score_kwargs)
+    return (vocab_size_name, temp), (metric_val, perf)
+
 with multiprocess.Pool() as pool:
-    data_flat = pool.map(
-        lambda x: (
-            x[0], (
-                predictor(x[1][0][0], x[1][0][1], args_kwargs),
-                x[1][1])
-        ),
-        data_flat
-    )
+    data_flat = pool.map(compute_metric, data_flat)
 
 
 for (vocab_size_name, temperature), val in data_flat:
@@ -307,12 +320,12 @@ plt.legend(
 )
 # add space for legend
 plt.ylim(min(data_all_y) - 0.2, max(data_all_y) + 0.85)
-plt.ylabel("Dev BLEU")
+plt.ylabel("Dev chrF")
 plt.xlabel(predictor_title)
 plt.tight_layout(pad=0.1)
 
 plt.savefig(
-    "computed/figures/bleu_corr_" +
+    "computed/figures/perf_corr_" +
     args.predictor.replace(" ", "_") + ".pdf"
 )
 plt.show()

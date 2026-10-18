@@ -96,7 +96,7 @@ ax1.legend(
     bbox_to_anchor=(1, 0.15)
 )
 
-ax1.set_ylabel(r"H$_\alpha$/H$_0$ correlation with BLEU")
+ax1.set_ylabel(r"H$_\alpha$/H$_0$ correlation with chrF")
 ax1.set_xlabel(r"$\alpha$")
 ax2.set_ylabel(r"H$_\alpha$/H$_0$ value")
 plt.tight_layout(pad=0.2)

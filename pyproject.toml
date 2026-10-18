@@ -12,6 +12,7 @@ dependencies = [
     "sacremoses",
     "tokenizers",
     "sacrebleu",
+    "tokenization-scorer",
 ]
 
 [project.urls]

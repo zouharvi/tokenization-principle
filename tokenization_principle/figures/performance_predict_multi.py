@@ -13,12 +13,12 @@ import multiprocess
 import numpy as np
 import scipy
 
-from tokenization_principle.figures.performance_predictors import get_predictor
+from tokenization_scorer import score, METRIC_TITLES
 
 # rsync -azP euler:/cluster/work/sachan/vilem/random-bpe/logs/train_mt_*.log logs/
-# ./src/figures/performance_predict_multi.py --predictor bits --write-cache
-# ./src/figures/performance_predict_multi.py --predictor seq_len --write-cache
-# ./src/figures/performance_predict_multi.py --predictor renyi_eff --power 3.0 --load-cache
+# ./tokenization_principle/figures/performance_predict_multi.py --predictor bits --write-cache
+# ./tokenization_principle/figures/performance_predict_multi.py --predictor seq_len --write-cache
+# ./tokenization_principle/figures/performance_predict_multi.py --predictor renyi_eff --power 3.0 --load-cache
 
 
 args = argparse.ArgumentParser()
@@ -38,7 +38,7 @@ args.add_argument("--data-out", default=None)
 args = args.parse_args()
 args_kwargs = vars(args)
 
-predictor, predictor_title = get_predictor(args.predictor)
+predictor_title = METRIC_TITLES.get(args.predictor, args.predictor.replace("_", " ").capitalize())
 
 TEMPERATURES = set()
 data = collections.defaultdict(lambda: collections.defaultdict(dict))
@@ -111,19 +111,30 @@ else:
             pickle.dump(data_flat, f)
 
 
+def compute_metric(item):
+    (model_name, vocab_size_name, train_lines_name), ((text, vocab_size), perf) = item
+    score_kwargs = {
+        "vocab": vocab_size,
+        "verbose": False,
+    }
+    if args.power is not None:
+        score_kwargs["power"] = args.power
+    if args.freq_alpha_start is not None:
+        score_kwargs["perc_start"] = args.freq_alpha_start
+    if args.freq_alpha_end is not None:
+        score_kwargs["perc_end"] = args.freq_alpha_end
+    if args.central_measure is not None:
+        score_kwargs["central_measure"] = args.central_measure
+    if args.aggregator is not None:
+        score_kwargs["aggregator"] = args.aggregator
+    if args.base_vals is not None:
+        score_kwargs["base_vals"] = args.base_vals
+
+    metric_val = score(text, metric=args.predictor, **score_kwargs)
+    return (model_name, vocab_size_name, train_lines_name), (metric_val, perf)
+
 with multiprocess.Pool() as pool:
-    data_flat = pool.map(
-        lambda x: (
-            # signature stuff
-            x[0], (
-                # data, vocab_size, args
-                predictor(x[1][0][0], x[1][0][1], args_kwargs),
-                # perf
-                x[1][1]
-            )
-        ),
-        data_flat
-    )
+    data_flat = pool.map(compute_metric, data_flat)
 
 
 for (model_name, vocab_size_name, train_lines_name), val in data_flat:
@@ -267,7 +278,7 @@ plt.legend(
 )
 # add space for legend
 plt.ylim(min(data_all_y) - 0.2, max(data_all_y) + 0.85)
-plt.ylabel("Dev BLEU")
+plt.ylabel("Dev chrF")
 plt.xlabel(predictor_title)
 plt.tight_layout(pad=0)
 

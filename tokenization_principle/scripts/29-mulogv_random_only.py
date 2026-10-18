@@ -97,7 +97,7 @@ if not args.bits:
     )
 
 plt.legend()
-plt.ylabel("Dev BLEU")
+plt.ylabel("Dev chrF")
 if args.bits:
     plt.xlabel("Bits needed for encoding (lower is better)")
 else:

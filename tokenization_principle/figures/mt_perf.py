@@ -8,7 +8,7 @@ import fig_utils
 import matplotlib.pyplot as plt
 
 args = argparse.ArgumentParser()
-args.add_argument("-l", "--logfile", default="computed/apply_bpe_all_bleu.jsonl")
+args.add_argument("-l", "--logfile", default="computed/apply_bpe_all_chrf.jsonl")
 args = args.parse_args()
 
 with open(args.logfile, "r") as f:
@@ -59,7 +59,7 @@ for vocab_size, data_vocabsize_local in data_vocabsize.items():
             marker=MARKER_STYLE[model_name]
         )
 
-plt.ylabel(r"BLEU (avg EN$\leftrightarrow$DE)")
+plt.ylabel(r"chrF (avg EN$\leftrightarrow$DE)")
 plt.xlabel("Subword count of 200k train lines (millions)")
 plt.legend(
     ncol=3,
