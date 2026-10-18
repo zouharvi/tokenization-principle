@@ -3,7 +3,7 @@
 # Unified MT Training Submission Script
 # Trains Transformer models for all prepared tokenizations in data/prepared/
 
-SEED="5"
+SEED="0"
 LANGS_LIST=("de-en" "cs-en" "zh-en")
 
 mkdir -p logs
@@ -20,7 +20,7 @@ for LANGS in "${LANGS_LIST[@]}"; do
         mkdir -p "${CHECKPOINT_DIR}"
 
         echo "Submitting MT training: ${LANGS} ${SIGNATURE}"
-        sbatch --time=07-00 --ntasks=8 --mem-per-cpu=4G --gpus=1 \
+        sbatch --time=07-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
             --job-name="train_mt_${LANGS}_${SIGNATURE}" \
             --output="logs/train_mt_${LANGS}_${SIGNATURE}.log" \
             --wrap="CUDA_VISIBLE_DEVICES=0 python3 -m tokenization_principle.train_mt_pytorch \
@@ -46,3 +46,4 @@ for LANGS in "${LANGS_LIST[@]}"; do
             "
     done
 done
+
