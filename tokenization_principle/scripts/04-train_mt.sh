@@ -31,19 +31,44 @@ for LANGS in "${LANGS_LIST[@]}"; do
                 --save-dir \"${CHECKPOINT_DIR}\" \
                 --max-tokens 12288 \
                 --embed-dim 512 \
-                --ffn-dim 1024 \
+                --ffn-dim 2048 \
                 --encoder-layers 6 \
                 --decoder-layers 6 \
-                --num-heads 4 \
-                --lr 5e-4 \
-                --warmup-updates 4000 \
+                --num-heads 8 \
+                --lr 1e-4 \
+                --warmup-updates 8000 \
                 --dropout 0.3 \
                 --weight-decay 0.0001 \
                 --clip-norm 0.5 \
                 --label-smoothing 0.1 \
-                --patience 5 \
+                --patience 3 \
                 --seed ${SEED} \
             "
     done
 done
 
+
+sbatch --time=01-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
+    --job-name="train_mt_de-en_unigram_v32000" \
+    --output="logs/train_mt_de-en_unigram_v32000.log" \
+    --wrap="CUDA_VISIBLE_DEVICES=0 python3 -m tokenization_principle.train_mt_pytorch \
+        --train-src \"data/prepared/de-en/unigram_v32000/train.de\" \
+        --train-tgt \"data/prepared/de-en/unigram_v32000/train.en\" \
+        --valid-src \"data/prepared/de-en/unigram_v32000/dev.de\" \
+        --valid-tgt \"data/prepared/de-en/unigram_v32000/dev.en\" \
+        --save-dir \"data/prepared/de-en/unigram_v32000/checkpoints\" \
+        --max-tokens 12288 \
+        --embed-dim 512 \
+        --ffn-dim 2048 \
+        --encoder-layers 6 \
+        --decoder-layers 6 \
+        --num-heads 8 \
+        --lr 1e-4 \
+        --warmup-updates 8000 \
+        --dropout 0.3 \
+        --weight-decay 0.0001 \
+        --clip-norm 0.5 \
+        --label-smoothing 0.1 \
+        --patience 3 \
+        --seed 0 \
+    "
