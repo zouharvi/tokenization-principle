@@ -23,7 +23,8 @@ for LANGS in "${LANGS_LIST[@]}"; do
         sbatch --time=07-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
             --job-name="train_mt_${LANGS}_${SIGNATURE}" \
             --output="logs/train_mt_${LANGS}_${SIGNATURE}.log" \
-            --wrap="CUDA_VISIBLE_DEVICES=0 python3 -m tokenization_principle.train_mt_pytorch \
+            --wrap="python3 -u -m tokenization_principle.train_mt_pytorch \
+                --device cuda \
                 --train-src \"${MODEL_DIR}/train.${LANG1}\" \
                 --train-tgt \"${MODEL_DIR}/train.${LANG2}\" \
                 --valid-src \"${MODEL_DIR}/dev.${LANG1}\" \
@@ -51,7 +52,8 @@ done
 sbatch --time=01-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
     --job-name="train_mt_de-en_unigram_v32000" \
     --output="logs/train_mt_de-en_unigram_v32000.log" \
-    --wrap="CUDA_VISIBLE_DEVICES=0 python3 -m tokenization_principle.train_mt_pytorch \
+    --wrap="python3 -u -m tokenization_principle.train_mt_pytorch \
+        --device cuda \
         --train-src \"data/prepared/de-en/unigram_v32000/train.de\" \
         --train-tgt \"data/prepared/de-en/unigram_v32000/train.en\" \
         --valid-src \"data/prepared/de-en/unigram_v32000/dev.de\" \

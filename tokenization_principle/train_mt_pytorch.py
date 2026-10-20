@@ -8,6 +8,7 @@ import collections
 import math
 import os
 import random
+import sys
 import time
 
 from typing import Optional
@@ -59,11 +60,13 @@ class Vocabulary:
         return len(self.id2token)
 
 
-def build_vocab(src_path: str, tgt_path: str, max_size: int = 32768):
+def build_vocab(src_path: str, tgt_path: str, max_size: int = 32768, max_lines: Optional[int] = None):
     counts = collections.Counter()
     for p in (src_path, tgt_path):
         with open(p, "r", encoding="utf-8") as f:
-            for l in f:
+            for i, l in enumerate(f):
+                if max_lines is not None and i >= max_lines:
+                    break
                 counts.update(l.strip().split())
     v = Vocabulary()
     for tok, _ in counts.most_common(max(0, max_size - len(v))):
@@ -175,10 +178,12 @@ def greedy_translate(model, sentences, vocab, device, max_len=120, batch_size=12
     return translations
 
 
-def load_pairs(src_file: str, tgt_file: str, vocab: Vocabulary, max_len: int = 256):
+def load_pairs(src_file: str, tgt_file: str, vocab: Vocabulary, max_len: int = 256, max_lines: Optional[int] = None):
     pairs = []
     with open(src_file, "r", encoding="utf-8") as fs, open(tgt_file, "r", encoding="utf-8") as ft:
-        for ls, lt in zip(fs, ft):
+        for i, (ls, lt) in enumerate(zip(fs, ft)):
+            if max_lines is not None and i >= max_lines:
+                break
             s_ids, t_ids = vocab.encode(ls), vocab.encode(lt)
             if 0 < len(s_ids) <= max_len and 0 < len(t_ids) <= max_len:
                 pairs.append((s_ids, t_ids))
@@ -220,6 +225,9 @@ def collate(batch, device):
 
 
 def main():
+    getattr(sys.stdout, "reconfigure", lambda **kw: None)(line_buffering=True)
+    getattr(sys.stderr, "reconfigure", lambda **kw: None)(line_buffering=True)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--train-src", required=True)
     parser.add_argument("--train-tgt", required=True)
@@ -230,6 +238,8 @@ def main():
     parser.add_argument("--save-dir", default="checkpoints")
     parser.add_argument("--vocab-file", default=None)
     parser.add_argument("--max-vocab-size", type=int, default=32768)
+    parser.add_argument("--max-train-lines", type=int, default=None, help="Max lines to load for training")
+    parser.add_argument("--device", default="auto", choices=["auto", "cuda", "cpu"], help="Compute device (auto, cuda, cpu)")
     parser.add_argument("--embed-dim", type=int, default=512)
     parser.add_argument("--ffn-dim", type=int, default=1024)
     parser.add_argument("--encoder-layers", type=int, default=6)
@@ -251,14 +261,26 @@ def main():
     os.makedirs(args.save_dir, exist_ok=True)
     random.seed(args.seed)
     torch.manual_seed(args.seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    amp_dtype = torch.bfloat16 if (torch.cuda.is_available() and torch.cuda.is_bf16_supported()) else torch.float16
+
+    if args.device == "cuda":
+        assert torch.cuda.is_available(), "CUDA device was explicitly requested via --device cuda, but torch.cuda.is_available() is False!"
+        device = torch.device("cuda")
+    elif args.device == "cpu":
+        device = torch.device("cpu")
+    else:
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            print("WARNING: CUDA is not available. Falling back to CPU.", flush=True)
+            device = torch.device("cpu")
+
+    amp_dtype = torch.bfloat16 if (device.type == "cuda" and torch.cuda.is_bf16_supported()) else torch.float16
 
     # Vocab & Data
     vocab_path = args.vocab_file or os.path.join(args.save_dir, "vocab.txt")
-    vocab = Vocabulary.load(vocab_path) if os.path.exists(vocab_path) else build_vocab(args.train_src, args.train_tgt, args.max_vocab_size)
+    vocab = Vocabulary.load(vocab_path) if os.path.exists(vocab_path) else build_vocab(args.train_src, args.train_tgt, args.max_vocab_size, max_lines=args.max_train_lines)
     vocab.save(vocab_path)
-    train_pairs = load_pairs(args.train_src, args.train_tgt, vocab)
+    train_pairs = load_pairs(args.train_src, args.train_tgt, vocab, max_lines=args.max_train_lines)
 
     with open(args.valid_src, "r", encoding="utf-8") as fs, open(args.valid_tgt, "r", encoding="utf-8") as ft:
         valid_srcs = [l.strip() for l in fs]
@@ -291,7 +313,7 @@ def main():
     patience_cnt = 0
     global_step = 0
 
-    print(f"Starting training on {device} ({len(train_pairs)} pairs)...")
+    print(f"Starting training on {device} ({len(train_pairs)} pairs)...", flush=True)
     for epoch in range(1, args.max_epochs + 1):
         epoch_start = time.time()
         model.train()
@@ -319,14 +341,14 @@ def main():
             if global_step % args.log_interval == 0:
                 tok_s = running_toks / max(1e-5, time.time() - step_t)
                 cur_lr = scheduler.get_last_lr()[0]
-                print(f"Epoch {epoch:2d} | Step {global_step:6d} | lr {cur_lr:.2e} | loss {running_loss/max(1, running_toks):.4f} | {tok_s:,.0f} tok/s")
+                print(f"Epoch {epoch:2d} | Step {global_step:6d} | lr {cur_lr:.2e} | loss {running_loss/max(1, running_toks):.4f} | {tok_s:,.0f} tok/s", flush=True)
                 running_loss, running_toks, step_t = 0.0, 0, time.time()
 
         # Validation: Evaluate chrF via sacrebleu instead of loss
         eval_n = min(len(valid_srcs), 2000)
         hypotheses = greedy_translate(model, valid_srcs[:eval_n], vocab, device)
         val_chrf = sacrebleu.corpus_chrf(hypotheses, [valid_refs[:eval_n]]).score
-        print(f"=== Epoch {epoch:2d} | Time: {time.time()-epoch_start:.1f}s | Val chrF: {val_chrf:.2f} ===")
+        print(f"=== Epoch {epoch:2d} | Time: {time.time()-epoch_start:.1f}s | Val chrF: {val_chrf:.2f} ===", flush=True)
 
         if val_chrf > best_chrf:
             best_chrf = val_chrf
@@ -338,11 +360,11 @@ def main():
                 "val_chrf": val_chrf,
                 "args": vars(args),
             }, os.path.join(args.save_dir, "checkpoint_best.pt"))
-            print(f"[*] New best checkpoint (chrF: {val_chrf:.2f})")
+            print(f"[*] New best checkpoint (chrF: {val_chrf:.2f})", flush=True)
         else:
             patience_cnt += 1
             if patience_cnt >= args.patience:
-                print(f"Early stopping at epoch {epoch}.")
+                print(f"Early stopping at epoch {epoch}.", flush=True)
                 break
 
     # Final test evaluation
@@ -363,7 +385,7 @@ def main():
     with open(os.path.join(args.save_dir, "eval_hypotheses.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(test_hyps) + "\n")
 
-    print(f"epoch {best_epoch} | chrf {test_chrf:.2f} | best_chrf {best_chrf:.2f}")
+    print(f"epoch {best_epoch} | chrf {test_chrf:.2f} | best_chrf {best_chrf:.2f}", flush=True)
 
 
 if __name__ == "__main__":
