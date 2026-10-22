@@ -25,7 +25,7 @@ for LANGS in "${LANGS_LIST[@]}"; do
             --output="logs/train_mt_${LANGS}_${SIGNATURE}.log" \
             --wrap="python3 -u -m tokenization_principle.train_mt_pytorch \
                 --device cuda \
-                --max-train-lines 100000 \
+                --max-train-lines 10000000 \
                 --train-src \"${MODEL_DIR}/train.${LANG1}\" \
                 --train-tgt \"${MODEL_DIR}/train.${LANG2}\" \
                 --valid-src \"${MODEL_DIR}/dev.${LANG1}\" \
@@ -37,25 +37,25 @@ for LANGS in "${LANGS_LIST[@]}"; do
                 --encoder-layers 6 \
                 --decoder-layers 6 \
                 --num-heads 8 \
-                --lr 1e-4 \
-                --warmup-updates 8000 \
+                --lr 1e-3 \
+                --warmup-updates 1000 \
                 --dropout 0.3 \
                 --weight-decay 0.0001 \
                 --clip-norm 0.5 \
                 --label-smoothing 0.1 \
-                --patience 3 \
+                --patience 2 \
                 --seed ${SEED} \
             "
     done
 done
 
 
-sbatch --time=04:00:00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
+sbatch --time=01-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
     --job-name="train_mt_de-en_unigram_v32000" \
     --output="logs/train_mt_de-en_unigram_v32000.log" \
     --wrap="python3 -u -m tokenization_principle.train_mt_pytorch \
         --device cuda \
-        --max-train-lines 100000 \
+        --max-train-lines 10000000 \
         --train-src \"data/prepared/de-en/unigram_v32000/train.de\" \
         --train-tgt \"data/prepared/de-en/unigram_v32000/train.en\" \
         --valid-src \"data/prepared/de-en/unigram_v32000/dev.de\" \
@@ -67,12 +67,12 @@ sbatch --time=04:00:00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
         --encoder-layers 6 \
         --decoder-layers 6 \
         --num-heads 8 \
-        --lr 1e-4 \
-        --warmup-updates 8000 \
+        --lr 1e-3 \
+        --warmup-updates 1000 \
         --dropout 0.3 \
         --weight-decay 0.0001 \
         --clip-norm 0.5 \
         --label-smoothing 0.1 \
-        --patience 3 \
+        --patience 2 \
         --seed 0 \
     "
