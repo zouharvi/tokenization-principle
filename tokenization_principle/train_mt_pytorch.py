@@ -359,16 +359,20 @@ def main():
                 "model_state_dict": model.state_dict(),
                 "val_chrf": val_chrf,
                 "args": vars(args),
-            }, os.path.join(args.save_dir, "checkpoint_best.pt"))
+            }, os.path.join(args.save_dir, f"checkpoint_best_s{args.seed}.pt"))
             print(f"[*] New best checkpoint (chrF: {val_chrf:.2f})", flush=True)
-        else:
+        elif best_chrf > 0.0:
             patience_cnt += 1
             if patience_cnt >= args.patience:
                 print(f"Early stopping at epoch {epoch}.", flush=True)
                 break
 
     # Final test evaluation
-    best_ckpt = os.path.join(args.save_dir, "checkpoint_best.pt")
+    best_ckpt = os.path.join(args.save_dir, f"checkpoint_best_s{args.seed}.pt")
+    if not os.path.exists(best_ckpt):
+        fallback_ckpt = os.path.join(args.save_dir, "checkpoint_best.pt")
+        if os.path.exists(fallback_ckpt):
+            best_ckpt = fallback_ckpt
     if os.path.exists(best_ckpt):
         model.load_state_dict(torch.load(best_ckpt, map_location=device)["model_state_dict"])
 
@@ -382,7 +386,7 @@ def main():
     test_hyps = greedy_translate(model, ts_src[:test_n], vocab, device)
     test_chrf = sacrebleu.corpus_chrf(test_hyps, [ts_ref[:test_n]]).score
 
-    with open(os.path.join(args.save_dir, "eval_hypotheses.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(args.save_dir, f"test_hyp_s{args.seed}.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(test_hyps) + "\n")
 
     print(f"epoch {best_epoch} | chrf {test_chrf:.2f} | best_chrf {best_chrf:.2f}", flush=True)
