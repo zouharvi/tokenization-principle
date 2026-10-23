@@ -233,8 +233,8 @@ def main():
     parser.add_argument("--train-tgt", required=True)
     parser.add_argument("--valid-src", required=True)
     parser.add_argument("--valid-tgt", required=True)
-    parser.add_argument("--test-src", default=None)
-    parser.add_argument("--test-tgt", default=None)
+    parser.add_argument("--test-src", required=True)
+    parser.add_argument("--test-tgt", required=True)
     parser.add_argument("--save-dir", default="checkpoints")
     parser.add_argument("--vocab-file", default=None)
     parser.add_argument("--max-vocab-size", type=int, default=32768)
@@ -252,7 +252,7 @@ def main():
     parser.add_argument("--clip-norm", type=float, default=0.5)
     parser.add_argument("--label-smoothing", type=float, default=0.1)
     parser.add_argument("--max-tokens", type=int, default=12288)
-    parser.add_argument("--max-epochs", type=int, default=50)
+    parser.add_argument("--max-epochs", type=int, default=45)
     parser.add_argument("--patience", type=int, default=5)
     parser.add_argument("--log-interval", type=int, default=500)
     parser.add_argument("--seed", type=int, default=42)
@@ -345,7 +345,7 @@ def main():
                 running_loss, running_toks, step_t = 0.0, 0, time.time()
 
         # Validation: Evaluate chrF via sacrebleu instead of loss
-        eval_n = min(len(valid_srcs), 2000)
+        eval_n = min(len(valid_srcs), 5000)
         hypotheses = greedy_translate(model, valid_srcs[:eval_n], vocab, device)
         val_chrf = sacrebleu.corpus_chrf(hypotheses, [valid_refs[:eval_n]]).score
         print(f"=== Epoch {epoch:2d} | Time: {time.time()-epoch_start:.1f}s | Val chrF: {val_chrf:.2f} ===", flush=True)
@@ -376,17 +376,14 @@ def main():
     if os.path.exists(best_ckpt):
         model.load_state_dict(torch.load(best_ckpt, map_location=device)["model_state_dict"])
 
-    test_src = args.test_src or args.valid_src
-    test_tgt = args.test_tgt or args.valid_tgt
-    with open(test_src, "r", encoding="utf-8") as fs, open(test_tgt, "r", encoding="utf-8") as ft:
+    with open(args.test_src, "r", encoding="utf-8") as fs, open(args.test_tgt, "r", encoding="utf-8") as ft:
         ts_src = [l.strip() for l in fs]
         ts_ref = [l.strip() for l in ft]
 
-    test_n = min(len(ts_src), 5000)
-    test_hyps = greedy_translate(model, ts_src[:test_n], vocab, device)
-    test_chrf = sacrebleu.corpus_chrf(test_hyps, [ts_ref[:test_n]]).score
+    test_hyps = greedy_translate(model, ts_src, vocab, device)
+    test_chrf = sacrebleu.corpus_chrf(test_hyps, [ts_ref]).score
 
-    with open(os.path.join(args.save_dir, f"test_hyp_s{args.seed}.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(args.save_dir, f"test_s{args.seed}.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(test_hyps) + "\n")
 
     print(f"epoch {best_epoch} | chrf {test_chrf:.2f} | best_chrf {best_chrf:.2f}", flush=True)

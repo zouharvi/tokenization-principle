@@ -31,6 +31,8 @@ for LANGS in "${LANGS_LIST[@]}"; do
                     --train-tgt \"${MODEL_DIR}/train.${LANG2}\" \
                     --valid-src \"${MODEL_DIR}/dev.${LANG1}\" \
                     --valid-tgt \"${MODEL_DIR}/dev.${LANG2}\" \
+                    --test-src \"${MODEL_DIR}/test.${LANG1}\" \
+                    --test-tgt \"${MODEL_DIR}/test.${LANG2}\" \
                     --save-dir \"${CHECKPOINT_DIR}\" \
                     --max-tokens 12288 \
                     --embed-dim 512 \
@@ -62,6 +64,8 @@ sbatch --time=01-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
         --train-tgt \"data/prepared/de-en/unigram_v32000/train.en\" \
         --valid-src \"data/prepared/de-en/unigram_v32000/dev.de\" \
         --valid-tgt \"data/prepared/de-en/unigram_v32000/dev.en\" \
+        --test-src \"data/prepared/de-en/unigram_v32000/test.de\" \
+        --test-tgt \"data/prepared/de-en/unigram_v32000/test.en\" \
         --save-dir \"data/prepared/de-en/unigram_v32000/checkpoints\" \
         --max-tokens 12288 \
         --embed-dim 512 \
@@ -90,6 +94,8 @@ sbatch --time=01-00 --ntasks=8 --mem-per-cpu=8G --gpus=rtx_4090:1 \
         --train-tgt \"data/prepared/de-en/unigram_v4000/train.en\" \
         --valid-src \"data/prepared/de-en/unigram_v4000/dev.de\" \
         --valid-tgt \"data/prepared/de-en/unigram_v4000/dev.en\" \
+        --test-src \"data/prepared/de-en/unigram_v4000/test.de\" \
+        --test-tgt \"data/prepared/de-en/unigram_v4000/test.en\" \
         --save-dir \"data/prepared/de-en/unigram_v4000/checkpoints\" \
         --max-tokens 12288 \
         --embed-dim 512 \
