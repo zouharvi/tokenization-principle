@@ -121,7 +121,7 @@ def main():
             if vocab_size is not None:
                 kwargs["vocab"] = vocab_size
             kwargs["verbose"] = False
-            base_metric = "renyi_eff" if metric_name.startswith("renyi_eff") else metric_name
+            base_metric = "renyi_efficiency" if metric_name.startswith("renyi_eff") else ("shannon_efficiency" if metric_name == "shannon_eff" else metric_name)
             val = score(combined_text, metric=base_metric, **kwargs)
             entry[metric_name] = float(val)
 
